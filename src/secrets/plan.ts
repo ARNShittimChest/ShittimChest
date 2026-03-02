@@ -9,7 +9,7 @@ export type SecretsPlanTargetType =
 export type SecretsPlanTarget = {
   type: SecretsPlanTargetType;
   /**
-   * Dot path in openclaw.json for operator readability.
+   * Dot path in shittimchest.json for operator readability.
    * Example: "models.providers.openai.apiKey"
    */
   path: string;
@@ -33,7 +33,7 @@ export type SecretsApplyPlan = {
   version: 1;
   protocolVersion: 1;
   generatedAt: string;
-  generatedBy: "openclaw secrets configure" | "manual";
+  generatedBy: "shittimchest secrets configure" | "manual";
   providerUpserts?: Record<string, SecretProviderConfig>;
   providerDeletes?: string[];
   targets: SecretsPlanTarget[];

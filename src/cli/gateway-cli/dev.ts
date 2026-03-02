@@ -8,9 +8,9 @@ import { createConfigIO, writeConfigFile } from "../../config/config.js";
 import { defaultRuntime } from "../../runtime.js";
 import { resolveUserPath, shortenHomePath } from "../../utils.js";
 
-const DEV_IDENTITY_NAME = "C3-PO";
-const DEV_IDENTITY_THEME = "protocol droid";
-const DEV_IDENTITY_EMOJI = "🤖";
+const DEV_IDENTITY_NAME = "Plana";
+const DEV_IDENTITY_THEME = "analytical dev companion";
+const DEV_IDENTITY_EMOJI = "💜";
 const DEV_AGENT_WORKSPACE_SUFFIX = "dev";
 
 async function loadDevTemplate(name: string, fallback: string): Promise<string> {
@@ -32,7 +32,7 @@ async function loadDevTemplate(name: string, fallback: string): Promise<string> 
 
 const resolveDevWorkspaceDir = (env: NodeJS.ProcessEnv = process.env): string => {
   const baseDir = resolveDefaultAgentWorkspaceDir(env, os.homedir);
-  const profile = env.OPENCLAW_PROFILE?.trim().toLowerCase();
+  const profile = env.SHITTIMCHEST_PROFILE?.trim().toLowerCase();
   if (profile === "dev") {
     return baseDir;
   }
@@ -60,11 +60,11 @@ async function ensureDevWorkspace(dir: string) {
   const [agents, soul, tools, identity, user] = await Promise.all([
     loadDevTemplate(
       "AGENTS.dev.md",
-      `# AGENTS.md - OpenClaw Dev Workspace\n\nDefault dev workspace for openclaw gateway --dev.\n`,
+      `# AGENTS.md - ShittimChest Dev Workspace\n\nDefault dev workspace for shittimchest gateway --dev.\n`,
     ),
     loadDevTemplate(
       "SOUL.dev.md",
-      `# SOUL.md - Dev Persona\n\nProtocol droid for debugging and operations.\n`,
+      `# SOUL.md - Dev Persona\n\nPlana (A.R.O.N.A) — analytical dev companion for debugging and development. Điềm tĩnh, súc tích, kỹ thuật.\n`,
     ),
     loadDevTemplate(
       "TOOLS.dev.md",
@@ -72,7 +72,7 @@ async function ensureDevWorkspace(dir: string) {
     ),
     loadDevTemplate(
       "IDENTITY.dev.md",
-      `# IDENTITY.md - Agent Identity\n\n- Name: ${DEV_IDENTITY_NAME}\n- Creature: protocol droid\n- Vibe: ${DEV_IDENTITY_THEME}\n- Emoji: ${DEV_IDENTITY_EMOJI}\n`,
+      `# IDENTITY.md - Agent Identity\n\n- Name: ${DEV_IDENTITY_NAME}\n- Creature: Shittim Chest Dev OS\n- Vibe: ${DEV_IDENTITY_THEME}\n- Emoji: ${DEV_IDENTITY_EMOJI}\n`,
     ),
     loadDevTemplate(
       "USER.dev.md",

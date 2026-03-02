@@ -45,7 +45,7 @@ describe("createHostWorkspaceEditTool host access mapping", () => {
   it.runIf(process.platform !== "win32")(
     "maps outside-workspace safe-open failures to EACCES",
     async () => {
-      tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-edit-access-test-"));
+      tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-edit-access-test-"));
       const workspaceDir = path.join(tmpDir, "workspace");
       const outsideDir = path.join(tmpDir, "outside");
       const linkDir = path.join(workspaceDir, "escape");

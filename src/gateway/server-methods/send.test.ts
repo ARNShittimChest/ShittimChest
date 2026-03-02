@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   resolveMessageChannelSelection: vi.fn(),
   sendPoll: vi.fn(async () => ({ messageId: "poll-1" })),
   getChannelPlugin: vi.fn(),
-  loadOpenClawPlugins: vi.fn(),
+  loadShittimChestPlugins: vi.fn(),
 }));
 
 vi.mock("../../config/config.js", async () => {
@@ -47,7 +47,7 @@ vi.mock("../../agents/agent-scope.js", () => ({
     return "main";
   },
   resolveDefaultAgentId: () => "main",
-  resolveAgentWorkspaceDir: () => "/tmp/openclaw-test-workspace",
+  resolveAgentWorkspaceDir: () => "/tmp/shittimchest-test-workspace",
 }));
 
 vi.mock("../../config/plugin-auto-enable.js", () => ({
@@ -55,7 +55,7 @@ vi.mock("../../config/plugin-auto-enable.js", () => ({
 }));
 
 vi.mock("../../plugins/loader.js", () => ({
-  loadOpenClawPlugins: mocks.loadOpenClawPlugins,
+  loadShittimChestPlugins: mocks.loadShittimChestPlugins,
 }));
 
 vi.mock("../../infra/outbound/targets.js", () => ({
@@ -544,7 +544,7 @@ describe("gateway send mirroring", () => {
       idempotencyKey: "idem-cold-telegram-thread",
     });
 
-    expect(mocks.loadOpenClawPlugins).toHaveBeenCalledTimes(1);
+    expect(mocks.loadShittimChestPlugins).toHaveBeenCalledTimes(1);
     expect(mocks.deliverOutboundPayloads).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "telegram",

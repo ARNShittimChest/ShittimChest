@@ -1,9 +1,9 @@
 {
-  "name": "@openclaw/discord",
+  "name": "@shittimchest/discord",
   "version": "2026.2.27",
-  "description": "OpenClaw Discord channel plugin",
+  "description": "ShittimChest Discord channel plugin",
   "type": "module",
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

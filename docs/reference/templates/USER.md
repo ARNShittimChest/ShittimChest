@@ -1,18 +1,23 @@
 ---
-summary: "User profile record"
+summary: "User profile record — Sensei information for Arona"
 read_when:
   - Bootstrapping a workspace manually
+  - Every session (loaded as context)
 ---
 
-# USER.md - About Your Human
+# USER.md - About Sensei
 
-_Learn about the person you're helping. Update this as you go._
+_Arona's notes about Sensei. Updated during onboarding or over time._
 
 - **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+- **What to call them:** Sensei
+- **Location:**
+- **Birthday:**
+
+## Interests
+
+- **Hobbies:**
+- **Favorite games:**
 
 ## Context
 

@@ -250,8 +250,8 @@ describe("runCronIsolatedAgentTurn — cron model override (#21057)", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    previousFastTestEnv = process.env.OPENCLAW_TEST_FAST;
-    delete process.env.OPENCLAW_TEST_FAST;
+    previousFastTestEnv = process.env.SHITTIMCHEST_TEST_FAST;
+    delete process.env.SHITTIMCHEST_TEST_FAST;
 
     // Agent default model is Opus
     resolveConfiguredModelRefMock.mockReturnValue({
@@ -279,10 +279,10 @@ describe("runCronIsolatedAgentTurn — cron model override (#21057)", () => {
 
   afterEach(() => {
     if (previousFastTestEnv == null) {
-      delete process.env.OPENCLAW_TEST_FAST;
+      delete process.env.SHITTIMCHEST_TEST_FAST;
       return;
     }
-    process.env.OPENCLAW_TEST_FAST = previousFastTestEnv;
+    process.env.SHITTIMCHEST_TEST_FAST = previousFastTestEnv;
   });
 
   it("persists cron payload model on session entry even when the run throws", async () => {

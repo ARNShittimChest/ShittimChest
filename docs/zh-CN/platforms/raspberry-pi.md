@@ -1,9 +1,9 @@
 ---
 read_when:
-  - 在 Raspberry Pi 上设置 OpenClaw 时
-  - 在 ARM 设备上运行 OpenClaw 时
+  - 在 Raspberry Pi 上设置 ShittimChest 时
+  - 在 ARM 设备上运行 ShittimChest 时
   - 构建低成本常驻个人 AI 时
-summary: 在 Raspberry Pi 上运行 OpenClaw（低成本自托管设置）
+summary: 在 Raspberry Pi 上运行 ShittimChest（低成本自托管设置）
 title: Raspberry Pi
 x-i18n:
   generated_at: "2026-02-03T07:53:30Z"
@@ -14,11 +14,11 @@ x-i18n:
   workflow: 15
 ---
 
-# 在 Raspberry Pi 上运行 OpenClaw
+# 在 Raspberry Pi 上运行 ShittimChest
 
 ## 目标
 
-在 Raspberry Pi 上运行持久、常驻的 OpenClaw Gateway 网关，**一次性成本约 $35-80**（无月费）。
+在 Raspberry Pi 上运行持久、常驻的 ShittimChest Gateway 网关，**一次性成本约 $35-80**（无月费）。
 
 适用于：
 
@@ -114,19 +114,19 @@ echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
 
-## 6) 安装 OpenClaw
+## 6) 安装 ShittimChest
 
 ### 选项 A：标准安装（推荐）
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://shittimchest.ai/install.sh | bash
 ```
 
 ### 选项 B：可修改安装（用于调试）
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
+git clone https://github.com/shittimchest/shittimchest.git
+cd shittimchest
 npm install
 npm run build
 npm link
@@ -137,7 +137,7 @@ npm link
 ## 7) 运行新手引导
 
 ```bash
-openclaw onboard --install-daemon
+shittimchest onboard --install-daemon
 ```
 
 按照向导操作：
@@ -151,13 +151,13 @@ openclaw onboard --install-daemon
 
 ```bash
 # 检查状态
-openclaw status
+shittimchest status
 
 # 检查服务
-sudo systemctl status openclaw
+sudo systemctl status shittimchest
 
 # 查看日志
-journalctl -u openclaw -f
+journalctl -u shittimchest -f
 ```
 
 ## 9) 访问仪表板
@@ -180,8 +180,8 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up
 
 # 更新配置
-openclaw config set gateway.bind tailnet
-sudo systemctl restart openclaw
+shittimchest config set gateway.bind tailnet
+sudo systemctl restart shittimchest
 ```
 
 ---
@@ -228,7 +228,7 @@ htop
 
 ### 二进制兼容性
 
-大多数 OpenClaw 功能在 ARM64 上可用，但某些外部二进制文件可能需要 ARM 构建：
+大多数 ShittimChest 功能在 ARM64 上可用，但某些外部二进制文件可能需要 ARM 构建：
 
 | 工具               | ARM64 状态 | 说明                                |
 | ------------------ | ---------- | ----------------------------------- |
@@ -278,13 +278,13 @@ uname -m
 
 ```bash
 # 检查服务是否已启用
-sudo systemctl is-enabled openclaw
+sudo systemctl is-enabled shittimchest
 
 # 如果没有则启用
-sudo systemctl enable openclaw
+sudo systemctl enable shittimchest
 
 # 开机启动
-sudo systemctl start openclaw
+sudo systemctl start shittimchest
 ```
 
 ---
@@ -311,12 +311,12 @@ free -h
 
 ```bash
 # 检查日志
-journalctl -u openclaw --no-pager -n 100
+journalctl -u shittimchest --no-pager -n 100
 
 # 常见修复：重新构建
-cd ~/openclaw  # 如果使用可修改安装
+cd ~/shittimchest  # 如果使用可修改安装
 npm run build
-sudo systemctl restart openclaw
+sudo systemctl restart shittimchest
 ```
 
 ### ARM 二进制问题

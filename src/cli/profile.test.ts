@@ -7,7 +7,7 @@ describe("parseCliProfileArgs", () => {
   it("leaves gateway --dev for subcommands", () => {
     const res = parseCliProfileArgs([
       "node",
-      "openclaw",
+      "shittimchest",
       "gateway",
       "--dev",
       "--allow-unconfigured",
@@ -16,35 +16,35 @@ describe("parseCliProfileArgs", () => {
       throw new Error(res.error);
     }
     expect(res.profile).toBeNull();
-    expect(res.argv).toEqual(["node", "openclaw", "gateway", "--dev", "--allow-unconfigured"]);
+    expect(res.argv).toEqual(["node", "shittimchest", "gateway", "--dev", "--allow-unconfigured"]);
   });
 
   it("still accepts global --dev before subcommand", () => {
-    const res = parseCliProfileArgs(["node", "openclaw", "--dev", "gateway"]);
+    const res = parseCliProfileArgs(["node", "shittimchest", "--dev", "gateway"]);
     if (!res.ok) {
       throw new Error(res.error);
     }
     expect(res.profile).toBe("dev");
-    expect(res.argv).toEqual(["node", "openclaw", "gateway"]);
+    expect(res.argv).toEqual(["node", "shittimchest", "gateway"]);
   });
 
   it("parses --profile value and strips it", () => {
-    const res = parseCliProfileArgs(["node", "openclaw", "--profile", "work", "status"]);
+    const res = parseCliProfileArgs(["node", "shittimchest", "--profile", "work", "status"]);
     if (!res.ok) {
       throw new Error(res.error);
     }
     expect(res.profile).toBe("work");
-    expect(res.argv).toEqual(["node", "openclaw", "status"]);
+    expect(res.argv).toEqual(["node", "shittimchest", "status"]);
   });
 
   it("rejects missing profile value", () => {
-    const res = parseCliProfileArgs(["node", "openclaw", "--profile"]);
+    const res = parseCliProfileArgs(["node", "shittimchest", "--profile"]);
     expect(res.ok).toBe(false);
   });
 
   it.each([
-    ["--dev first", ["node", "openclaw", "--dev", "--profile", "work", "status"]],
-    ["--profile first", ["node", "openclaw", "--profile", "work", "--dev", "status"]],
+    ["--dev first", ["node", "shittimchest", "--dev", "--profile", "work", "status"]],
+    ["--profile first", ["node", "shittimchest", "--profile", "work", "--dev", "status"]],
   ])("rejects combining --dev with --profile (%s)", (_name, argv) => {
     const res = parseCliProfileArgs(argv);
     expect(res.ok).toBe(false);
@@ -59,31 +59,31 @@ describe("applyCliProfileEnv", () => {
       env,
       homedir: () => "/home/peter",
     });
-    const expectedStateDir = path.join(path.resolve("/home/peter"), ".openclaw-dev");
-    expect(env.OPENCLAW_PROFILE).toBe("dev");
-    expect(env.OPENCLAW_STATE_DIR).toBe(expectedStateDir);
-    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join(expectedStateDir, "openclaw.json"));
-    expect(env.OPENCLAW_GATEWAY_PORT).toBe("19001");
+    const expectedStateDir = path.join(path.resolve("/home/peter"), ".shittimchest-dev");
+    expect(env.SHITTIMCHEST_PROFILE).toBe("dev");
+    expect(env.SHITTIMCHEST_STATE_DIR).toBe(expectedStateDir);
+    expect(env.SHITTIMCHEST_CONFIG_PATH).toBe(path.join(expectedStateDir, "shittimchest.json"));
+    expect(env.SHITTIMCHEST_GATEWAY_PORT).toBe("19001");
   });
 
   it("does not override explicit env values", () => {
     const env: Record<string, string | undefined> = {
-      OPENCLAW_STATE_DIR: "/custom",
-      OPENCLAW_GATEWAY_PORT: "19099",
+      SHITTIMCHEST_STATE_DIR: "/custom",
+      SHITTIMCHEST_GATEWAY_PORT: "19099",
     };
     applyCliProfileEnv({
       profile: "dev",
       env,
       homedir: () => "/home/peter",
     });
-    expect(env.OPENCLAW_STATE_DIR).toBe("/custom");
-    expect(env.OPENCLAW_GATEWAY_PORT).toBe("19099");
-    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join("/custom", "openclaw.json"));
+    expect(env.SHITTIMCHEST_STATE_DIR).toBe("/custom");
+    expect(env.SHITTIMCHEST_GATEWAY_PORT).toBe("19099");
+    expect(env.SHITTIMCHEST_CONFIG_PATH).toBe(path.join("/custom", "shittimchest.json"));
   });
 
-  it("uses OPENCLAW_HOME when deriving profile state dir", () => {
+  it("uses SHITTIMCHEST_HOME when deriving profile state dir", () => {
     const env: Record<string, string | undefined> = {
-      OPENCLAW_HOME: "/srv/openclaw-home",
+      SHITTIMCHEST_HOME: "/srv/shittimchest-home",
       HOME: "/home/other",
     };
     applyCliProfileEnv({
@@ -92,10 +92,10 @@ describe("applyCliProfileEnv", () => {
       homedir: () => "/home/fallback",
     });
 
-    const resolvedHome = path.resolve("/srv/openclaw-home");
-    expect(env.OPENCLAW_STATE_DIR).toBe(path.join(resolvedHome, ".openclaw-work"));
-    expect(env.OPENCLAW_CONFIG_PATH).toBe(
-      path.join(resolvedHome, ".openclaw-work", "openclaw.json"),
+    const resolvedHome = path.resolve("/srv/shittimchest-home");
+    expect(env.SHITTIMCHEST_STATE_DIR).toBe(path.join(resolvedHome, ".shittimchest-work"));
+    expect(env.SHITTIMCHEST_CONFIG_PATH).toBe(
+      path.join(resolvedHome, ".shittimchest-work", "shittimchest.json"),
     );
   });
 });
@@ -104,65 +104,65 @@ describe("formatCliCommand", () => {
   it.each([
     {
       name: "no profile is set",
-      cmd: "openclaw doctor --fix",
+      cmd: "shittimchest doctor --fix",
       env: {},
-      expected: "openclaw doctor --fix",
+      expected: "shittimchest doctor --fix",
     },
     {
       name: "profile is default",
-      cmd: "openclaw doctor --fix",
-      env: { OPENCLAW_PROFILE: "default" },
-      expected: "openclaw doctor --fix",
+      cmd: "shittimchest doctor --fix",
+      env: { SHITTIMCHEST_PROFILE: "default" },
+      expected: "shittimchest doctor --fix",
     },
     {
       name: "profile is Default (case-insensitive)",
-      cmd: "openclaw doctor --fix",
-      env: { OPENCLAW_PROFILE: "Default" },
-      expected: "openclaw doctor --fix",
+      cmd: "shittimchest doctor --fix",
+      env: { SHITTIMCHEST_PROFILE: "Default" },
+      expected: "shittimchest doctor --fix",
     },
     {
       name: "profile is invalid",
-      cmd: "openclaw doctor --fix",
-      env: { OPENCLAW_PROFILE: "bad profile" },
-      expected: "openclaw doctor --fix",
+      cmd: "shittimchest doctor --fix",
+      env: { SHITTIMCHEST_PROFILE: "bad profile" },
+      expected: "shittimchest doctor --fix",
     },
     {
       name: "--profile is already present",
-      cmd: "openclaw --profile work doctor --fix",
-      env: { OPENCLAW_PROFILE: "work" },
-      expected: "openclaw --profile work doctor --fix",
+      cmd: "shittimchest --profile work doctor --fix",
+      env: { SHITTIMCHEST_PROFILE: "work" },
+      expected: "shittimchest --profile work doctor --fix",
     },
     {
       name: "--dev is already present",
-      cmd: "openclaw --dev doctor",
-      env: { OPENCLAW_PROFILE: "dev" },
-      expected: "openclaw --dev doctor",
+      cmd: "shittimchest --dev doctor",
+      env: { SHITTIMCHEST_PROFILE: "dev" },
+      expected: "shittimchest --dev doctor",
     },
   ])("returns command unchanged when $name", ({ cmd, env, expected }) => {
     expect(formatCliCommand(cmd, env)).toBe(expected);
   });
 
   it("inserts --profile flag when profile is set", () => {
-    expect(formatCliCommand("openclaw doctor --fix", { OPENCLAW_PROFILE: "work" })).toBe(
-      "openclaw --profile work doctor --fix",
+    expect(formatCliCommand("shittimchest doctor --fix", { SHITTIMCHEST_PROFILE: "work" })).toBe(
+      "shittimchest --profile work doctor --fix",
     );
   });
 
   it("trims whitespace from profile", () => {
-    expect(formatCliCommand("openclaw doctor --fix", { OPENCLAW_PROFILE: "  jbopenclaw  " })).toBe(
-      "openclaw --profile jbopenclaw doctor --fix",
+    expect(formatCliCommand("shittimchest doctor --fix", { SHITTIMCHEST_PROFILE: "  jbshittimchest  " })).toBe(
+      "shittimchest --profile jbshittimchest doctor --fix",
     );
   });
 
-  it("handles command with no args after openclaw", () => {
-    expect(formatCliCommand("openclaw", { OPENCLAW_PROFILE: "test" })).toBe(
-      "openclaw --profile test",
+  it("handles command with no args after shittimchest", () => {
+    expect(formatCliCommand("shittimchest", { SHITTIMCHEST_PROFILE: "test" })).toBe(
+      "shittimchest --profile test",
     );
   });
 
   it("handles pnpm wrapper", () => {
-    expect(formatCliCommand("pnpm openclaw doctor", { OPENCLAW_PROFILE: "work" })).toBe(
-      "pnpm openclaw --profile work doctor",
+    expect(formatCliCommand("pnpm shittimchest doctor", { SHITTIMCHEST_PROFILE: "work" })).toBe(
+      "pnpm shittimchest --profile work doctor",
     );
   });
 });

@@ -1,17 +1,17 @@
-import OpenClawChatUI
-import OpenClawKit
+import ShittimChestChatUI
+import ShittimChestKit
 import SwiftUI
 
 struct ChatSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel: OpenClawChatViewModel
+    @State private var viewModel: ShittimChestChatViewModel
     private let userAccent: Color?
     private let agentName: String?
 
     init(gateway: GatewayNodeSession, sessionKey: String, agentName: String? = nil, userAccent: Color? = nil) {
         let transport = IOSGatewayChatTransport(gateway: gateway)
         self._viewModel = State(
-            initialValue: OpenClawChatViewModel(
+            initialValue: ShittimChestChatViewModel(
                 sessionKey: sessionKey,
                 transport: transport))
         self.userAccent = userAccent
@@ -20,7 +20,7 @@ struct ChatSheet: View {
 
     var body: some View {
         NavigationStack {
-            OpenClawChatView(
+            ShittimChestChatView(
                 viewModel: self.viewModel,
                 showsSessionSwitcher: true,
                 userAccent: self.userAccent)

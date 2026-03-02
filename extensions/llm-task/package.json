@@ -1,10 +1,10 @@
 {
-  "name": "@openclaw/llm-task",
+  "name": "@shittimchest/llm-task",
   "version": "2026.2.27",
   "private": true,
-  "description": "OpenClaw JSON-only LLM task plugin",
+  "description": "ShittimChest JSON-only LLM task plugin",
   "type": "module",
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

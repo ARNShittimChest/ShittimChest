@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { ShittimChestConfig } from "../config/config.js";
 import type { SessionEntry } from "../config/sessions.js";
 import { maskApiKey } from "../utils/mask-api-key.js";
 import {
@@ -33,7 +33,7 @@ function formatCredentialSnippet(params: {
 
 export function resolveModelAuthLabel(params: {
   provider?: string;
-  cfg?: OpenClawConfig;
+  cfg?: ShittimChestConfig;
   sessionEntry?: SessionEntry;
   agentDir?: string;
 }): string | undefined {

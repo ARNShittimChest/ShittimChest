@@ -1,9 +1,9 @@
 {
-  "name": "@openclaw/nextcloud-talk",
+  "name": "@shittimchest/nextcloud-talk",
   "version": "2026.2.27",
-  "description": "OpenClaw Nextcloud Talk channel plugin",
+  "description": "ShittimChest Nextcloud Talk channel plugin",
   "type": "module",
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ],
@@ -22,7 +22,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/nextcloud-talk",
+      "npmSpec": "@shittimchest/nextcloud-talk",
       "localPath": "extensions/nextcloud-talk",
       "defaultChoice": "npm"
     }

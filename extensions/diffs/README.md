@@ -1,6 +1,6 @@
-# @openclaw/diffs
+# @shittimchest/diffs
 
-Read-only diff viewer plugin for **OpenClaw** agents.
+Read-only diff viewer plugin for **ShittimChest** agents.
 
 It gives agents one tool, `diffs`, that can:
 
@@ -56,7 +56,7 @@ Useful options:
 
 ## Plugin Defaults
 
-Set plugin-wide defaults in `~/.openclaw/openclaw.json`:
+Set plugin-wide defaults in `~/.shittimchest/shittimchest.json`:
 
 ```json5
 {
@@ -111,10 +111,10 @@ Use the `diffs` tool in `image` mode for this before/after input. After it retur
 Path: README.md
 
 Before:
-OpenClaw supports plugins.
+ShittimChest supports plugins.
 
 After:
-OpenClaw supports plugins and hosted diff views.
+ShittimChest supports plugins and hosted diff views.
 ```
 
 Do both:

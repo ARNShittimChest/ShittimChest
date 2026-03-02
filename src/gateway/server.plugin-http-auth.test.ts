@@ -191,7 +191,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-security-headers-test-",
+      prefix: "shittimchest-plugin-http-security-headers-test-",
       run: async () => {
         const withoutHsts = createGatewayHttpServer({
           canvasHost: null,
@@ -253,7 +253,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-auth-test-",
+      prefix: "shittimchest-plugin-http-auth-test-",
       run: async () => {
         const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
           const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
@@ -346,7 +346,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-auth-canonicalized-test-",
+      prefix: "shittimchest-plugin-http-auth-canonicalized-test-",
       run: async () => {
         const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
           const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
@@ -395,7 +395,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-auth-fuzz-corpus-test-",
+      prefix: "shittimchest-plugin-http-auth-fuzz-corpus-test-",
       run: async () => {
         const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
           const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
@@ -445,7 +445,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
       await withTempConfig({
         cfg: { gateway: { trustedProxies: [] } },
-        prefix: "openclaw-plugin-http-hooks-bindhost-",
+        prefix: "shittimchest-plugin-http-hooks-bindhost-",
         run: async () => {
           const handleHooksRequest = createHooksRequestHandler({
             getHooksConfig: () => createHooksConfig(),
@@ -491,7 +491,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-hooks-query-token-",
+      prefix: "shittimchest-plugin-http-hooks-query-token-",
       run: async () => {
         const handleHooksRequest = createHooksRequestHandler({
           getHooksConfig: () => createHooksConfig(),

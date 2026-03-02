@@ -1,7 +1,7 @@
 {
-  "name": "@openclaw/diagnostics-otel",
+  "name": "@shittimchest/diagnostics-otel",
   "version": "2026.2.27",
-  "description": "OpenClaw diagnostics OpenTelemetry exporter",
+  "description": "ShittimChest diagnostics OpenTelemetry exporter",
   "type": "module",
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
@@ -16,7 +16,7 @@
     "@opentelemetry/sdk-trace-base": "^2.5.1",
     "@opentelemetry/semantic-conventions": "^1.39.0"
   },
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

@@ -1,7 +1,7 @@
 ---
-summary: "Use OpenAI via API keys or Codex subscription in OpenClaw"
+summary: "Use OpenAI via API keys or Codex subscription in ShittimChest"
 read_when:
-  - You want to use OpenAI models in OpenClaw
+  - You want to use OpenAI models in ShittimChest
   - You want Codex subscription auth instead of API keys
 title: "OpenAI"
 ---
@@ -19,9 +19,9 @@ Get your API key from the OpenAI dashboard.
 ### CLI setup
 
 ```bash
-openclaw onboard --auth-choice openai-api-key
+shittimchest onboard --auth-choice openai-api-key
 # or non-interactive
-openclaw onboard --openai-api-key "$OPENAI_API_KEY"
+shittimchest onboard --openai-api-key "$OPENAI_API_KEY"
 ```
 
 ### Config snippet
@@ -42,10 +42,10 @@ Codex cloud requires ChatGPT sign-in, while the Codex CLI supports ChatGPT or AP
 
 ```bash
 # Run Codex OAuth in the wizard
-openclaw onboard --auth-choice openai-codex
+shittimchest onboard --auth-choice openai-codex
 
 # Or run OAuth directly
-openclaw models auth login --provider openai-codex
+shittimchest models auth login --provider openai-codex
 ```
 
 ### Config snippet (Codex subscription)
@@ -58,7 +58,7 @@ openclaw models auth login --provider openai-codex
 
 ### Codex transport default
 
-OpenClaw uses `pi-ai` for model streaming. For `openai-codex/*` models you can set
+ShittimChest uses `pi-ai` for model streaming. For `openai-codex/*` models you can set
 `agents.defaults.models.<provider/model>.params.transport` to select transport:
 
 - Default is `"auto"` (WebSocket-first, then SSE fallback).
@@ -86,7 +86,7 @@ OpenClaw uses `pi-ai` for model streaming. For `openai-codex/*` models you can s
 ### OpenAI Responses server-side compaction
 
 For direct OpenAI Responses models (`openai/*` using `api: "openai-responses"` with
-`baseUrl` on `api.openai.com`), OpenClaw now auto-enables OpenAI server-side
+`baseUrl` on `api.openai.com`), ShittimChest now auto-enables OpenAI server-side
 compaction payload hints:
 
 - Forces `store: true` (unless model compat sets `supportsStore: false`)

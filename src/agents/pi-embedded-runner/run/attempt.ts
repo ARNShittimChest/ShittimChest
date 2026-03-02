@@ -9,7 +9,7 @@ import {
 } from "@mariozechner/pi-coding-agent";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
-import type { OpenClawConfig } from "../../../config/config.js";
+import type { ShittimChestConfig } from "../../../config/config.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
@@ -26,7 +26,24 @@ import { buildTtsSystemPromptHint } from "../../../tts/tts.js";
 import { resolveUserPath } from "../../../utils.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
-import { resolveOpenClawAgentDir } from "../../agent-paths.js";
+import {
+  loadOrCreateMoodState,
+  saveMoodState,
+  analyzeTimeOfDay,
+  decayMood,
+  applyTrigger,
+  buildMoodPromptContext,
+  addAffectionPoints,
+  getAffectionLevel,
+  getAffectionPromptModifier,
+  getLocalHour,
+  getTimeMode,
+  buildTimeModePromptHint,
+  analyzeKeywords,
+  analyzeAffectionDelta,
+  INTERACTION_AFFECTION_DELTA,
+} from "../../../companion/index.js";
+import { resolveShittimChestAgentDir } from "../../agent-paths.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
@@ -36,7 +53,7 @@ import {
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../defaults.js";
-import { resolveOpenClawDocsPath } from "../../docs-path.js";
+import { resolveShittimChestDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
@@ -53,7 +70,7 @@ import {
 import { subscribeEmbeddedPiSession } from "../../pi-embedded-subscribe.js";
 import { createPreparedEmbeddedPiSettingsManager } from "../../pi-project-settings.js";
 import { toClientToolDefinitions } from "../../pi-tool-definition-adapter.js";
-import { createOpenClawCodingTools, resolveToolLoopDetectionConfig } from "../../pi-tools.js";
+import { createShittimChestCodingTools, resolveToolLoopDetectionConfig } from "../../pi-tools.js";
 import { resolveSandboxContext } from "../../sandbox.js";
 import { resolveSandboxRuntimeStatus } from "../../sandbox/runtime-status.js";
 import { repairSessionFileIfNeeded } from "../../session-file-repair.js";
@@ -163,7 +180,7 @@ export function isOllamaCompatProvider(model: {
 }
 
 export function resolveOllamaCompatNumCtxEnabled(params: {
-  config?: OpenClawConfig;
+  config?: ShittimChestConfig;
   providerId?: string;
 }): boolean {
   const providerId = params.providerId?.trim();
@@ -189,7 +206,7 @@ export function resolveOllamaCompatNumCtxEnabled(params: {
 
 export function shouldInjectOllamaCompatNumCtx(params: {
   model: { api?: string; provider?: string; baseUrl?: string };
-  config?: OpenClawConfig;
+  config?: ShittimChestConfig;
   providerId?: string;
 }): boolean {
   // Restrict to the OpenAI-compatible adapter path only.
@@ -352,7 +369,7 @@ export function resolvePromptModeForSession(sessionKey?: string): "minimal" | "f
 }
 
 export function resolveAttemptFsWorkspaceOnly(params: {
-  config?: OpenClawConfig;
+  config?: ShittimChestConfig;
   sessionAgentId: string;
 }): boolean {
   return resolveEffectiveToolFsWorkspaceOnly({
@@ -489,7 +506,7 @@ export async function runEmbeddedAttempt(
       ? ["Reminder: commit your changes in this workspace after edits."]
       : undefined;
 
-    const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
+    const agentDir = params.agentDir ?? resolveShittimChestAgentDir();
 
     const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
       sessionKey: params.sessionKey,
@@ -504,7 +521,7 @@ export async function runEmbeddedAttempt(
     const modelHasVision = params.model.input?.includes("image") ?? false;
     const toolsRaw = params.disableTools
       ? []
-      : createOpenClawCodingTools({
+      : createShittimChestCodingTools({
           agentId: sessionAgentId,
           exec: {
             ...params.execOverrides,
@@ -639,7 +656,7 @@ export async function runEmbeddedAttempt(
     });
     const isDefaultAgent = sessionAgentId === defaultAgentId;
     const promptMode = resolvePromptModeForSession(params.sessionKey);
-    const docsPath = await resolveOpenClawDocsPath({
+    const docsPath = await resolveShittimChestDocsPath({
       workspaceDir: effectiveWorkspace,
       argv1: process.argv[1],
       cwd: process.cwd(),
@@ -647,6 +664,83 @@ export async function runEmbeddedAttempt(
     });
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
     const ownerDisplay = resolveOwnerDisplaySetting(params.config);
+
+    // ── Companion Mood Context (non-blocking) ──────────────────────
+    let companionMoodContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        // Resolve IANA timezone from config (companion.timezone) or system default
+        const companionTz =
+          params.config?.companion?.timezone
+          ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        const localHour = getLocalHour(companionTz);
+        const timeMode = getTimeMode(localHour);
+        const localTimeStr = new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: companionTz,
+          hour12: false,
+        });
+
+        let moodState = loadOrCreateMoodState(effectiveWorkspace);
+
+        // ── Time trigger ──────────────────────────────────────────
+        const timeTrigger = analyzeTimeOfDay(localHour, companionTz);
+        if (timeTrigger) {
+          moodState = applyTrigger(moodState, timeTrigger);
+        }
+
+        // ── Keyword triggers + affection delta from message ───────
+        // Extract the last user message text for keyword analysis
+        const lastUserMsg = [...(params.messages ?? [])].reverse().find(
+          (m) => m.role === "user",
+        );
+        const lastUserText =
+          typeof lastUserMsg?.content === "string"
+            ? lastUserMsg.content
+            : Array.isArray(lastUserMsg?.content)
+              ? (lastUserMsg.content as Array<{ type: string; text?: string }>)
+                  .filter((b) => b.type === "text")
+                  .map((b) => b.text ?? "")
+                  .join(" ")
+              : "";
+
+        if (lastUserText) {
+          const keywordTrigger = analyzeKeywords(lastUserText);
+          if (keywordTrigger) {
+            moodState = applyTrigger(moodState, keywordTrigger);
+          }
+          // Net affection delta: keyword content + base interaction bonus
+          const keywordAffectionDelta = analyzeAffectionDelta(lastUserText);
+          const netAffectionDelta = keywordAffectionDelta + INTERACTION_AFFECTION_DELTA;
+          if (netAffectionDelta !== 0) {
+            const reason = netAffectionDelta > 0
+              ? `+${netAffectionDelta} (chat)`
+              : `${netAffectionDelta} (chat)`;
+            moodState = addAffectionPoints(moodState, netAffectionDelta, reason);
+          }
+        } else {
+          // No message (tool call / internal step) — still give small interaction point
+          moodState = addAffectionPoints(moodState, INTERACTION_AFFECTION_DELTA, "interaction");
+        }
+
+        moodState = decayMood(moodState, Date.now());
+        const affectionLevel = getAffectionLevel(moodState.affection);
+        const affectionHint = getAffectionPromptModifier(affectionLevel);
+        companionMoodContext = [
+          buildMoodPromptContext(moodState),
+          `Affection level: ${affectionLevel}/5 (${Math.round(moodState.affection)}/100 pts)`,
+          affectionHint,
+          `[Time context] Local time: ${localTimeStr} (${companionTz}) — Time mode: ${timeMode}`,
+          buildTimeModePromptHint(timeMode),
+        ].join("\n");
+        // Save updated state (synchronous, best-effort)
+        saveMoodState(effectiveWorkspace, moodState);
+      } catch {
+        // Mood engine is non-critical — do not break agent run
+      }
+    }
 
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
@@ -677,6 +771,7 @@ export async function runEmbeddedAttempt(
       userTimeFormat,
       contextFiles,
       memoryCitationsMode: params.config?.memory?.citations,
+      companionMoodContext,
     });
     const systemPromptReport = buildSystemPromptReport({
       source: "run",
@@ -1363,7 +1458,7 @@ export async function runEmbeddedAttempt(
         // Previously this was before the prompt, which caused a custom entry to be
         // inserted between compaction and the next prompt — breaking the
         // prepareCompaction() guard that checks the last entry type, leading to
-        // double-compaction. See: https://github.com/openclaw/openclaw/issues/9282
+        // double-compaction. See: https://github.com/shittimchest/shittimchest/issues/9282
         // Skip when timed out during compaction — session state may be inconsistent.
         if (!timedOutDuringCompaction && !compactionOccurredThisAttempt) {
           const shouldTrackCacheTtl =
@@ -1399,7 +1494,7 @@ export async function runEmbeddedAttempt(
 
         if (promptError && promptErrorSource === "prompt" && !compactionOccurredThisAttempt) {
           try {
-            sessionManager.appendCustomEntry("openclaw:prompt-error", {
+            sessionManager.appendCustomEntry("shittimchest:prompt-error", {
               timestamp: Date.now(),
               runId: params.runId,
               sessionId: params.sessionId,
@@ -1541,7 +1636,7 @@ export async function runEmbeddedAttempt(
       // *before* tool execution completes in the retried agent loop. Without this wait,
       // flushPendingToolResults() fires while tools are still executing, inserting
       // synthetic "missing tool result" errors and causing silent agent failures.
-      // See: https://github.com/openclaw/openclaw/issues/8643
+      // See: https://github.com/shittimchest/shittimchest/issues/8643
       removeToolResultContextGuard?.();
       await flushPendingToolResultsAfterIdle({
         agent: session?.agent,

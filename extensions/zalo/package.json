@@ -1,12 +1,12 @@
 {
-  "name": "@openclaw/zalo",
+  "name": "@shittimchest/zalo",
   "version": "2026.2.27",
-  "description": "OpenClaw Zalo channel plugin",
+  "description": "ShittimChest Zalo channel plugin",
   "type": "module",
   "dependencies": {
     "undici": "7.22.0"
   },
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ],
@@ -24,7 +24,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/zalo",
+      "npmSpec": "@shittimchest/zalo",
       "localPath": "extensions/zalo",
       "defaultChoice": "npm"
     }

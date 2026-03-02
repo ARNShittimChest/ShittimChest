@@ -8,7 +8,7 @@ read_when:
 
 # Pi Development Workflow
 
-This guide summarizes a sane workflow for working on the pi integration in OpenClaw.
+This guide summarizes a sane workflow for working on the pi integration in ShittimChest.
 
 ## Type Checking and Linting
 
@@ -34,7 +34,7 @@ pnpm test -- \
 To include the live provider exercise:
 
 ```bash
-OPENCLAW_LIVE_TEST=1 pnpm test -- src/agents/pi-embedded-runner-extraparams.live.test.ts
+SHITTIMCHEST_LIVE_TEST=1 pnpm test -- src/agents/pi-embedded-runner-extraparams.live.test.ts
 ```
 
 This covers the main Pi unit suites:
@@ -53,7 +53,7 @@ Recommended flow:
 - Run the gateway in dev mode:
   - `pnpm gateway:dev`
 - Trigger the agent directly:
-  - `pnpm openclaw agent --message "Hello" --thinking low`
+  - `pnpm shittimchest agent --message "Hello" --thinking low`
 - Use the TUI for interactive debugging:
   - `pnpm tui`
 
@@ -61,11 +61,11 @@ For tool call behavior, prompt for a `read` or `exec` action so you can see tool
 
 ## Clean Slate Reset
 
-State lives under the OpenClaw state directory. Default is `~/.openclaw`. If `OPENCLAW_STATE_DIR` is set, use that directory instead.
+State lives under the ShittimChest state directory. Default is `~/.shittimchest`. If `SHITTIMCHEST_STATE_DIR` is set, use that directory instead.
 
 To reset everything:
 
-- `openclaw.json` for config
+- `shittimchest.json` for config
 - `credentials/` for auth profiles and tokens
 - `agents/<agentId>/sessions/` for agent session history
 - `agents/<agentId>/sessions.json` for the session index
@@ -76,5 +76,5 @@ If you only want to reset sessions, delete `agents/<agentId>/sessions/` and `age
 
 ## References
 
-- [https://docs.openclaw.ai/testing](https://docs.openclaw.ai/testing)
-- [https://docs.openclaw.ai/start/getting-started](https://docs.openclaw.ai/start/getting-started)
+- [https://docs.shittimchest.ai/testing](https://docs.shittimchest.ai/testing)
+- [https://docs.shittimchest.ai/start/getting-started](https://docs.shittimchest.ai/start/getting-started)

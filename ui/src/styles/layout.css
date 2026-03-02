@@ -16,7 +16,9 @@
   grid-template-areas:
     "topbar topbar"
     "nav content";
-  gap: 0;
+  gap: var(--shell-gap);
+  padding: var(--shell-pad);
+  box-sizing: border-box;
   animation: dashboard-enter 0.4s var(--ease-out);
   transition: grid-template-columns var(--shell-focus-duration) var(--shell-focus-ease);
   overflow: hidden;
@@ -64,7 +66,7 @@
   padding-top: 0;
 }
 
-.shell--chat-focus .content > * + * {
+.shell--chat-focus .content>*+* {
   margin-top: 0;
 }
 
@@ -74,8 +76,7 @@
 
 .topbar {
   grid-area: topbar;
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 40;
   display: flex;
   justify-content: space-between;
@@ -83,8 +84,12 @@
   gap: 16px;
   padding: 0 20px;
   height: var(--shell-topbar-height);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .topbar-left {
@@ -199,8 +204,14 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 12px;
-  background: var(--bg);
-  scrollbar-width: none; /* Firefox */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  scrollbar-width: none;
+  /* Firefox */
   transition:
     width var(--shell-focus-duration) var(--shell-focus-ease),
     padding var(--shell-focus-duration) var(--shell-focus-ease),
@@ -209,7 +220,8 @@
 }
 
 .nav::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
+  /* Chrome/Safari */
 }
 
 .shell--chat-focus .nav {
@@ -420,19 +432,20 @@
 
 .content {
   grid-area: content;
-  padding: 12px 16px 32px;
+  padding: 0;
   display: block;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
 }
 
-.content > * + * {
+.content>*+* {
   margin-top: 24px;
 }
 
 :root[data-theme="light"] .content {
-  background: var(--bg-content);
+  background: transparent;
 }
 
 .content--chat {
@@ -443,7 +456,7 @@
   padding-bottom: 0;
 }
 
-.content--chat > * + * {
+.content--chat>*+* {
   margin-top: 0;
 }
 
@@ -501,7 +514,7 @@
   gap: 16px;
 }
 
-.content--chat .content-header > div:first-child {
+.content--chat .content-header>div:first-child {
   text-align: left;
 }
 

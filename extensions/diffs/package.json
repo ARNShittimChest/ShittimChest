@@ -1,8 +1,8 @@
 {
-  "name": "@openclaw/diffs",
+  "name": "@shittimchest/diffs",
   "version": "2026.2.27",
   "private": true,
-  "description": "OpenClaw diff viewer plugin",
+  "description": "ShittimChest diff viewer plugin",
   "type": "module",
   "scripts": {
     "build:viewer": "bun build src/viewer-client.ts --target browser --format esm --minify --outfile assets/viewer-runtime.js"
@@ -12,7 +12,7 @@
     "@sinclair/typebox": "0.34.48",
     "playwright-core": "1.58.2"
   },
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

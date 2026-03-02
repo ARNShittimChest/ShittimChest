@@ -7,6 +7,7 @@ import type { GatewayHelloOk } from "../gateway.ts";
 import { formatNextRun } from "../presenter.ts";
 import type { UiSettings } from "../storage.ts";
 import { shouldShowPairingHint } from "./overview-hints.ts";
+import type { MoodState } from "../controllers/companion.ts";
 
 export type OverviewProps = {
   connected: boolean;
@@ -25,7 +26,67 @@ export type OverviewProps = {
   onSessionKeyChange: (next: string) => void;
   onConnect: () => void;
   onRefresh: () => void;
+  companionMood?: MoodState | null;
+  companionMoodLoading?: boolean;
 };
+
+const MOOD_EMOJI: Record<string, string> = {
+  happy: "😊",
+  excited: "🤩",
+  caring: "💕",
+  neutral: "😐",
+  worried: "😟",
+  sad: "😢",
+  sleepy: "😴",
+};
+
+function renderMoodCard(props: OverviewProps) {
+  if (!props.companionMood && !props.companionMoodLoading) {
+    return "";
+  }
+  const mood = props.companionMood;
+  if (!mood) {
+    return "";
+  }
+  const emoji = MOOD_EMOJI[mood.mood] ?? "🤖";
+  const intensity = Math.max(0, Math.min(100, Math.round(mood.intensity * 10)));
+  const affection = Math.max(0, Math.min(100, Math.round(mood.affection)));
+  const elapsed = mood.lastChangeMs ? Date.now() - mood.lastChangeMs : null;
+  const elapsedStr =
+    elapsed !== null
+      ? elapsed < 60000
+        ? "just now"
+        : elapsed < 3600000
+          ? `${Math.floor(elapsed / 60000)}m ago`
+          : `${Math.floor(elapsed / 3600000)}h ago`
+      : "";
+
+  return html`
+    <section class="card" style="margin-top: 18px;">
+      <div class="card-title">${emoji} Arona's Mood</div>
+      <div class="card-sub">Current emotional state</div>
+      <div class="stat-grid" style="margin-top: 14px;">
+        <div class="stat">
+          <div class="stat-label">Mood</div>
+          <div class="stat-value ok" style="text-transform: capitalize;">${mood.mood}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Intensity</div>
+          <div class="stat-value">${intensity}%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Affection</div>
+          <div class="stat-value">${affection}%</div>
+        </div>
+        ${elapsedStr ? html`<div class="stat">
+          <div class="stat-label">Changed</div>
+          <div class="stat-value muted" style="font-size:12px;">${elapsedStr}</div>
+        </div>` : ""}
+      </div>
+      ${mood.triggers?.length ? html`<div class="muted" style="margin-top:8px;font-size:12px;">Triggers: ${mood.triggers.join(", ")}</div>` : ""}
+    </section>
+  `;
+}
 
 export function renderOverview(props: OverviewProps) {
   const snapshot = props.hello?.snapshot as
@@ -50,8 +111,8 @@ export function renderOverview(props: OverviewProps) {
       <div class="muted" style="margin-top: 8px">
         ${t("overview.pairing.hint")}
         <div style="margin-top: 6px">
-          <span class="mono">openclaw devices list</span><br />
-          <span class="mono">openclaw devices approve &lt;requestId&gt;</span>
+          <span class="mono">shittimchest devices list</span><br />
+          <span class="mono">shittimchest devices approve &lt;requestId&gt;</span>
         </div>
         <div style="margin-top: 6px; font-size: 12px;">
           ${t("overview.pairing.mobileHint")}
@@ -59,7 +120,7 @@ export function renderOverview(props: OverviewProps) {
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/web/control-ui#device-pairing-first-connection"
+            href="https://docs.shittimchest.ai/web/control-ui#device-pairing-first-connection"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title="Device pairing docs (opens in new tab)"
@@ -110,13 +171,13 @@ export function renderOverview(props: OverviewProps) {
         <div class="muted" style="margin-top: 8px">
           ${t("overview.auth.required")}
           <div style="margin-top: 6px">
-            <span class="mono">openclaw dashboard --no-open</span> → tokenized URL<br />
-            <span class="mono">openclaw doctor --generate-gateway-token</span> → set token
+            <span class="mono">shittimchest dashboard --no-open</span> → tokenized URL<br />
+            <span class="mono">shittimchest doctor --generate-gateway-token</span> → set token
           </div>
           <div style="margin-top: 6px">
             <a
               class="session-link"
-              href="https://docs.openclaw.ai/web/dashboard"
+              href="https://docs.shittimchest.ai/web/dashboard"
               target=${EXTERNAL_LINK_TARGET}
               rel=${buildExternalLinkRel()}
               title="Control UI auth docs (opens in new tab)"
@@ -128,11 +189,11 @@ export function renderOverview(props: OverviewProps) {
     }
     return html`
       <div class="muted" style="margin-top: 8px">
-        ${t("overview.auth.failed", { command: "openclaw dashboard --no-open" })}
+        ${t("overview.auth.failed", { command: "shittimchest dashboard --no-open" })}
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/web/dashboard"
+            href="https://docs.shittimchest.ai/web/dashboard"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title="Control UI auth docs (opens in new tab)"
@@ -171,7 +232,7 @@ export function renderOverview(props: OverviewProps) {
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/gateway/tailscale"
+            href="https://docs.shittimchest.ai/gateway/tailscale"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title="Tailscale Serve docs (opens in new tab)"
@@ -180,7 +241,7 @@ export function renderOverview(props: OverviewProps) {
           <span class="muted"> · </span>
           <a
             class="session-link"
-            href="https://docs.openclaw.ai/web/control-ui#insecure-http"
+            href="https://docs.shittimchest.ai/web/control-ui#insecure-http"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title="Insecure HTTP docs (opens in new tab)"
@@ -222,7 +283,7 @@ export function renderOverview(props: OverviewProps) {
                       const v = (e.target as HTMLInputElement).value;
                       props.onSettingsChange({ ...props.settings, token: v });
                     }}
-                    placeholder="OPENCLAW_GATEWAY_TOKEN"
+                    placeholder="SHITTIMCHEST_GATEWAY_TOKEN"
                   />
                 </label>
                 <label class="field">
@@ -336,6 +397,8 @@ export function renderOverview(props: OverviewProps) {
         <div class="muted">${t("overview.stats.cronNext", { time: formatNextRun(props.cronNext) })}</div>
       </div>
     </section>
+
+    ${renderMoodCard(props)}
 
     <section class="card" style="margin-top: 18px;">
       <div class="card-title">${t("overview.notes.title")}</div>

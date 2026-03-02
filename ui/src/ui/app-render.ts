@@ -138,7 +138,7 @@ function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
 }
 
 export function renderApp(state: AppViewState) {
-  const openClawVersion =
+  const shittimChestVersion =
     (typeof state.hello?.server?.version === "string" && state.hello.server.version.trim()) ||
     state.updateAvailable?.currentVersion ||
     t("common.na");
@@ -235,10 +235,10 @@ export function renderApp(state: AppViewState) {
           </button>
           <div class="brand">
             <div class="brand-logo">
-              <img src=${basePath ? `${basePath}/favicon.svg` : "/favicon.svg"} alt="OpenClaw" />
+              <img src=${basePath ? `${basePath}/favicon.svg` : "/favicon.svg"} alt="ShittimChest" />
             </div>
             <div class="brand-text">
-              <div class="brand-title">OPENCLAW</div>
+              <div class="brand-title">SHITTIMCHEST</div>
               <div class="brand-sub">Gateway Dashboard</div>
             </div>
           </div>
@@ -247,13 +247,19 @@ export function renderApp(state: AppViewState) {
           <div class="pill">
             <span class="statusDot ${versionStatusClass}"></span>
             <span>${t("common.version")}</span>
-            <span class="mono">${openClawVersion}</span>
+            <span class="mono">${shittimChestVersion}</span>
           </div>
           <div class="pill">
             <span class="statusDot ${state.connected ? "ok" : ""}"></span>
             <span>${t("common.health")}</span>
             <span class="mono">${state.connected ? t("common.ok") : t("common.offline")}</span>
           </div>
+          ${state.companionMood ? html`
+          <div class="pill" title="Arona's current mood — Intensity: ${Math.round((state.companionMood.intensity ?? 0) * 10)}%">
+            <span>${({"happy":"😊","excited":"🤩","caring":"💕","neutral":"😐","worried":"😟","sad":"😢","sleepy":"😴"} as Record<string,string>)[state.companionMood.mood] ?? "🤖"}</span>
+            <span style="text-transform:capitalize;">${state.companionMood.mood}</span>
+            <span class="mono" style="color:var(--color-muted)">${Math.round((state.companionMood.intensity ?? 0) * 10)}%</span>
+          </div>` : nothing}
           ${renderThemeToggle(state)}
         </div>
       </header>
@@ -291,7 +297,7 @@ export function renderApp(state: AppViewState) {
           <div class="nav-group__items">
             <a
               class="nav-item nav-item--external"
-              href="https://docs.openclaw.ai"
+              href="https://docs.shittimchest.ai"
               target=${EXTERNAL_LINK_TARGET}
               rel=${buildExternalLinkRel()}
               title="${t("common.docs")} (opens in new tab)"
@@ -341,6 +347,8 @@ export function renderApp(state: AppViewState) {
                 cronEnabled: state.cronStatus?.enabled ?? null,
                 cronNext,
                 lastChannelsRefresh: state.channelsLastSuccess,
+                companionMood: state.companionMood,
+                companionMoodLoading: state.companionMoodLoading,
                 onSettingsChange: (next) => state.applySettings(next),
                 onPasswordChange: (next) => (state.password = next),
                 onSessionKeyChange: (next) => {

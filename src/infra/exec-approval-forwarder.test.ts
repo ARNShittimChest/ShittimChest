@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { ShittimChestConfig } from "../config/config.js";
 import { createExecApprovalForwarder } from "./exec-approval-forwarder.js";
 
 const baseRequest = {
@@ -35,10 +35,10 @@ const TARGETS_CFG = {
       targets: [{ channel: "telegram", to: "123" }],
     },
   },
-} as OpenClawConfig;
+} as ShittimChestConfig;
 
 function createForwarder(params: {
-  cfg: OpenClawConfig;
+  cfg: ShittimChestConfig;
   deliver?: ReturnType<typeof vi.fn>;
   resolveSessionTarget?: () => { channel: string; to: string } | null;
 }) {
@@ -57,7 +57,7 @@ function createForwarder(params: {
   return { deliver, forwarder };
 }
 
-function makeSessionCfg(options: { discordExecApprovalsEnabled?: boolean } = {}): OpenClawConfig {
+function makeSessionCfg(options: { discordExecApprovalsEnabled?: boolean } = {}): ShittimChestConfig {
   return {
     ...(options.discordExecApprovalsEnabled
       ? {
@@ -72,11 +72,11 @@ function makeSessionCfg(options: { discordExecApprovalsEnabled?: boolean } = {})
         }
       : {}),
     approvals: { exec: { enabled: true, mode: "session" } },
-  } as OpenClawConfig;
+  } as ShittimChestConfig;
 }
 
 async function expectDiscordSessionTargetRequest(params: {
-  cfg: OpenClawConfig;
+  cfg: ShittimChestConfig;
   expectedAccepted: boolean;
   expectedDeliveryCount: number;
 }) {
@@ -99,7 +99,7 @@ describe("exec approval forwarder", () => {
     vi.useFakeTimers();
     const cfg = {
       approvals: { exec: { enabled: true, mode: "session" } },
-    } as OpenClawConfig;
+    } as ShittimChestConfig;
 
     const { deliver, forwarder } = createForwarder({
       cfg,
@@ -160,7 +160,7 @@ describe("exec approval forwarder", () => {
 
   it("returns false when forwarding is disabled", async () => {
     const { deliver, forwarder } = createForwarder({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as ShittimChestConfig,
     });
     await expect(forwarder.handleRequested(baseRequest)).resolves.toBe(false);
     expect(deliver).not.toHaveBeenCalled();
@@ -175,7 +175,7 @@ describe("exec approval forwarder", () => {
           sessionFilter: ["(a+)+$"],
         },
       },
-    } as OpenClawConfig;
+    } as ShittimChestConfig;
 
     const { deliver, forwarder } = createForwarder({
       cfg,
@@ -220,7 +220,7 @@ describe("exec approval forwarder", () => {
 
   it("prefers turn-source routing over stale session last route", async () => {
     vi.useFakeTimers();
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-exec-approval-forwarder-test-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "shittimchest-exec-approval-forwarder-test-"));
     try {
       const storePath = path.join(tmpDir, "sessions.json");
       fs.writeFileSync(
@@ -240,7 +240,7 @@ describe("exec approval forwarder", () => {
       const cfg = {
         session: { store: storePath },
         approvals: { exec: { enabled: true, mode: "session" } },
-      } as OpenClawConfig;
+      } as ShittimChestConfig;
 
       const { deliver, forwarder } = createForwarder({ cfg });
       await expect(
@@ -280,7 +280,7 @@ describe("exec approval forwarder", () => {
           targets: [{ channel: "telegram", to: "123" }],
         },
       },
-    } as OpenClawConfig;
+    } as ShittimChestConfig;
     const { deliver, forwarder } = createForwarder({ cfg });
 
     await forwarder.handleResolved({

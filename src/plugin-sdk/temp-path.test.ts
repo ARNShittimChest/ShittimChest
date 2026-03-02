@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+import { resolvePreferredShittimChestTmpDir } from "../infra/tmp-shittimchest-dir.js";
 import { buildRandomTempFilePath, withTempDownloadPath } from "./temp-path.js";
 
 describe("buildRandomTempFilePath", () => {
@@ -17,7 +17,7 @@ describe("buildRandomTempFilePath", () => {
   });
 
   it("sanitizes prefix and extension to avoid path traversal segments", () => {
-    const tmpRoot = path.resolve(resolvePreferredOpenClawTmpDir());
+    const tmpRoot = path.resolve(resolvePreferredShittimChestTmpDir());
     const result = buildRandomTempFilePath({
       prefix: "../../line/../media",
       extension: "/../.jpg",
@@ -45,12 +45,12 @@ describe("withTempDownloadPath", () => {
       },
     );
 
-    expect(capturedPath).toContain(path.join(resolvePreferredOpenClawTmpDir(), "line-media-"));
+    expect(capturedPath).toContain(path.join(resolvePreferredShittimChestTmpDir(), "line-media-"));
     await expect(fs.stat(capturedPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("sanitizes prefix and fileName", async () => {
-    const tmpRoot = path.resolve(resolvePreferredOpenClawTmpDir());
+    const tmpRoot = path.resolve(resolvePreferredShittimChestTmpDir());
     let capturedPath = "";
     await withTempDownloadPath(
       {

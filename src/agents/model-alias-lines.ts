@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { ShittimChestConfig } from "../config/config.js";
 
-export function buildModelAliasLines(cfg?: OpenClawConfig) {
+export function buildModelAliasLines(cfg?: ShittimChestConfig) {
   const models = cfg?.agents?.defaults?.models ?? {};
   const entries: Array<{ alias: string; model: string }> = [];
   for (const [keyRaw, entryRaw] of Object.entries(models)) {

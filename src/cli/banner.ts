@@ -40,7 +40,7 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
   const commitLabel = commit ?? "unknown";
   const tagline = pickTagline(options);
   const rich = options.richTty ?? isRich();
-  const title = "🦞 OpenClaw";
+  const title = "🦞 ShittimChest";
   const prefix = "🦞 ";
   const columns = options.columns ?? process.stdout.columns ?? 120;
   const plainFullLine = `${title} ${version} (${commitLabel}) — ${tagline}`;
@@ -66,12 +66,13 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
 }
 
 const LOBSTER_ASCII = [
-  "▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄",
-  "██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██",
-  "██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██",
-  "██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██",
-  "▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
-  "                  🦞 OPENCLAW 🦞                    ",
+  " _____ _   _ _____ _____ _____ ________  ________  _   _  _____ _____ _____ ",
+  "/  ___| | | |_   _|_   _|_   _|_   _|  \/  /  __ \| | | ||  ___/  ___|_   _|",
+  "\ `--.| |_| | | |   | |   | |   | | | .  . | /  \/| |_| || |__ \ `--.  | |",
+  " `--. \  _  | | |   | |   | |   | | | |\/| | |    |  _  ||  __| `--. \ | |",
+  "/\__/ / | | |_| |_  | |   | |  _| |_| |  | | \__/\| | | || |___/\__/ / | |",
+  "\____/\_| |_/\___/  \_/   \_/  \___/\_|  |_/\____/\_| |_/\____/\____/  \_/",
+  "                  🦞 SHITTIMCHEST 🦞                    ",
   " ",
 ];
 
@@ -95,11 +96,11 @@ export function formatCliBannerArt(options: BannerOptions = {}): string {
   };
 
   const colored = LOBSTER_ASCII.map((line) => {
-    if (line.includes("OPENCLAW")) {
+    if (line.includes("SHITTIMCHEST")) {
       return (
         theme.muted("              ") +
         theme.accent("🦞") +
-        theme.info(" OPENCLAW ") +
+        theme.info(" SHITTIMCHEST ") +
         theme.accent("🦞")
       );
     }

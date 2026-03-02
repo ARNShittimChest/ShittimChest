@@ -146,19 +146,19 @@ describe("subagent announce formatting", () => {
 
   beforeAll(async () => {
     ({ runSubagentAnnounceFlow } = await import("./subagent-announce.js"));
-    previousFastTestEnv = process.env.OPENCLAW_TEST_FAST;
+    previousFastTestEnv = process.env.SHITTIMCHEST_TEST_FAST;
   });
 
   afterAll(() => {
     if (previousFastTestEnv === undefined) {
-      delete process.env.OPENCLAW_TEST_FAST;
+      delete process.env.SHITTIMCHEST_TEST_FAST;
       return;
     }
-    process.env.OPENCLAW_TEST_FAST = previousFastTestEnv;
+    process.env.SHITTIMCHEST_TEST_FAST = previousFastTestEnv;
   });
 
   beforeEach(() => {
-    vi.stubEnv("OPENCLAW_TEST_FAST", "1");
+    vi.stubEnv("SHITTIMCHEST_TEST_FAST", "1");
     agentSpy
       .mockClear()
       .mockImplementation(async (_req: AgentCallRequest) => ({ runId: "run-main", status: "ok" }));
@@ -226,7 +226,7 @@ describe("subagent announce formatting", () => {
     expect(msg).toContain("raw subagent reply");
     expect(msg).toContain("Stats:");
     expect(msg).toContain("A completed subagent task is ready for user delivery.");
-    expect(msg).toContain("Convert the result above into your normal assistant voice");
+    expect(msg).toContain("Convert the result above into Arona's voice");
     expect(msg).toContain("Keep this internal context private");
   });
 
@@ -398,7 +398,7 @@ describe("subagent announce formatting", () => {
     expect(call?.params?.sessionKey).toBe("agent:main:main");
     expect(msg).toContain("✅ Subagent main finished");
     expect(msg).toContain("final answer: 2");
-    expect(msg).not.toContain("Convert the result above into your normal assistant voice");
+    expect(msg).not.toContain("Convert the result above into Arona's voice");
   });
 
   it("suppresses completion delivery when subagent reply is ANNOUNCE_SKIP", async () => {

@@ -1,12 +1,12 @@
 {
-  "name": "@openclaw/acpx",
+  "name": "@shittimchest/acpx",
   "version": "2026.2.27",
-  "description": "OpenClaw ACP runtime backend via acpx",
+  "description": "ShittimChest ACP runtime backend via acpx",
   "type": "module",
   "dependencies": {
     "acpx": "^0.1.13"
   },
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

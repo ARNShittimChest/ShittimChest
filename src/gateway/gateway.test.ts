@@ -30,39 +30,39 @@ describe("gateway e2e", () => {
     async () => {
       const envSnapshot = captureEnv([
         "HOME",
-        "OPENCLAW_CONFIG_PATH",
-        "OPENCLAW_GATEWAY_TOKEN",
-        "OPENCLAW_SKIP_CHANNELS",
-        "OPENCLAW_SKIP_GMAIL_WATCHER",
-        "OPENCLAW_SKIP_CRON",
-        "OPENCLAW_SKIP_CANVAS_HOST",
-        "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
+        "SHITTIMCHEST_CONFIG_PATH",
+        "SHITTIMCHEST_GATEWAY_TOKEN",
+        "SHITTIMCHEST_SKIP_CHANNELS",
+        "SHITTIMCHEST_SKIP_GMAIL_WATCHER",
+        "SHITTIMCHEST_SKIP_CRON",
+        "SHITTIMCHEST_SKIP_CANVAS_HOST",
+        "SHITTIMCHEST_SKIP_BROWSER_CONTROL_SERVER",
       ]);
 
       const { baseUrl: openaiBaseUrl, restore } = installOpenAiResponsesMock();
 
-      const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-mock-home-"));
+      const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-gw-mock-home-"));
       process.env.HOME = tempHome;
-      process.env.OPENCLAW_SKIP_CHANNELS = "1";
-      process.env.OPENCLAW_SKIP_GMAIL_WATCHER = "1";
-      process.env.OPENCLAW_SKIP_CRON = "1";
-      process.env.OPENCLAW_SKIP_CANVAS_HOST = "1";
-      process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER = "1";
+      process.env.SHITTIMCHEST_SKIP_CHANNELS = "1";
+      process.env.SHITTIMCHEST_SKIP_GMAIL_WATCHER = "1";
+      process.env.SHITTIMCHEST_SKIP_CRON = "1";
+      process.env.SHITTIMCHEST_SKIP_CANVAS_HOST = "1";
+      process.env.SHITTIMCHEST_SKIP_BROWSER_CONTROL_SERVER = "1";
 
       const token = `test-${randomUUID()}`;
-      process.env.OPENCLAW_GATEWAY_TOKEN = token;
+      process.env.SHITTIMCHEST_GATEWAY_TOKEN = token;
 
-      const workspaceDir = path.join(tempHome, "openclaw");
+      const workspaceDir = path.join(tempHome, "shittimchest");
       await fs.mkdir(workspaceDir, { recursive: true });
 
       const nonceA = randomUUID();
       const nonceB = randomUUID();
-      const toolProbePath = path.join(workspaceDir, `.openclaw-tool-probe.${nonceA}.txt`);
+      const toolProbePath = path.join(workspaceDir, `.shittimchest-tool-probe.${nonceA}.txt`);
       await fs.writeFile(toolProbePath, `nonceA=${nonceA}\nnonceB=${nonceB}\n`);
 
-      const configDir = path.join(tempHome, ".openclaw");
+      const configDir = path.join(tempHome, ".shittimchest");
       await fs.mkdir(configDir, { recursive: true });
-      const configPath = path.join(configDir, "openclaw.json");
+      const configPath = path.join(configDir, "shittimchest.json");
 
       const cfg = {
         agents: { defaults: { workspace: workspaceDir } },
@@ -127,27 +127,27 @@ describe("gateway e2e", () => {
     async () => {
       const envSnapshot = captureEnv([
         "HOME",
-        "OPENCLAW_STATE_DIR",
-        "OPENCLAW_CONFIG_PATH",
-        "OPENCLAW_GATEWAY_TOKEN",
-        "OPENCLAW_SKIP_CHANNELS",
-        "OPENCLAW_SKIP_GMAIL_WATCHER",
-        "OPENCLAW_SKIP_CRON",
-        "OPENCLAW_SKIP_CANVAS_HOST",
-        "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
+        "SHITTIMCHEST_STATE_DIR",
+        "SHITTIMCHEST_CONFIG_PATH",
+        "SHITTIMCHEST_GATEWAY_TOKEN",
+        "SHITTIMCHEST_SKIP_CHANNELS",
+        "SHITTIMCHEST_SKIP_GMAIL_WATCHER",
+        "SHITTIMCHEST_SKIP_CRON",
+        "SHITTIMCHEST_SKIP_CANVAS_HOST",
+        "SHITTIMCHEST_SKIP_BROWSER_CONTROL_SERVER",
       ]);
 
-      process.env.OPENCLAW_SKIP_CHANNELS = "1";
-      process.env.OPENCLAW_SKIP_GMAIL_WATCHER = "1";
-      process.env.OPENCLAW_SKIP_CRON = "1";
-      process.env.OPENCLAW_SKIP_CANVAS_HOST = "1";
-      process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER = "1";
-      delete process.env.OPENCLAW_GATEWAY_TOKEN;
+      process.env.SHITTIMCHEST_SKIP_CHANNELS = "1";
+      process.env.SHITTIMCHEST_SKIP_GMAIL_WATCHER = "1";
+      process.env.SHITTIMCHEST_SKIP_CRON = "1";
+      process.env.SHITTIMCHEST_SKIP_CANVAS_HOST = "1";
+      process.env.SHITTIMCHEST_SKIP_BROWSER_CONTROL_SERVER = "1";
+      delete process.env.SHITTIMCHEST_GATEWAY_TOKEN;
 
-      const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-wizard-home-"));
+      const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-wizard-home-"));
       process.env.HOME = tempHome;
-      delete process.env.OPENCLAW_STATE_DIR;
-      delete process.env.OPENCLAW_CONFIG_PATH;
+      delete process.env.SHITTIMCHEST_STATE_DIR;
+      delete process.env.SHITTIMCHEST_CONFIG_PATH;
 
       const wizardToken = `wiz-${randomUUID()}`;
       const port = await getFreeGatewayPort();

@@ -1,5 +1,5 @@
 import Foundation
-import OpenClawKit
+import ShittimChestKit
 
 @MainActor
 final class NodeCapabilityRouter {

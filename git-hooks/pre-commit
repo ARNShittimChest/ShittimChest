@@ -16,27 +16,38 @@ if [[ ! -f "$FILTER_FILES" ]]; then
   exit 1
 fi
 
-# Security: avoid option-injection from malicious file names (e.g. "--all", "--force").
-# Robustness: NUL-delimited file list handles spaces/newlines safely.
-# Compatibility: use read loops instead of `mapfile` so this runs on macOS Bash 3.x.
-files=()
-while IFS= read -r -d '' file; do
-  files+=("$file")
-done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+# Use a temp file — bash variables cannot store NUL bytes
+TMP_LIST=$(mktemp)
+trap 'rm -f "$TMP_LIST"' EXIT
 
-if [ "${#files[@]}" -eq 0 ]; then
+git diff --cached --name-only --diff-filter=ACMR -z > "$TMP_LIST"
+
+if [[ ! -s "$TMP_LIST" ]]; then
   exit 0
 fi
 
+# Count staged files
+staged_count=$(tr -cd '\0' < "$TMP_LIST" | wc -c)
+
+# Skip lint/format on bulk commits (e.g. initial push) to avoid arg-list limits.
+# Threshold: 200 files. Normal commits are well below this.
+MAX_FILES=200
+if [[ "$staged_count" -gt "$MAX_FILES" ]]; then
+  echo "pre-commit: $staged_count files staged — skipping lint/format (threshold: $MAX_FILES)" >&2
+  exit 0
+fi
+
+# Filter files for linting (pipe from temp file — no arg limits)
 lint_files=()
 while IFS= read -r -d '' file; do
   lint_files+=("$file")
-done < <(node "$FILTER_FILES" lint -- "${files[@]}")
+done < <(node "$FILTER_FILES" lint < "$TMP_LIST")
 
+# Filter files for formatting
 format_files=()
 while IFS= read -r -d '' file; do
   format_files+=("$file")
-done < <(node "$FILTER_FILES" format -- "${files[@]}")
+done < <(node "$FILTER_FILES" format < "$TMP_LIST")
 
 if [ "${#lint_files[@]}" -gt 0 ]; then
   "$RUN_NODE_TOOL" oxlint --type-aware --fix -- "${lint_files[@]}"
@@ -46,4 +57,7 @@ if [ "${#format_files[@]}" -gt 0 ]; then
   "$RUN_NODE_TOOL" oxfmt --write -- "${format_files[@]}"
 fi
 
-git add -- "${files[@]}"
+# Re-add staged files individually (avoids arg list limit on git add too)
+while IFS= read -r -d '' file; do
+  git add -- "$file"
+done < "$TMP_LIST"

@@ -87,6 +87,7 @@ const BASE_METHODS = [
   "cron.runs",
   "system-presence",
   "system-event",
+  "companion.mood",
   "send",
   "agent",
   "agent.identity.get",

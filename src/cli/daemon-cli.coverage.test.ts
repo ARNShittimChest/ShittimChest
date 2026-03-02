@@ -97,15 +97,15 @@ describe("daemon-cli coverage", () => {
 
   beforeEach(() => {
     envSnapshot = captureEnv([
-      "OPENCLAW_STATE_DIR",
-      "OPENCLAW_CONFIG_PATH",
-      "OPENCLAW_GATEWAY_PORT",
-      "OPENCLAW_PROFILE",
+      "SHITTIMCHEST_STATE_DIR",
+      "SHITTIMCHEST_CONFIG_PATH",
+      "SHITTIMCHEST_GATEWAY_PORT",
+      "SHITTIMCHEST_PROFILE",
     ]);
-    process.env.OPENCLAW_STATE_DIR = "/tmp/openclaw-cli-state";
-    process.env.OPENCLAW_CONFIG_PATH = "/tmp/openclaw-cli-state/openclaw.json";
-    delete process.env.OPENCLAW_GATEWAY_PORT;
-    delete process.env.OPENCLAW_PROFILE;
+    process.env.SHITTIMCHEST_STATE_DIR = "/tmp/shittimchest-cli-state";
+    process.env.SHITTIMCHEST_CONFIG_PATH = "/tmp/shittimchest-cli-state/shittimchest.json";
+    delete process.env.SHITTIMCHEST_GATEWAY_PORT;
+    delete process.env.SHITTIMCHEST_PROFILE;
     serviceReadCommand.mockResolvedValue(null);
   });
 
@@ -133,12 +133,12 @@ describe("daemon-cli coverage", () => {
     serviceReadCommand.mockResolvedValueOnce({
       programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
       environment: {
-        OPENCLAW_PROFILE: "dev",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-daemon-state",
-        OPENCLAW_CONFIG_PATH: "/tmp/openclaw-daemon-state/openclaw.json",
-        OPENCLAW_GATEWAY_PORT: "19001",
+        SHITTIMCHEST_PROFILE: "dev",
+        SHITTIMCHEST_STATE_DIR: "/tmp/shittimchest-daemon-state",
+        SHITTIMCHEST_CONFIG_PATH: "/tmp/shittimchest-daemon-state/shittimchest.json",
+        SHITTIMCHEST_GATEWAY_PORT: "19001",
       },
-      sourcePath: "/tmp/ai.openclaw.gateway.plist",
+      sourcePath: "/tmp/ai.shittimchest.gateway.plist",
     });
 
     await runDaemonCommand(["daemon", "status", "--json"]);

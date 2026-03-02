@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { ShittimChestConfig } from "../config/config.js";
 import { resetEmbeddingMocks } from "./embedding.test-mocks.js";
 import type { MemoryIndexManager } from "./index.js";
 import { getRequiredMemoryIndexManager } from "./test-manager-helpers.js";
@@ -15,7 +15,7 @@ describe("memory manager readonly recovery", () => {
 
   beforeEach(async () => {
     resetEmbeddingMocks();
-    workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-mem-readonly-"));
+    workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-mem-readonly-"));
     indexPath = path.join(workspaceDir, "index.sqlite");
     await fs.mkdir(path.join(workspaceDir, "memory"), { recursive: true });
     await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), "Hello memory.");
@@ -43,7 +43,7 @@ describe("memory manager readonly recovery", () => {
         },
         list: [{ id: "main", default: true }],
       },
-    } as OpenClawConfig;
+    } as ShittimChestConfig;
 
     manager = await getRequiredMemoryIndexManager({ cfg, agentId: "main" });
 
@@ -87,7 +87,7 @@ describe("memory manager readonly recovery", () => {
         },
         list: [{ id: "main", default: true }],
       },
-    } as OpenClawConfig;
+    } as ShittimChestConfig;
 
     manager = await getRequiredMemoryIndexManager({ cfg, agentId: "main" });
 
@@ -131,7 +131,7 @@ describe("memory manager readonly recovery", () => {
         },
         list: [{ id: "main", default: true }],
       },
-    } as OpenClawConfig;
+    } as ShittimChestConfig;
 
     manager = await getRequiredMemoryIndexManager({ cfg, agentId: "main" });
 

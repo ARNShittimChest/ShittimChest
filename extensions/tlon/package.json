@@ -1,12 +1,12 @@
 {
-  "name": "@openclaw/tlon",
+  "name": "@shittimchest/tlon",
   "version": "2026.2.27",
-  "description": "OpenClaw Tlon/Urbit channel plugin",
+  "description": "ShittimChest Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {
     "@urbit/aura": "^3.0.0"
   },
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ],
@@ -21,7 +21,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/tlon",
+      "npmSpec": "@shittimchest/tlon",
       "localPath": "extensions/tlon",
       "defaultChoice": "npm"
     }

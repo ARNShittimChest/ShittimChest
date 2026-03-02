@@ -3,7 +3,7 @@ import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 import type { CliDeps } from "../cli/deps.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { ShittimChestConfig } from "../config/config.js";
 import type { CronJob } from "./types.js";
 
 vi.mock("../agents/pi-embedded.js", () => ({
@@ -20,11 +20,11 @@ import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import { runCronIsolatedAgentTurn } from "./isolated-agent.js";
 
 async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
-  return withTempHomeBase(fn, { prefix: "openclaw-cron-submodel-" });
+  return withTempHomeBase(fn, { prefix: "shittimchest-cron-submodel-" });
 }
 
 async function writeSessionStore(home: string) {
-  const dir = path.join(home, ".openclaw", "sessions");
+  const dir = path.join(home, ".shittimchest", "sessions");
   await fs.mkdir(dir, { recursive: true });
   const storePath = path.join(dir, "sessions.json");
   await fs.writeFile(
@@ -49,17 +49,17 @@ async function writeSessionStore(home: string) {
 function makeCfg(
   home: string,
   storePath: string,
-  overrides: Partial<OpenClawConfig> = {},
-): OpenClawConfig {
-  const base: OpenClawConfig = {
+  overrides: Partial<ShittimChestConfig> = {},
+): ShittimChestConfig {
+  const base: ShittimChestConfig = {
     agents: {
       defaults: {
         model: "anthropic/claude-sonnet-4-5",
-        workspace: path.join(home, "openclaw"),
+        workspace: path.join(home, "shittimchest"),
       },
     },
     session: { store: storePath, mainKey: "main" },
-  } as OpenClawConfig;
+  } as ShittimChestConfig;
   return { ...base, ...overrides };
 }
 
@@ -116,7 +116,7 @@ describe("runCronIsolatedAgentTurn: subagent model resolution (#11461)", () => {
           agents: {
             defaults: {
               model: "anthropic/claude-sonnet-4-5",
-              workspace: path.join(home, "openclaw"),
+              workspace: path.join(home, "shittimchest"),
               subagents: { model: "ollama/llama3.2:3b" },
             },
           },
@@ -147,7 +147,7 @@ describe("runCronIsolatedAgentTurn: subagent model resolution (#11461)", () => {
           agents: {
             defaults: {
               model: "anthropic/claude-sonnet-4-5",
-              workspace: path.join(home, "openclaw"),
+              workspace: path.join(home, "shittimchest"),
               subagents: { model: "ollama/llama3.2:3b" },
             },
           },
@@ -195,7 +195,7 @@ describe("runCronIsolatedAgentTurn: subagent model resolution (#11461)", () => {
           agents: {
             defaults: {
               model: "anthropic/claude-sonnet-4-5",
-              workspace: path.join(home, "openclaw"),
+              workspace: path.join(home, "shittimchest"),
               subagents: { model: { primary: "google/gemini-2.5-flash" } },
             },
           },

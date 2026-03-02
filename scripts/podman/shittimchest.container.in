@@ -1,0 +1,28 @@
+# ShittimChest gateway — Podman Quadlet (rootless)
+# Installed by setup-podman.sh into shittimchest's ~/.config/containers/systemd/
+# {{SHITTIMCHEST_HOME}} is replaced at install time.
+
+[Unit]
+Description=ShittimChest gateway (rootless Podman)
+
+[Container]
+Image=shittimchest:local
+ContainerName=shittimchest
+UserNS=keep-id
+# Keep container UID/GID aligned with the invoking user so mounted config is readable.
+User=%U:%G
+Volume={{SHITTIMCHEST_HOME}}/.shittimchest:/home/node/.shittimchest
+EnvironmentFile={{SHITTIMCHEST_HOME}}/.shittimchest/.env
+Environment=HOME=/home/node
+Environment=TERM=xterm-256color
+PublishPort=18789:18789
+PublishPort=18790:18790
+Pull=never
+Exec=node dist/index.js gateway --bind lan --port 18789
+
+[Service]
+TimeoutStartSec=300
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

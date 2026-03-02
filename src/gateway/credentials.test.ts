@@ -1,22 +1,22 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { ShittimChestConfig } from "../config/config.js";
 import {
   resolveGatewayCredentialsFromConfig,
   resolveGatewayCredentialsFromValues,
 } from "./credentials.js";
 
-function cfg(input: Partial<OpenClawConfig>): OpenClawConfig {
-  return input as OpenClawConfig;
+function cfg(input: Partial<ShittimChestConfig>): ShittimChestConfig {
+  return input as ShittimChestConfig;
 }
 
 type ResolveFromConfigInput = Parameters<typeof resolveGatewayCredentialsFromConfig>[0];
-type GatewayConfig = NonNullable<OpenClawConfig["gateway"]>;
+type GatewayConfig = NonNullable<ShittimChestConfig["gateway"]>;
 
 const DEFAULT_GATEWAY_AUTH = { token: "config-token", password: "config-password" };
 const DEFAULT_REMOTE_AUTH = { token: "remote-token", password: "remote-password" };
 const DEFAULT_GATEWAY_ENV = {
-  OPENCLAW_GATEWAY_TOKEN: "env-token",
-  OPENCLAW_GATEWAY_PASSWORD: "env-password",
+  SHITTIMCHEST_GATEWAY_TOKEN: "env-token",
+  SHITTIMCHEST_GATEWAY_PASSWORD: "env-password",
 } as NodeJS.ProcessEnv;
 
 function resolveGatewayCredentialsFor(
@@ -187,7 +187,7 @@ describe("resolveGatewayCredentialsFromConfig", () => {
         },
       }),
       env: {
-        OPENCLAW_GATEWAY_TOKEN: "env-token",
+        SHITTIMCHEST_GATEWAY_TOKEN: "env-token",
       } as NodeJS.ProcessEnv,
       remoteTokenFallback: "remote-only",
     });
@@ -217,8 +217,8 @@ describe("resolveGatewayCredentialsFromValues", () => {
       configToken: "config-token",
       configPassword: "config-password",
       env: {
-        OPENCLAW_GATEWAY_TOKEN: "env-token",
-        OPENCLAW_GATEWAY_PASSWORD: "env-password",
+        SHITTIMCHEST_GATEWAY_TOKEN: "env-token",
+        SHITTIMCHEST_GATEWAY_PASSWORD: "env-password",
       } as NodeJS.ProcessEnv,
       includeLegacyEnv: false,
       tokenPrecedence: "config-first",
@@ -235,8 +235,8 @@ describe("resolveGatewayCredentialsFromValues", () => {
       configToken: "config-token",
       configPassword: "config-password",
       env: {
-        OPENCLAW_GATEWAY_TOKEN: "env-token",
-        OPENCLAW_GATEWAY_PASSWORD: "env-password",
+        SHITTIMCHEST_GATEWAY_TOKEN: "env-token",
+        SHITTIMCHEST_GATEWAY_PASSWORD: "env-password",
       } as NodeJS.ProcessEnv,
     });
     expect(resolved).toEqual({

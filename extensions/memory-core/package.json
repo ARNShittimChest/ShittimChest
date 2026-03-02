@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/memory-core",
+  "name": "@shittimchest/memory-core",
   "version": "2026.2.27",
   "private": true,
-  "description": "OpenClaw core memory search plugin",
+  "description": "ShittimChest core memory search plugin",
   "type": "module",
   "peerDependencies": {
-    "openclaw": ">=2026.1.26"
+    "shittimchest": "workspace:*"
   },
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

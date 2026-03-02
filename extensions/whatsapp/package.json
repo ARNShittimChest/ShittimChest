@@ -1,10 +1,10 @@
 {
-  "name": "@openclaw/whatsapp",
+  "name": "@shittimchest/whatsapp",
   "version": "2026.2.27",
   "private": true,
-  "description": "OpenClaw WhatsApp channel plugin",
+  "description": "ShittimChest WhatsApp channel plugin",
   "type": "module",
-  "openclaw": {
+  "shittimchest": {
     "extensions": [
       "./index.ts"
     ]

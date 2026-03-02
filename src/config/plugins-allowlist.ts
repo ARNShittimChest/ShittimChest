@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "./config.js";
+import type { ShittimChestConfig } from "./config.js";
 
-export function ensurePluginAllowlisted(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
+export function ensurePluginAllowlisted(cfg: ShittimChestConfig, pluginId: string): ShittimChestConfig {
   const allow = cfg.plugins?.allow;
   if (!Array.isArray(allow) || allow.includes(pluginId)) {
     return cfg;

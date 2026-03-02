@@ -32,14 +32,14 @@ describe("resolveOllamaApiBase", () => {
 
 describe("Ollama provider", () => {
   it("should not include ollama when no API key is configured", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     const providers = await resolveImplicitProviders({ agentDir });
 
     expect(providers?.ollama).toBeUndefined();
   });
 
   it("should use native ollama api type", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
 
     try {
@@ -55,7 +55,7 @@ describe("Ollama provider", () => {
   });
 
   it("should preserve explicit ollama baseUrl on implicit provider injection", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
 
     try {
@@ -78,7 +78,7 @@ describe("Ollama provider", () => {
   });
 
   it("discovers per-model context windows from /api/show", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
     vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "development");
@@ -117,7 +117,7 @@ describe("Ollama provider", () => {
   });
 
   it("falls back to default context window when /api/show fails", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
     vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "development");
@@ -146,7 +146,7 @@ describe("Ollama provider", () => {
   });
 
   it("caps /api/show requests when /api/tags returns a very large model list", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
     vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "development");
@@ -197,7 +197,7 @@ describe("Ollama provider", () => {
   });
 
   it("should skip discovery fetch when explicit models are configured", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
     vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "development");
     const fetchMock = vi.fn();
@@ -233,7 +233,7 @@ describe("Ollama provider", () => {
   });
 
   it("should preserve explicit apiKey when discovery path has no models and no env key", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "shittimchest-test-"));
 
     const providers = await resolveImplicitProviders({
       agentDir,

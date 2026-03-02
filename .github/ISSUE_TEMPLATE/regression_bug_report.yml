@@ -1,5 +1,5 @@
 name: Regression bug report
-description: Report behavior that worked previously and now fails in OpenClaw.
+description: Report behavior that worked previously and now fails in ShittimChest.
 title: "[Regression Bug]: "
 labels:
   - bug
@@ -81,7 +81,7 @@ body:
     id: install_method
     attributes:
       label: Install method
-      description: How OpenClaw was installed or launched.
+      description: How ShittimChest was installed or launched.
       placeholder: npm global / pnpm dev / docker / mac app
   - type: textarea
     id: logs
