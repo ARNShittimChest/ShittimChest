@@ -335,6 +335,7 @@ export const HUGGINGFACE_DEFAULT_MODEL_REF = "huggingface/deepseek-ai/DeepSeek-R
 export const TOGETHER_DEFAULT_MODEL_REF = "together/moonshotai/Kimi-K2.5";
 export const LITELLM_DEFAULT_MODEL_REF = "litellm/claude-opus-4-6";
 export const VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF = "vercel-ai-gateway/anthropic/claude-opus-4.6";
+export { EZAI_DEFAULT_MODEL_REF } from "../agents/ezai-models.js";
 
 export async function setZaiApiKey(
   key: SecretInput,
@@ -357,6 +358,18 @@ export async function setXiaomiApiKey(
   upsertAuthProfile({
     profileId: "xiaomi:default",
     credential: buildApiKeyCredential("xiaomi", key, undefined, options),
+    agentDir: resolveAuthAgentDir(agentDir),
+  });
+}
+
+export async function setEzaiApiKey(
+  key: SecretInput,
+  agentDir?: string,
+  options?: ApiKeyStorageOptions,
+) {
+  upsertAuthProfile({
+    profileId: "ezai:default",
+    credential: buildApiKeyCredential("ezai", key, undefined, options),
     agentDir: resolveAuthAgentDir(agentDir),
   });
 }

@@ -16,6 +16,7 @@ import {
   applyGoogleGeminiModelDefault,
   GOOGLE_GEMINI_DEFAULT_MODEL,
 } from "./google-gemini-model-default.js";
+import { applyEzaiConfig, applyEzaiProviderConfig } from "./onboard-auth.config-core.js";
 import type { ApiKeyStorageOptions } from "./onboard-auth.credentials.js";
 import {
   applyAuthProfileConfig,
@@ -61,6 +62,7 @@ import {
   VENICE_DEFAULT_MODEL_REF,
   VERCEL_AI_GATEWAY_DEFAULT_MODEL_REF,
   XIAOMI_DEFAULT_MODEL_REF,
+  EZAI_DEFAULT_MODEL_REF,
   setCloudflareAiGatewayConfig,
   setQianfanApiKey,
   setGeminiApiKey,
@@ -75,6 +77,7 @@ import {
   setVeniceApiKey,
   setVercelAiGatewayApiKey,
   setXiaomiApiKey,
+  setEzaiApiKey,
   setZaiApiKey,
   ZAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.js";
@@ -101,6 +104,7 @@ const API_KEY_TOKEN_PROVIDER_AUTH_CHOICE: Record<string, AuthChoice> = {
   opencode: "opencode-zen",
   kilocode: "kilocode-api-key",
   qianfan: "qianfan-api-key",
+  ezai: "ezai-api-key",
 };
 
 const ZAI_AUTH_CHOICE_ENDPOINT: Partial<
@@ -308,6 +312,18 @@ const SIMPLE_API_KEY_PROVIDER_FLOWS: Partial<Record<AuthChoice, SimpleApiKeyProv
     applyProviderConfig: applySyntheticProviderConfig,
     normalize: (value) => String(value ?? "").trim(),
     validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
+  },
+  "ezai-api-key": {
+    provider: "ezai",
+    profileId: "ezai:default",
+    expectedProviders: ["ezai"],
+    envLabel: "EZAI_API_KEY",
+    promptMessage: "Enter EzAI API key",
+    setCredential: setEzaiApiKey,
+    defaultModel: EZAI_DEFAULT_MODEL_REF,
+    applyDefaultConfig: applyEzaiConfig,
+    applyProviderConfig: applyEzaiProviderConfig,
+    noteDefault: EZAI_DEFAULT_MODEL_REF,
   },
 };
 

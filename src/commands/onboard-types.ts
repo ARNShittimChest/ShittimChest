@@ -49,6 +49,7 @@ export type AuthChoice =
   | "volcengine-api-key"
   | "byteplus-api-key"
   | "qianfan-api-key"
+  | "ezai-api-key"
   | "custom-api-key"
   | "skip";
 export type AuthChoiceGroupId =
@@ -78,6 +79,7 @@ export type AuthChoiceGroupId =
   | "xai"
   | "volcengine"
   | "byteplus"
+  | "ezai"
   | "custom";
 export type GatewayAuthChoice = "token" | "password";
 export type ResetScope = "config" | "config+creds+sessions" | "full";
@@ -135,6 +137,7 @@ export type OnboardOptions = {
   volcengineApiKey?: string;
   byteplusApiKey?: string;
   qianfanApiKey?: string;
+  ezaiApiKey?: string;
   customBaseUrl?: string;
   customApiKey?: string;
   customModelId?: string;

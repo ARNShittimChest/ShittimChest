@@ -34,6 +34,7 @@ import {
   DOUBAO_CODING_BASE_URL,
   DOUBAO_CODING_MODEL_CATALOG,
 } from "./doubao-models.js";
+import { buildEzaiModelDefinition, EZAI_BASE_URL, EZAI_MODEL_CATALOG } from "./ezai-models.js";
 import {
   discoverHuggingfaceModels,
   HUGGINGFACE_BASE_URL,
@@ -734,6 +735,14 @@ export function buildXiaomiProvider(): ProviderConfig {
         maxTokens: XIAOMI_DEFAULT_MAX_TOKENS,
       },
     ],
+  };
+}
+
+export function buildEzaiProvider(): ProviderConfig {
+  return {
+    baseUrl: EZAI_BASE_URL,
+    api: "anthropic-messages",
+    models: EZAI_MODEL_CATALOG.map(buildEzaiModelDefinition),
   };
 }
 

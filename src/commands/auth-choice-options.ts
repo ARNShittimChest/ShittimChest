@@ -180,6 +180,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["cloudflare-ai-gateway-api-key"],
   },
   {
+    value: "ezai",
+    label: "EzAI",
+    hint: "EzAI API key",
+    choices: ["ezai-api-key"],
+  },
+  {
     value: "custom",
     label: "Custom Provider",
     hint: "Any OpenAI or Anthropic compatible endpoint",
@@ -297,6 +303,7 @@ const BASE_AUTH_CHOICE_OPTIONS: ReadonlyArray<AuthChoiceOption> = [
     label: "MiniMax M2.5 Lightning",
     hint: "Faster, higher output cost",
   },
+  { value: "ezai-api-key", label: "EzAI API key" },
   { value: "custom-api-key", label: "Custom Provider" },
 ];
 

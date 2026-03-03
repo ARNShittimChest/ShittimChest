@@ -8,6 +8,7 @@ import {
   buildKimiCodingProvider,
   buildQianfanProvider,
   buildXiaomiProvider,
+  buildEzaiProvider,
   QIANFAN_DEFAULT_MODEL_ID,
   XIAOMI_DEFAULT_MODEL_ID,
 } from "../agents/models-config.providers.js";
@@ -40,6 +41,7 @@ import {
   XIAOMI_DEFAULT_MODEL_REF,
   ZAI_DEFAULT_MODEL_REF,
   XAI_DEFAULT_MODEL_REF,
+  EZAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.credentials.js";
 export {
   applyCloudflareAiGatewayConfig,
@@ -79,6 +81,8 @@ import {
   resolveZaiBaseUrl,
   XAI_BASE_URL,
   XAI_DEFAULT_MODEL_ID,
+  EZAI_BASE_URL,
+  EZAI_DEFAULT_MODEL_ID,
 } from "./onboard-auth.models.js";
 
 export function applyZaiProviderConfig(
@@ -295,6 +299,29 @@ export function applyXiaomiProviderConfig(cfg: ShittimChestConfig): ShittimChest
 export function applyXiaomiConfig(cfg: ShittimChestConfig): ShittimChestConfig {
   const next = applyXiaomiProviderConfig(cfg);
   return applyAgentDefaultModelPrimary(next, XIAOMI_DEFAULT_MODEL_REF);
+}
+
+export function applyEzaiProviderConfig(cfg: ShittimChestConfig): ShittimChestConfig {
+  const models = { ...cfg.agents?.defaults?.models };
+  models[EZAI_DEFAULT_MODEL_REF] = {
+    ...models[EZAI_DEFAULT_MODEL_REF],
+    alias: models[EZAI_DEFAULT_MODEL_REF]?.alias ?? "EzAI",
+  };
+  const defaultProvider = buildEzaiProvider();
+
+  return applyProviderConfigWithDefaultModels(cfg, {
+    agentModels: models,
+    providerId: "ezai",
+    api: "anthropic-messages",
+    baseUrl: EZAI_BASE_URL,
+    defaultModels: defaultProvider.models ?? [],
+    defaultModelId: EZAI_DEFAULT_MODEL_ID,
+  });
+}
+
+export function applyEzaiConfig(cfg: ShittimChestConfig): ShittimChestConfig {
+  const next = applyEzaiProviderConfig(cfg);
+  return applyAgentDefaultModelPrimary(next, EZAI_DEFAULT_MODEL_REF);
 }
 
 /**

@@ -13,6 +13,7 @@ export {
   KILOCODE_DEFAULT_MAX_TOKENS,
   KILOCODE_DEFAULT_MODEL_ID,
 };
+export { EZAI_BASE_URL, EZAI_DEFAULT_MODEL_ID } from "../agents/ezai-models.js";
 
 export const DEFAULT_MINIMAX_BASE_URL = "https://api.minimax.io/v1";
 export const MINIMAX_API_BASE_URL = "https://api.minimax.io/anthropic";
