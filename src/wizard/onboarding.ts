@@ -345,7 +345,10 @@ export async function runOnboardingWizard(
   const workspaceDir = resolveUserPath(workspaceInput.trim() || onboardHelpers.DEFAULT_WORKSPACE);
 
   const { applyOnboardingLocalWorkspaceConfig } = await import("../commands/onboard-config.js");
-  let nextConfig: ShittimChestConfig = applyOnboardingLocalWorkspaceConfig(baseConfig, workspaceDir);
+  let nextConfig: ShittimChestConfig = applyOnboardingLocalWorkspaceConfig(
+    baseConfig,
+    workspaceDir,
+  );
 
   const { ensureAuthProfileStore } = await import("../agents/auth-profiles.js");
   const { promptAuthChoiceGrouped } = await import("../commands/auth-choice-prompt.js");
@@ -452,6 +455,12 @@ export async function runOnboardingWizard(
   {
     const { setupSenseiProfile } = await import("../commands/onboard-sensei-profile.js");
     await setupSenseiProfile(workspaceDir, prompter);
+  }
+
+  // ── Companion AI Emotional Analysis ─────────────────────────────
+  {
+    const { setupCompanionAnalysis } = await import("../commands/onboard-companion.js");
+    nextConfig = await setupCompanionAnalysis(nextConfig, prompter);
   }
 
   if (opts.skipSkills) {

@@ -13,12 +13,7 @@ export {
   getAffectionLevel,
   getAffectionPromptModifier,
 } from "./emotional-state.js";
-export type {
-  Mood,
-  EmotionalState,
-  MoodTrigger,
-  AffectionLevel,
-} from "./emotional-state.js";
+export type { Mood, EmotionalState, MoodTrigger, AffectionLevel } from "./emotional-state.js";
 
 export {
   analyzeTimeOfDay,
@@ -35,8 +30,11 @@ export {
 } from "./mood-triggers.js";
 export type { TimeMode } from "./mood-triggers.js";
 
+export { saveMoodState, loadMoodState, loadOrCreateMoodState } from "./mood-persistence.js";
+
 export {
-  saveMoodState,
-  loadMoodState,
-  loadOrCreateMoodState,
-} from "./mood-persistence.js";
+  analyzeAffectionWithAI,
+  aiResultToMoodTrigger,
+  resolveAnalysisConfig,
+} from "./affection-analyzer.js";
+export type { AffectionAnalysisConfig, AffectionAnalysisResult } from "./affection-analyzer.js";

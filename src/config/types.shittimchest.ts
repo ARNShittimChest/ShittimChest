@@ -127,6 +127,29 @@ export type ShittimChestConfig = {
      * Defaults to "en-US" if not set.
      */
     locale?: string;
+    /**
+     * AI-based emotional analysis using a lightweight model.
+     * Reuses an existing provider from `models.providers` — no separate API key needed.
+     * Falls back to regex keyword matching if not configured or on failure.
+     */
+    affectionAnalysis?: {
+      /** Whether this feature is enabled. Default: false (use regex fallback). */
+      enabled?: boolean;
+      /**
+       * Provider ID from `models.providers` to use for analysis.
+       * Example: "google", "openai", "ollama", "deepseek"
+       * The provider's apiKey, baseUrl, and api type are inherited automatically.
+       */
+      provider?: string;
+      /**
+       * Model ID to use for classification.
+       * Should be a small/fast model from the chosen provider.
+       * Examples: "gemini-2.0-flash-lite", "gpt-4o-mini", "qwen2.5:3b"
+       */
+      model?: string;
+      /** Request timeout in milliseconds. Default: 5000 (5s). */
+      timeoutMs?: number;
+    };
   };
 };
 

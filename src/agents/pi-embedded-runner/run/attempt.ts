@@ -8,6 +8,26 @@ import {
   SessionManager,
 } from "@mariozechner/pi-coding-agent";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
+import {
+  loadOrCreateMoodState,
+  saveMoodState,
+  analyzeTimeOfDay,
+  decayMood,
+  applyTrigger,
+  buildMoodPromptContext,
+  addAffectionPoints,
+  getAffectionLevel,
+  getAffectionPromptModifier,
+  getLocalHour,
+  getTimeMode,
+  buildTimeModePromptHint,
+  analyzeKeywords,
+  analyzeAffectionDelta,
+  INTERACTION_AFFECTION_DELTA,
+  resolveAnalysisConfig,
+  analyzeAffectionWithAI,
+  aiResultToMoodTrigger,
+} from "../../../companion/index.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import type { ShittimChestConfig } from "../../../config/config.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
@@ -26,23 +46,6 @@ import { buildTtsSystemPromptHint } from "../../../tts/tts.js";
 import { resolveUserPath } from "../../../utils.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
-import {
-  loadOrCreateMoodState,
-  saveMoodState,
-  analyzeTimeOfDay,
-  decayMood,
-  applyTrigger,
-  buildMoodPromptContext,
-  addAffectionPoints,
-  getAffectionLevel,
-  getAffectionPromptModifier,
-  getLocalHour,
-  getTimeMode,
-  buildTimeModePromptHint,
-  analyzeKeywords,
-  analyzeAffectionDelta,
-  INTERACTION_AFFECTION_DELTA,
-} from "../../../companion/index.js";
 import { resolveShittimChestAgentDir } from "../../agent-paths.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
@@ -671,8 +674,7 @@ export async function runEmbeddedAttempt(
       try {
         // Resolve IANA timezone from config (companion.timezone) or system default
         const companionTz =
-          params.config?.companion?.timezone
-          ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+          params.config?.companion?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         const localHour = getLocalHour(companionTz);
         const timeMode = getTimeMode(localHour);
@@ -691,34 +693,44 @@ export async function runEmbeddedAttempt(
           moodState = applyTrigger(moodState, timeTrigger);
         }
 
-        // ── Keyword triggers + affection delta from message ───────
-        // Extract the last user message text for keyword analysis
-        const lastUserMsg = [...(params.messages ?? [])].reverse().find(
-          (m) => m.role === "user",
-        );
-        const lastUserText =
-          typeof lastUserMsg?.content === "string"
-            ? lastUserMsg.content
-            : Array.isArray(lastUserMsg?.content)
-              ? (lastUserMsg.content as Array<{ type: string; text?: string }>)
-                  .filter((b) => b.type === "text")
-                  .map((b) => b.text ?? "")
-                  .join(" ")
-              : "";
+        // ── Keyword/AI triggers + affection delta from message ─────
+        const lastUserText = params.prompt?.trim() ?? "";
 
         if (lastUserText) {
-          const keywordTrigger = analyzeKeywords(lastUserText);
-          if (keywordTrigger) {
-            moodState = applyTrigger(moodState, keywordTrigger);
+          // Try AI-based analysis first (if configured)
+          const aiConfig = resolveAnalysisConfig({
+            affectionAnalysis: params.config?.companion?.affectionAnalysis,
+            providers: params.config?.models?.providers,
+          });
+
+          let usedAI = false;
+          if (aiConfig) {
+            const aiResult = await analyzeAffectionWithAI(lastUserText, aiConfig);
+            if (aiResult) {
+              usedAI = true;
+              moodState = applyTrigger(moodState, aiResultToMoodTrigger(aiResult));
+              const netDelta = aiResult.affectionDelta + INTERACTION_AFFECTION_DELTA;
+              if (netDelta !== 0) {
+                moodState = addAffectionPoints(moodState, netDelta, `ai:${aiResult.reason}`);
+              }
+            }
           }
-          // Net affection delta: keyword content + base interaction bonus
-          const keywordAffectionDelta = analyzeAffectionDelta(lastUserText);
-          const netAffectionDelta = keywordAffectionDelta + INTERACTION_AFFECTION_DELTA;
-          if (netAffectionDelta !== 0) {
-            const reason = netAffectionDelta > 0
-              ? `+${netAffectionDelta} (chat)`
-              : `${netAffectionDelta} (chat)`;
-            moodState = addAffectionPoints(moodState, netAffectionDelta, reason);
+
+          // Regex fallback if AI not configured or failed
+          if (!usedAI) {
+            const keywordTrigger = analyzeKeywords(lastUserText);
+            if (keywordTrigger) {
+              moodState = applyTrigger(moodState, keywordTrigger);
+            }
+            const keywordAffectionDelta = analyzeAffectionDelta(lastUserText);
+            const netAffectionDelta = keywordAffectionDelta + INTERACTION_AFFECTION_DELTA;
+            if (netAffectionDelta !== 0) {
+              const reason =
+                netAffectionDelta > 0
+                  ? `+${netAffectionDelta} (chat)`
+                  : `${netAffectionDelta} (chat)`;
+              moodState = addAffectionPoints(moodState, netAffectionDelta, reason);
+            }
           }
         } else {
           // No message (tool call / internal step) — still give small interaction point

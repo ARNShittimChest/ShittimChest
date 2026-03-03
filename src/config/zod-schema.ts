@@ -789,6 +789,22 @@ export const ShittimChestSchema = z
       })
       .strict()
       .optional(),
+    companion: z
+      .object({
+        timezone: z.string().optional(),
+        locale: z.string().optional(),
+        affectionAnalysis: z
+          .object({
+            enabled: z.boolean().optional(),
+            provider: z.string().optional(),
+            model: z.string().optional(),
+            timeoutMs: z.number().int().positive().optional(),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((cfg, ctx) => {
