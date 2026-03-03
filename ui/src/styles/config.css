@@ -6,12 +6,10 @@
 .config-layout {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  gap: 0;
-  height: calc(100vh - 160px);
-  margin: -16px;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  background: var(--panel);
+  gap: 16px;
+  min-height: calc(100vh - 100px);
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 /* ===========================================
@@ -21,14 +19,18 @@
 .config-sidebar {
   display: flex;
   flex-direction: column;
-  background: var(--bg-accent);
-  border-right: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
   min-height: 0;
   overflow: hidden;
 }
 
 :root[data-theme="light"] .config-sidebar {
-  background: var(--bg-hover);
+  background: var(--glass-bg);
 }
 
 .config-sidebar__header {
@@ -77,9 +79,11 @@
 .config-search__input {
   width: 100%;
   padding: 11px 36px 11px 42px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 13px;
   outline: none;
   transition:
@@ -95,15 +99,15 @@
 .config-search__input:focus {
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
-  background: var(--bg-hover);
+  background: var(--glass-bg);
 }
 
 :root[data-theme="light"] .config-search__input {
-  background: white;
+  background: var(--glass-bg);
 }
 
 :root[data-theme="light"] .config-search__input:focus {
-  background: white;
+  background: var(--glass-bg);
 }
 
 .config-search__clear {
@@ -148,9 +152,11 @@
 }
 
 .config-search__tag-picker {
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   transition:
     border-color var(--duration-fast) ease,
     box-shadow var(--duration-fast) ease,
@@ -160,11 +166,11 @@
 .config-search__tag-picker[open] {
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
-  background: var(--bg-hover);
+  background: var(--glass-bg);
 }
 
 :root[data-theme="light"] .config-search__tag-picker {
-  background: white;
+  background: var(--glass-bg);
 }
 
 .config-search__tag-trigger {
@@ -198,13 +204,15 @@
 .config-search__tag-chip {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   padding: 2px 7px;
   font-size: 10px;
   font-weight: 500;
   color: var(--text);
-  background: var(--bg);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .config-search__tag-chip--count {
@@ -375,7 +383,12 @@
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  background: var(--panel);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
   overflow: hidden;
 }
 
@@ -386,12 +399,12 @@
   justify-content: space-between;
   gap: 14px;
   padding: 14px 22px;
-  background: var(--bg-accent);
+  background: transparent;
   border-bottom: 1px solid var(--border);
 }
 
 :root[data-theme="light"] .config-actions {
-  background: var(--bg-hover);
+  background: transparent;
 }
 
 .config-actions__left,
@@ -511,11 +524,11 @@
   gap: 16px;
   padding: 16px 22px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-accent);
+  background: transparent;
 }
 
 :root[data-theme="light"] .config-section-hero {
-  background: var(--bg-hover);
+  background: transparent;
 }
 
 .config-section-hero__icon {
@@ -560,12 +573,12 @@
   gap: 8px;
   padding: 12px 22px 14px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-accent);
+  background: transparent;
   overflow-x: auto;
 }
 
 :root[data-theme="light"] .config-subnav {
-  background: var(--bg-hover);
+  background: transparent;
 }
 
 .config-subnav__item {
@@ -670,19 +683,24 @@
 }
 
 .config-section-card {
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  background: var(--bg-elevated);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
   overflow: hidden;
-  transition: border-color var(--duration-fast) ease;
+  transition: border-color var(--duration-fast) ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .config-section-card:hover {
-  border-color: var(--border-strong);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 :root[data-theme="light"] .config-section-card {
-  background: white;
+  background: var(--glass-bg);
 }
 
 .config-section-card__header {
@@ -690,12 +708,12 @@
   align-items: flex-start;
   gap: 16px;
   padding: 20px 22px;
-  background: var(--bg-accent);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 :root[data-theme="light"] .config-section-card__header {
-  background: var(--bg-hover);
+  background: transparent;
 }
 
 .config-section-card__icon {
@@ -809,9 +827,11 @@
 .cfg-input {
   flex: 1;
   padding: 11px 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  background: var(--bg-accent);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 14px;
   outline: none;
   transition:
@@ -828,15 +848,15 @@
 .cfg-input:focus {
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
-  background: var(--bg-hover);
+  background: var(--glass-bg);
 }
 
 :root[data-theme="light"] .cfg-input {
-  background: white;
+  background: var(--glass-bg);
 }
 
 :root[data-theme="light"] .cfg-input:focus {
-  background: white;
+  background: var(--glass-bg);
 }
 
 .cfg-input--sm {
@@ -871,9 +891,11 @@
 .cfg-textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  background: var(--bg-accent);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.55;
@@ -890,7 +912,7 @@
 }
 
 :root[data-theme="light"] .cfg-textarea {
-  background: white;
+  background: var(--glass-bg);
 }
 
 .cfg-textarea--sm {
@@ -1127,17 +1149,17 @@
     background var(--duration-normal) ease;
 }
 
-.cfg-toggle input:checked + .cfg-toggle__track {
+.cfg-toggle input:checked+.cfg-toggle__track {
   background: var(--ok-subtle);
   border-color: rgba(34, 197, 94, 0.4);
 }
 
-.cfg-toggle input:checked + .cfg-toggle__track::after {
+.cfg-toggle input:checked+.cfg-toggle__track::after {
   transform: translateX(22px);
   background: var(--ok);
 }
 
-.cfg-toggle input:focus + .cfg-toggle__track {
+.cfg-toggle input:focus+.cfg-toggle__track {
   box-shadow: var(--focus-ring);
 }
 
@@ -1471,7 +1493,7 @@
   min-width: 0;
 }
 
-.cfg-map__item-value > .cfg-fields {
+.cfg-map__item-value>.cfg-fields {
   gap: 10px;
 }
 
