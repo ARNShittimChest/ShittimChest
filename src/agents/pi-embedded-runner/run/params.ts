@@ -69,6 +69,8 @@ export type RunEmbeddedPiAgentParams = {
   clientTools?: ClientToolDefinition[];
   /** Disable built-in tools for this run (LLM-only mode). */
   disableTools?: boolean;
+  /** Bypass smart routing and always use the primary model (e.g. for /new, /reset). */
+  disableSmartRouting?: boolean;
   provider?: string;
   model?: string;
   authProfileId?: string;

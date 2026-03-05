@@ -150,6 +150,55 @@ export type ShittimChestConfig = {
       /** Request timeout in milliseconds. Default: 5000 (5s). */
       timeoutMs?: number;
     };
+    /**
+     * Smart model routing — automatically classifies queries into tiers and
+     * routes each tier to the configured model. Reduces cost and latency
+     * for everyday interactions without sacrificing quality for complex tasks.
+     *
+     * When disabled (default), all queries use the primary model.
+     */
+    smartRouting?: {
+      /** Whether smart routing is enabled. Default: false (single model). */
+      enabled?: boolean;
+      /**
+       * Model override for the "chat" tier (greetings, small talk, emotions).
+       * Uses a fast/cheap model for near-instant responses.
+       * Falls back to primary model if not set.
+       */
+      chat?: {
+        /** Provider ID from `models.providers`. */
+        provider?: string;
+        /** Model ID (e.g. "gemini-2.0-flash", "gpt-4o-mini"). */
+        model?: string;
+      };
+      /**
+       * Model override for the "knowledge" tier (explanations, advice, Q&A).
+       * Uses primary model by default. Set a different model if desired.
+       * Falls back to primary model if not set.
+       */
+      knowledge?: {
+        /** Provider ID from `models.providers`. */
+        provider?: string;
+        /** Model ID. */
+        model?: string;
+      };
+      // "action" tier always uses the primary model (full tools needed).
+      /**
+       * LLM-based routing classifier — uses a small model to classify
+       * ambiguous queries more accurately (especially for Vietnamese).
+       * When disabled, only heuristic keyword matching is used (free, instant).
+       */
+      classifier?: {
+        /** Enable LLM-assisted classification. Default: false (heuristic only). */
+        enabled?: boolean;
+        /** Provider ID for the classifier model. */
+        provider?: string;
+        /** Small/fast model ID (e.g. "gemini-2.0-flash-lite", "gpt-4o-mini"). */
+        model?: string;
+        /** Max time (ms) for the LLM call before falling back to heuristic. Default: 300. */
+        timeoutMs?: number;
+      };
+    };
   };
 };
 

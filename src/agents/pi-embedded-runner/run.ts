@@ -1,6 +1,8 @@
 import { randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
+import type { QueryTier } from "../../companion/query-classifier.js";
+import { routeQuery, resolveRouterConfig } from "../../companion/query-router.js";
 import { generateSecureToken } from "../../infra/secure-random.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import type { PluginHookBeforeAgentStartResult } from "../../plugins/types.js";
@@ -289,6 +291,43 @@ export async function runEmbeddedPiAgent(
       if (modelResolveOverride?.modelOverride) {
         modelId = modelResolveOverride.modelOverride;
         log.info(`[hooks] model overridden to ${modelId}`);
+      }
+
+      // ── Smart Model Routing ────────────────────────────────────────
+      // Classify query complexity and route to per-tier model if configured.
+      // Priority: plugin hooks > smart routing > primary model config.
+      let queryTier: QueryTier = "action"; // default: full capabilities
+      const smartRouting = params.config?.companion?.smartRouting;
+      if (smartRouting?.enabled && !params.disableSmartRouting) {
+        // Only classify if hooks didn't already override the model
+        if (!modelResolveOverride?.providerOverride && !modelResolveOverride?.modelOverride) {
+          // Resolve LLM classifier config (null if disabled → heuristic only)
+          const classifierConfig = resolveRouterConfig({
+            classifier: smartRouting.classifier,
+            providers: params.config?.models?.providers,
+          });
+          queryTier = await routeQuery({
+            prompt: params.prompt,
+            hasImages: (params.images?.length ?? 0) > 0,
+            classifierConfig,
+          });
+          // Look up tier-specific model override
+          const tierConfig =
+            queryTier === "chat"
+              ? smartRouting.chat
+              : queryTier === "knowledge"
+                ? smartRouting.knowledge
+                : undefined; // action tier always uses primary model
+          if (tierConfig?.provider && tierConfig?.model) {
+            provider = tierConfig.provider;
+            modelId = tierConfig.model;
+            log.info(`[smart-routing] tier=${queryTier} → ${provider}/${modelId}`);
+          } else {
+            log.debug?.(`[smart-routing] tier=${queryTier} → primary model (no tier override)`);
+          }
+        } else {
+          log.debug?.(`[smart-routing] skipped — model already overridden by hooks`);
+        }
       }
 
       const { model, error, authStorage, modelRegistry } = resolveModel(
@@ -631,6 +670,7 @@ export async function runEmbeddedPiAgent(
             streamParams: params.streamParams,
             ownerNumbers: params.ownerNumbers,
             enforceFinalTag: params.enforceFinalTag,
+            queryTier,
           });
 
           const {

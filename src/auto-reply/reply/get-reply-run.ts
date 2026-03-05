@@ -506,6 +506,8 @@ export async function runPreparedReply(
       ownerNumbers: command.ownerList.length > 0 ? command.ownerList : undefined,
       extraSystemPrompt: extraSystemPrompt || undefined,
       ...(isReasoningTagProvider(provider) ? { enforceFinalTag: true } : {}),
+      // /new and /reset should always use the primary model for best greeting quality
+      ...(isBareSessionReset ? { disableSmartRouting: true } : {}),
     },
   };
 

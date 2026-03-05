@@ -802,6 +802,35 @@ export const ShittimChestSchema = z
           })
           .strict()
           .optional(),
+        smartRouting: z
+          .object({
+            enabled: z.boolean().optional(),
+            chat: z
+              .object({
+                provider: z.string().optional(),
+                model: z.string().optional(),
+              })
+              .strict()
+              .optional(),
+            knowledge: z
+              .object({
+                provider: z.string().optional(),
+                model: z.string().optional(),
+              })
+              .strict()
+              .optional(),
+            classifier: z
+              .object({
+                enabled: z.boolean().optional(),
+                provider: z.string().optional(),
+                model: z.string().optional(),
+                timeoutMs: z.number().int().min(50).max(5000).optional(),
+              })
+              .strict()
+              .optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),

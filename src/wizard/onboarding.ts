@@ -463,6 +463,12 @@ export async function runOnboardingWizard(
     nextConfig = await setupCompanionAnalysis(nextConfig, prompter);
   }
 
+  // ── Companion Smart Model Routing ──────────────────────────────
+  {
+    const { setupSmartRouting } = await import("../commands/onboard-companion.js");
+    nextConfig = await setupSmartRouting(nextConfig, prompter);
+  }
+
   if (opts.skipSkills) {
     await prompter.note("Skipping skills setup.", "Skills");
   } else {

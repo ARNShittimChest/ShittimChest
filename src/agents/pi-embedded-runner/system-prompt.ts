@@ -1,5 +1,6 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { AgentSession } from "@mariozechner/pi-coding-agent";
+import type { QueryTier } from "../../companion/query-classifier.js";
 import type { MemoryCitationsMode } from "../../config/types.memory.js";
 import type { ResolvedTimeFormat } from "../date-time.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
@@ -54,6 +55,8 @@ export function buildEmbeddedSystemPrompt(params: {
   memoryCitationsMode?: MemoryCitationsMode;
   /** Companion mood context string (from emotional state engine). */
   companionMoodContext?: string;
+  /** Smart routing query tier for prompt detail control. */
+  queryTier?: QueryTier;
 }): string {
   return buildAgentSystemPrompt({
     workspaceDir: params.workspaceDir,
@@ -84,6 +87,7 @@ export function buildEmbeddedSystemPrompt(params: {
     contextFiles: params.contextFiles,
     memoryCitationsMode: params.memoryCitationsMode,
     companionMoodContext: params.companionMoodContext,
+    queryTier: params.queryTier,
   });
 }
 

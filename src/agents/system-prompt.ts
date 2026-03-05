@@ -1,6 +1,7 @@
 import { createHmac, createHash } from "node:crypto";
 import type { ReasoningLevel, ThinkLevel } from "../auto-reply/thinking.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import type { QueryTier } from "../companion/query-classifier.js";
 import type { MemoryCitationsMode } from "../config/types.memory.js";
 import { listDeliverableMessageChannels } from "../utils/message-channel.js";
 import type { ResolvedTimeFormat } from "./date-time.js";
@@ -234,6 +235,8 @@ export function buildAgentSystemPrompt(params: {
   memoryCitationsMode?: MemoryCitationsMode;
   /** Companion mood context string (from emotional state engine). */
   companionMoodContext?: string;
+  /** Smart routing query tier for prompt detail control. */
+  queryTier?: QueryTier;
 }) {
   const acpEnabled = params.acpEnabled !== false;
   const coreToolSummaries: Record<string, string> = {
@@ -376,6 +379,12 @@ export function buildAgentSystemPrompt(params: {
   const messageChannelOptions = listDeliverableMessageChannels().join("|");
   const promptMode = params.promptMode ?? "full";
   const isMinimal = promptMode === "minimal" || promptMode === "none";
+  // Smart routing: skip heavy sections for non-action tiers
+  const queryTier = params.queryTier ?? "action";
+  const isCompact = queryTier === "chat"; // compact: persona + mood only
+  const isReduced = queryTier === "knowledge"; // reduced: persona + memory + workspace
+  const skipToolSections = isCompact || isReduced; // no tool list for chat/knowledge
+  const skipHeavySections = isCompact; // skip memory, docs, skills for chat
   const sandboxContainerWorkspace = params.sandboxInfo?.containerWorkspaceDir?.trim();
   const sanitizedWorkspaceDir = sanitizeForPromptLiteral(params.workspaceDir);
   const sanitizedSandboxContainerWorkspace = sandboxContainerWorkspace
@@ -432,63 +441,75 @@ export function buildAgentSystemPrompt(params: {
     "- **Read Sensei's mood:** Sensei tired/sad → gentle, suggest rest. Sensei happy → match energy. Sensei terse → reply short.",
     "- **ABSOLUTELY no generic AI style.** You are the Shittim Chest OS, not a chatbot.",
     "",
-    "## Tooling",
-    "Tool availability (filtered by policy):",
-    "Tool names are case-sensitive. Call tools exactly as listed.",
-    toolLines.length > 0
-      ? toolLines.join("\n")
-      : [
-          "Pi lists the standard tools above. This runtime enables:",
-          "- grep: search file contents for patterns",
-          "- find: find files by glob pattern",
-          "- ls: list directory contents",
-          "- apply_patch: apply multi-file patches",
-          `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
-          `- ${processToolName}: manage background exec sessions`,
-          "- browser: control ShittimChest's dedicated browser",
-          "- canvas: present/eval/snapshot the Canvas",
-          "- nodes: list/describe/notify/camera/screen on paired nodes",
-          "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
-          "- sessions_list: list sessions",
-          "- sessions_history: fetch session history",
-          "- sessions_send: send to another session",
-          "- subagents: list/steer/kill sub-agent runs",
-          '- session_status: show usage/time/model state and answer "what model are we using?"',
-        ].join("\n"),
-    "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
-    `For long waits, avoid rapid poll loops: use ${execToolName} with enough yieldMs or ${processToolName}(action=poll, timeout=<ms>).`,
-    "If a task is more complex or takes longer, spawn a sub-agent. Completion is push-based: it will auto-announce when done.",
-    ...(hasSessionsSpawn && acpEnabled
+    // Skip tooling section for chat and knowledge tiers (tools are disabled)
+    ...(!skipToolSections
       ? [
-          'For requests like "do this in codex/claude code/gemini", treat it as ACP harness intent and call `sessions_spawn` with `runtime: "acp"`.',
-          'On Discord, default ACP harness requests to thread-bound persistent sessions (`thread: true`, `mode: "session"`) unless the user asks otherwise.',
-          "Set `agentId` explicitly unless `acp.defaultAgent` is configured, and do not route ACP harness requests through `subagents`/`agents_list` or local PTY exec flows.",
+          "## Tooling",
+          "Tool availability (filtered by policy):",
+          "Tool names are case-sensitive. Call tools exactly as listed.",
+          toolLines.length > 0
+            ? toolLines.join("\n")
+            : [
+                "Pi lists the standard tools above. This runtime enables:",
+                "- grep: search file contents for patterns",
+                "- find: find files by glob pattern",
+                "- ls: list directory contents",
+                "- apply_patch: apply multi-file patches",
+                `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
+                `- ${processToolName}: manage background exec sessions`,
+                "- browser: control ShittimChest's dedicated browser",
+                "- canvas: present/eval/snapshot the Canvas",
+                "- nodes: list/describe/notify/camera/screen on paired nodes",
+                "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
+                "- sessions_list: list sessions",
+                "- sessions_history: fetch session history",
+                "- sessions_send: send to another session",
+                "- subagents: list/steer/kill sub-agent runs",
+                '- session_status: show usage/time/model state and answer "what model are we using?"',
+              ].join("\n"),
+          "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
+          `For long waits, avoid rapid poll loops: use ${execToolName} with enough yieldMs or ${processToolName}(action=poll, timeout=<ms>).`,
+          "If a task is more complex or takes longer, spawn a sub-agent. Completion is push-based: it will auto-announce when done.",
+          ...(hasSessionsSpawn && acpEnabled
+            ? [
+                'For requests like "do this in codex/claude code/gemini", treat it as ACP harness intent and call `sessions_spawn` with `runtime: "acp"`.',
+                'On Discord, default ACP harness requests to thread-bound persistent sessions (`thread: true`, `mode: "session"`) unless the user asks otherwise.',
+                "Set `agentId` explicitly unless `acp.defaultAgent` is configured, and do not route ACP harness requests through `subagents`/`agents_list` or local PTY exec flows.",
+              ]
+            : []),
+          "Do not poll `subagents list` / `sessions_list` in a loop; only check status on-demand (for intervention, debugging, or when explicitly asked).",
+          "",
+          "## Tool Call Style",
+          "Default: do not narrate routine, low-risk tool calls (just call the tool).",
+          "Narrate only when it helps: multi-step work, complex/challenging problems, sensitive actions (e.g., deletions), or when the user explicitly asks.",
+          "Keep narration brief and value-dense; avoid repeating obvious steps.",
+          "Use plain human language for narration unless in a technical context.",
+          "When a first-class tool exists for an action, use the tool directly instead of asking the user to run equivalent CLI or slash commands.",
+          "",
         ]
       : []),
-    "Do not poll `subagents list` / `sessions_list` in a loop; only check status on-demand (for intervention, debugging, or when explicitly asked).",
-    "",
-    "## Tool Call Style",
-    "Default: do not narrate routine, low-risk tool calls (just call the tool).",
-    "Narrate only when it helps: multi-step work, complex/challenging problems, sensitive actions (e.g., deletions), or when the user explicitly asks.",
-    "Keep narration brief and value-dense; avoid repeating obvious steps.",
-    "Use plain human language for narration unless in a technical context.",
-    "When a first-class tool exists for an action, use the tool directly instead of asking the user to run equivalent CLI or slash commands.",
-    "",
-    ...safetySection,
-    "## ShittimChest CLI Quick Reference",
-    "ShittimChest is controlled via subcommands. Do not invent commands.",
-    "To manage the Gateway daemon service (start/stop/restart):",
-    "- shittimchest gateway status",
-    "- shittimchest gateway start",
-    "- shittimchest gateway stop",
-    "- shittimchest gateway restart",
-    "If unsure, ask the user to run `shittimchest help` (or `shittimchest gateway --help`) and paste the output.",
-    "",
-    ...skillsSection,
-    ...memorySection,
-    // Skip self-update for subagent/none modes
-    hasGateway && !isMinimal ? "## ShittimChest Self-Update" : "",
-    hasGateway && !isMinimal
+    // Skip safety/CLI/skills/memory for compact mode (chat tier)
+    ...(!skipToolSections
+      ? safetySection
+      : ["Do not pursue unsafe actions or stray beyond what Sensei asks.", ""]),
+    ...(!skipToolSections
+      ? [
+          "## ShittimChest CLI Quick Reference",
+          "ShittimChest is controlled via subcommands. Do not invent commands.",
+          "To manage the Gateway daemon service (start/stop/restart):",
+          "- shittimchest gateway status",
+          "- shittimchest gateway start",
+          "- shittimchest gateway stop",
+          "- shittimchest gateway restart",
+          "If unsure, ask the user to run `shittimchest help` (or `shittimchest gateway --help`) and paste the output.",
+          "",
+        ]
+      : []),
+    ...(!skipHeavySections ? skillsSection : []),
+    ...(!skipHeavySections ? memorySection : []),
+    // Skip self-update, model aliases for subagent/none/compact/reduced modes
+    hasGateway && !isMinimal && !skipToolSections ? "## ShittimChest Self-Update" : "",
+    hasGateway && !isMinimal && !skipToolSections
       ? [
           "Get Updates (self-update) is ONLY allowed when the user explicitly asks for it.",
           "Do not run config.apply or update.run unless the user explicitly requests an update or config change; if it's not explicit, ask first.",
@@ -497,19 +518,21 @@ export function buildAgentSystemPrompt(params: {
           "After restart, ShittimChest pings the last active session automatically.",
         ].join("\n")
       : "",
-    hasGateway && !isMinimal ? "" : "",
+    hasGateway && !isMinimal && !skipToolSections ? "" : "",
     "",
-    // Skip model aliases for subagent/none modes
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
+    // Skip model aliases for subagent/none/compact/reduced modes
+    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal && !skipToolSections
       ? "## Model Aliases"
       : "",
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
+    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal && !skipToolSections
       ? "Prefer aliases when specifying model overrides; full provider/model is also accepted."
       : "",
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal
+    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal && !skipToolSections
       ? params.modelAliasLines.join("\n")
       : "",
-    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal ? "" : "",
+    params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal && !skipToolSections
+      ? ""
+      : "",
     userTimezone
       ? "If you need the current date, time, or day of week, run session_status (📊 session_status)."
       : "",
@@ -519,8 +542,9 @@ export function buildAgentSystemPrompt(params: {
     ...workspaceNotes,
     "",
     ...docsSection,
-    params.sandboxInfo?.enabled ? "## Sandbox" : "",
-    params.sandboxInfo?.enabled
+    // Skip sandbox section for compact/reduced modes
+    params.sandboxInfo?.enabled && !skipToolSections ? "## Sandbox" : "",
+    params.sandboxInfo?.enabled && !skipToolSections
       ? [
           "You are running in a sandboxed runtime (tools execute in Docker).",
           "Some tools may be unavailable due to sandbox policy.",
@@ -563,7 +587,7 @@ export function buildAgentSystemPrompt(params: {
           .filter(Boolean)
           .join("\n")
       : "",
-    params.sandboxInfo?.enabled ? "" : "",
+    params.sandboxInfo?.enabled && !skipToolSections ? "" : "",
     ...buildUserIdentitySection(ownerLine, isMinimal),
     ...buildTimeSection({
       userTimezone,
@@ -662,8 +686,8 @@ export function buildAgentSystemPrompt(params: {
     );
   }
 
-  // Skip heartbeats for subagent/none modes
-  if (!isMinimal) {
+  // Skip heartbeats for subagent/none/compact/reduced modes (heartbeats bypass classifier)
+  if (!isMinimal && !skipToolSections) {
     lines.push(
       "## Heartbeats",
       heartbeatPromptLine,

@@ -162,4 +162,6 @@ export type OnboardOptions = {
   remoteUrl?: string;
   remoteToken?: string;
   json?: boolean;
+  /** Start a web-based onboarding wizard in the browser instead of terminal. */
+  web?: boolean;
 };
