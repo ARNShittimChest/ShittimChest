@@ -90,13 +90,15 @@ export async function onboardCommand(opts: OnboardOptions, runtime: RuntimeEnv =
     return;
   }
 
-  if (normalizedOpts.web) {
-    const { startWebOnboardingServer } = await import("../wizard/onboard-web-server.js");
-    await startWebOnboardingServer({ opts: normalizedOpts, runtime });
+  if (normalizedOpts.cli) {
+    // Explicit --cli: use terminal interactive
+    await runInteractiveOnboarding(normalizedOpts, runtime);
     return;
   }
 
-  await runInteractiveOnboarding(normalizedOpts, runtime);
+  // Default: web-based onboarding
+  const { startWebOnboardingServer } = await import("../wizard/onboard-web-server.js");
+  await startWebOnboardingServer({ opts: normalizedOpts, runtime });
 }
 
 export type { OnboardOptions } from "./onboard-types.js";

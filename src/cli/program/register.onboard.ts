@@ -119,7 +119,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--skip-ui", "Skip Control UI/TUI prompts")
     .option("--node-manager <name>", "Node manager for skills: npm|pnpm|bun")
     .option("--json", "Output JSON summary", false)
-    .option("--web", "Run onboarding wizard in the browser", false);
+    .option("--cli", "Use terminal UI instead of web browser", false);
 
   command.action(async (opts, commandRuntime) => {
     await runCommandWithRuntime(defaultRuntime, async () => {
@@ -193,7 +193,7 @@ export function registerOnboardCommand(program: Command) {
           skipUi: Boolean(opts.skipUi),
           nodeManager: opts.nodeManager as NodeManagerChoice | undefined,
           json: Boolean(opts.json),
-          web: Boolean(opts.web),
+          cli: Boolean(opts.cli),
         },
         defaultRuntime,
       );

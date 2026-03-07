@@ -162,6 +162,6 @@ export type OnboardOptions = {
   remoteUrl?: string;
   remoteToken?: string;
   json?: boolean;
-  /** Start a web-based onboarding wizard in the browser instead of terminal. */
-  web?: boolean;
+  /** Use the terminal-based onboarding wizard instead of the web UI. */
+  cli?: boolean;
 };

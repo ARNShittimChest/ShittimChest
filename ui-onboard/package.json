@@ -1,0 +1,13 @@
+{
+  "name": "shittimchest-onboard-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vite": "7.3.1"
+  }
+}
