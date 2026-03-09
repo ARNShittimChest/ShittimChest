@@ -1,10 +1,11 @@
 /* Split View Layout */
 .chat-split-container {
   display: flex;
-  gap: 0;
+  gap: 8px;
   flex: 1;
   min-height: 0;
   height: 100%;
+  align-items: stretch;
 }
 
 .chat-main {
@@ -19,11 +20,13 @@
 .chat-sidebar {
   flex: 1;
   min-width: 300px;
-  border-left: 1px solid var(--border);
+  align-self: stretch;
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slide-in 200ms ease-out;
+  border-radius: 12px;
 }
 
 @keyframes slide-in {
@@ -31,6 +34,7 @@
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -43,6 +47,8 @@
   flex-direction: column;
   height: 100%;
   background: var(--panel);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -106,7 +112,8 @@
   }
 
   .chat-split-container--open .chat-main {
-    display: none; /* Hide chat on mobile when sidebar open */
+    display: none;
+    /* Hide chat on mobile when sidebar open */
   }
 
   .chat-split-container--open .chat-sidebar {

@@ -5,14 +5,16 @@ import { toSanitizedMarkdownHtml } from "../markdown.ts";
 import { openExternalUrlSafe } from "../open-external-url.ts";
 import { detectTextDirection } from "../text-direction.ts";
 import type { MessageGroup } from "../types/chat-types.ts";
+import type { ToolCard } from "../types/chat-types.ts";
 import { renderCopyAsMarkdownButton } from "./copy-as-markdown.ts";
+import { extractEmotionTag, stripEmotionTag, dispatchEmotionEvent } from "./emotion-tags.ts";
 import {
   extractTextCached,
   extractThinkingCached,
   formatReasoningMarkdown,
 } from "./message-extract.ts";
 import { isToolResultMessage, normalizeRoleForGrouping } from "./message-normalizer.ts";
-import { extractToolCards, renderToolCardSidebar } from "./tool-cards.ts";
+import { extractToolCards, renderToolCardGroup } from "./tool-cards.ts";
 
 type ImageBlock = {
   url: string;
@@ -129,6 +131,12 @@ export function renderMessageGroup(
     minute: "2-digit",
   });
 
+  // ── Aggregate tool cards across ALL messages in this group ──
+  const allToolCards: ToolCard[] = [];
+  for (const item of group.messages) {
+    allToolCards.push(...extractToolCards(item.message));
+  }
+
   return html`
     <div class="chat-group ${roleClass}">
       ${renderAvatar(group.role, {
@@ -142,10 +150,12 @@ export function renderMessageGroup(
             {
               isStreaming: group.isStreaming && index === group.messages.length - 1,
               showReasoning: opts.showReasoning,
+              skipToolCards: true,
             },
             opts.onOpenSidebar,
           ),
         )}
+        ${renderToolCardGroup(allToolCards, opts.onOpenSidebar)}
         <div class="chat-group-footer">
           <span class="chat-sender-name">${who}</span>
           <span class="chat-group-timestamp">${timestamp}</span>
@@ -223,8 +233,8 @@ function renderMessageImages(images: ImageBlock[]) {
 
 function renderGroupedMessage(
   message: unknown,
-  opts: { isStreaming: boolean; showReasoning: boolean },
-  onOpenSidebar?: (content: string) => void,
+  opts: { isStreaming: boolean; showReasoning: boolean; skipToolCards?: boolean },
+  _onOpenSidebar?: (content: string) => void,
 ) {
   const m = message as Record<string, unknown>;
   const role = typeof m.role === "string" ? m.role : "unknown";
@@ -232,6 +242,8 @@ function renderGroupedMessage(
     isToolResultMessage(message) ||
     role.toLowerCase() === "toolresult" ||
     role.toLowerCase() === "tool_result" ||
+    role.toLowerCase() === "tool" ||
+    role.toLowerCase() === "function" ||
     typeof m.toolCallId === "string" ||
     typeof m.tool_call_id === "string";
 
@@ -243,7 +255,18 @@ function renderGroupedMessage(
   const extractedText = extractTextCached(message);
   const extractedThinking =
     opts.showReasoning && role === "assistant" ? extractThinkingCached(message) : null;
-  const markdownBase = extractedText?.trim() ? extractedText : null;
+
+  // Strip emotion tags from assistant messages and dispatch to Spine viewer
+  let displayText = extractedText;
+  if (role === "assistant" && extractedText) {
+    const mood = extractEmotionTag(extractedText);
+    if (mood) {
+      displayText = stripEmotionTag(extractedText);
+      dispatchEmotionEvent(mood);
+    }
+  }
+
+  const markdownBase = displayText?.trim() ? displayText : null;
   const reasoningMarkdown = extractedThinking ? formatReasoningMarkdown(extractedThinking) : null;
   const markdown = markdownBase;
   const canCopyMarkdown = role === "assistant" && Boolean(markdown?.trim());
@@ -257,8 +280,10 @@ function renderGroupedMessage(
     .filter(Boolean)
     .join(" ");
 
-  if (!markdown && hasToolCards && isToolResult) {
-    return html`${toolCards.map((card) => renderToolCardSidebar(card, onOpenSidebar))}`;
+  // Skip ALL tool-related messages when tools are aggregated at group level.
+  // Their output is available via the aggregated tool row's sidebar click.
+  if (opts.skipToolCards && (isToolResult || (hasToolCards && !markdown))) {
+    return nothing;
   }
 
   if (!markdown && !hasToolCards && !hasImages) {
@@ -281,7 +306,6 @@ function renderGroupedMessage(
           ? html`<div class="chat-text" dir="${detectTextDirection(markdown)}">${unsafeHTML(toSanitizedMarkdownHtml(markdown))}</div>`
           : nothing
       }
-      ${toolCards.map((card) => renderToolCardSidebar(card, onOpenSidebar))}
     </div>
   `;
 }

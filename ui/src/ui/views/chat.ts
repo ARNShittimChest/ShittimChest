@@ -8,12 +8,13 @@ import {
 } from "../chat/grouped-render.ts";
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
 import { icons } from "../icons.ts";
+import type { SpineViewer } from "../spine-viewer.ts";
 import { detectTextDirection } from "../text-direction.ts";
 import type { SessionsListResult } from "../types.ts";
 import type { ChatItem, MessageGroup } from "../types/chat-types.ts";
 import type { ChatAttachment, ChatQueueItem } from "../ui-types.ts";
-import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
+import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 
 export type CompactionIndicatorStatus = {
   active: boolean;
@@ -80,6 +81,9 @@ export type ChatProps = {
   onCloseSidebar?: () => void;
   onSplitRatioChange?: (ratio: number) => void;
   onChatScroll?: (event: Event) => void;
+  // Spine L2D panel
+  spinePanelOpen?: boolean;
+  onToggleSpinePanel?: () => void;
 };
 
 const COMPACTION_TOAST_DURATION_MS = 5000;
@@ -258,6 +262,7 @@ export function renderChat(props: ChatProps) {
 
   const splitRatio = props.splitRatio ?? 0.6;
   const sidebarOpen = Boolean(props.sidebarOpen && props.onCloseSidebar);
+  const spinePanelOpen = Boolean(props.spinePanelOpen);
   const thread = html`
     <div
       class="chat-thread"
@@ -336,6 +341,8 @@ export function renderChat(props: ChatProps) {
           : nothing
       }
 
+      <div style="display:flex;flex:1 1 0;min-height:0;min-width:0;gap:0;overflow:hidden">
+        <div style="display:flex;flex-direction:column;flex:1 1 0;min-height:0;min-width:0;overflow:hidden;height:100%">
       <div
         class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}"
       >
@@ -344,32 +351,6 @@ export function renderChat(props: ChatProps) {
           style="flex: ${sidebarOpen ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
         >
           ${thread}
-        </div>
-
-        ${
-          sidebarOpen
-            ? html`
-              <resizable-divider
-                .splitRatio=${splitRatio}
-                @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
-              ></resizable-divider>
-              <div class="chat-sidebar">
-                ${renderMarkdownSidebar({
-                  content: props.sidebarContent ?? null,
-                  error: props.sidebarError ?? null,
-                  onClose: props.onCloseSidebar!,
-                  onViewRawText: () => {
-                    if (!props.sidebarContent || !props.onOpenSidebar) {
-                      return;
-                    }
-                    props.onOpenSidebar(`\`\`\`\n${props.sidebarContent}\n\`\`\``);
-                  },
-                })}
-              </div>
-            `
-            : nothing
-        }
-      </div>
 
       ${
         props.queue.length
@@ -475,6 +456,35 @@ export function renderChat(props: ChatProps) {
           </div>
         </div>
       </div>
+        </div>
+
+        ${
+          sidebarOpen
+            ? html`
+              <resizable-divider
+                .splitRatio=${splitRatio}
+                @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
+              ></resizable-divider>
+              <div class="chat-sidebar">
+                ${renderMarkdownSidebar({
+                  content: props.sidebarContent ?? null,
+                  error: props.sidebarError ?? null,
+                  onClose: props.onCloseSidebar!,
+                  onViewRawText: () => {
+                    if (!props.sidebarContent || !props.onOpenSidebar) {
+                      return;
+                    }
+                    props.onOpenSidebar(`\`\`\`\n${props.sidebarContent}\n\`\`\``);
+                  },
+                })}
+              </div>
+            `
+            : nothing
+        }
+      </div>
+      </div>
+      ${renderSpinePanel(spinePanelOpen, props)}
+      </div>
     </section>
   `;
 }
@@ -499,7 +509,23 @@ function groupMessages(items: ChatItem[]): Array<ChatItem | MessageGroup> {
     const role = normalizeRoleForGrouping(normalized.role);
     const timestamp = normalized.timestamp || Date.now();
 
-    if (!currentGroup || currentGroup.role !== role) {
+    // Merge tool messages into the current assistant group so all tool
+    // cards for a single turn are aggregated together.
+    const isTool = role === "tool";
+    const mergeIntoAssistant = isTool && currentGroup?.role === "assistant";
+
+    if (mergeIntoAssistant) {
+      currentGroup!.messages.push({ message: item.message, key: item.key });
+      continue;
+    }
+
+    // If we hit an assistant message right after a tool-merged assistant group,
+    // keep extending the same group instead of creating a new one.
+    const continueAssistant = role === "assistant" && currentGroup?.role === "assistant";
+
+    if (continueAssistant) {
+      currentGroup!.messages.push({ message: item.message, key: item.key });
+    } else {
       if (currentGroup) {
         result.push(currentGroup);
       }
@@ -511,8 +537,6 @@ function groupMessages(items: ChatItem[]): Array<ChatItem | MessageGroup> {
         timestamp,
         isStreaming: false,
       };
-    } else {
-      currentGroup.messages.push({ message: item.message, key: item.key });
     }
   }
 
@@ -613,4 +637,89 @@ function messageKey(message: unknown, index: number): string {
     return `msg:${role}:${timestamp}:${index}`;
   }
   return `msg:${role}:${index}`;
+}
+
+// ── Spine L2D Panel ────────────────────────────────────────────────
+
+let _spineViewer: SpineViewer | null = null;
+let _spineInitializing = false;
+let _spineCanvas: HTMLCanvasElement | null = null;
+
+async function ensureSpineViewer(canvas: HTMLCanvasElement) {
+  if (_spineViewer || _spineInitializing) {
+    return;
+  }
+  if (_spineCanvas === canvas) {
+    return;
+  }
+  _spineCanvas = canvas;
+  _spineInitializing = true;
+  try {
+    const { initSpineViewer } = await import("../spine-viewer.ts");
+    // Resolve base path from vite base config
+    const base = document.querySelector("base")?.getAttribute("href") ?? "/";
+    const basePath = `${base.endsWith("/") ? base : base + "/"}spine/`;
+    // Set canvas size before init
+    const rect = canvas.parentElement?.getBoundingClientRect();
+    if (rect) {
+      canvas.width = Math.floor(rect.width * devicePixelRatio);
+      canvas.height = Math.floor(rect.height * devicePixelRatio);
+    }
+    _spineViewer = await initSpineViewer(canvas, basePath);
+  } catch (err) {
+    console.error("[spine-panel] Failed to initialize:", err);
+  } finally {
+    _spineInitializing = false;
+  }
+}
+
+function disposeSpineViewer() {
+  if (_spineViewer) {
+    _spineViewer.dispose();
+    _spineViewer = null;
+  }
+  _spineCanvas = null;
+}
+
+function renderSpinePanel(open: boolean, props: ChatProps) {
+  if (!open) {
+    // Cleanup when panel closes
+    if (_spineViewer) {
+      disposeSpineViewer();
+    }
+    return nothing;
+  }
+
+  const isStreaming = props.stream !== null;
+
+  // Sync lip-sync state if viewer already initialized
+  if (_spineViewer) {
+    _spineViewer.setChatActive(isStreaming);
+  }
+
+  return html`
+    <div class="spine-panel" id="spine-panel">
+      <button
+        class="spine-close"
+        type="button"
+        aria-label="Close character panel"
+        @click=${props.onToggleSpinePanel}
+      >
+        ${icons.x}
+      </button>
+      <canvas
+        class="spine-canvas"
+        ${ref((el) => {
+          if (!el) {
+            return;
+          }
+          const canvas = el as HTMLCanvasElement;
+          // Defer init to next frame so canvas is properly sized by CSS
+          requestAnimationFrame(() => {
+            void ensureSpineViewer(canvas);
+          });
+        })}
+      ></canvas>
+    </div>
+  `;
 }

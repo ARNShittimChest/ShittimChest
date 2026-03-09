@@ -254,12 +254,16 @@ export function renderApp(state: AppViewState) {
             <span>${t("common.health")}</span>
             <span class="mono">${state.connected ? t("common.ok") : t("common.offline")}</span>
           </div>
-          ${state.companionMood ? html`
+          ${
+            state.companionMood
+              ? html`
           <div class="pill" title="Arona's current mood — Intensity: ${Math.round((state.companionMood.intensity ?? 0) * 10)}%">
-            <span>${({"happy":"😊","excited":"🤩","caring":"💕","neutral":"😐","worried":"😟","sad":"😢","sleepy":"😴"} as Record<string,string>)[state.companionMood.mood] ?? "🤖"}</span>
+            <span>${({ happy: "😊", excited: "🤩", caring: "💕", neutral: "😐", worried: "😟", sad: "😢", sleepy: "😴" } as Record<string, string>)[state.companionMood.mood] ?? "🤖"}</span>
             <span style="text-transform:capitalize;">${state.companionMood.mood}</span>
             <span class="mono" style="color:var(--color-muted)">${Math.round((state.companionMood.intensity ?? 0) * 10)}%</span>
-          </div>` : nothing}
+          </div>`
+              : nothing
+          }
           ${renderThemeToggle(state)}
         </div>
       </header>
@@ -1057,6 +1061,13 @@ export function renderApp(state: AppViewState) {
                 onSplitRatioChange: (ratio: number) => state.handleSplitRatioChange(ratio),
                 assistantName: state.assistantName,
                 assistantAvatar: state.assistantAvatar,
+                spinePanelOpen: state.settings.spinePanelOpen,
+                onToggleSpinePanel: () => {
+                  state.applySettings({
+                    ...state.settings,
+                    spinePanelOpen: !state.settings.spinePanelOpen,
+                  });
+                },
               })
             : nothing
         }

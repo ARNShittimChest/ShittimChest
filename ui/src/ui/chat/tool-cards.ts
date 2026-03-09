@@ -53,9 +53,27 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
   const detail = formatToolDetail(display);
   const hasText = Boolean(card.text?.trim());
 
+  // Active tool call — show spinner
+  if (card.kind === "call") {
+    return html`
+      <div class="chat-tool-card chat-tool-card--active">
+        <div class="chat-tool-card__header">
+          <div class="chat-tool-card__title">
+            <span class="chat-tool-card__icon chat-tool-card__spinner">${icons.loader}</span>
+            <span>${display.verb ?? ""} ${display.label}</span>
+          </div>
+          <span class="chat-tool-card__status-text muted">Đang thực hiện…</span>
+        </div>
+        ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
+      </div>
+    `;
+  }
+
+  // Completed tool result — collapsed with click to expand
   const canClick = Boolean(onOpenSidebar);
-  const handleClick = canClick
-    ? () => {
+  const handleViewClick = canClick
+    ? (e: Event) => {
+        e.stopPropagation();
         if (hasText) {
           onOpenSidebar!(formatToolOutputForSidebar(card.text!));
           return;
@@ -73,49 +91,134 @@ export function renderToolCardSidebar(card: ToolCard, onOpenSidebar?: (content: 
   const isEmpty = !hasText;
 
   return html`
-    <div
-      class="chat-tool-card ${canClick ? "chat-tool-card--clickable" : ""}"
-      @click=${handleClick}
-      role=${canClick ? "button" : nothing}
-      tabindex=${canClick ? "0" : nothing}
-      @keydown=${
-        canClick
-          ? (e: KeyboardEvent) => {
-              if (e.key !== "Enter" && e.key !== " ") {
-                return;
-              }
-              e.preventDefault();
-              handleClick?.();
+    <details class="chat-tool-card chat-tool-card--collapsed">
+      <summary class="chat-tool-card__header">
+        <div class="chat-tool-card__title">
+          <span class="chat-tool-card__icon">${icons[display.icon]}</span>
+          <span>${display.verb ?? ""} ${display.label}</span>
+        </div>
+        <span class="chat-tool-card__status">${icons.check}</span>
+      </summary>
+      <div class="chat-tool-card__body">
+        ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
+        ${
+          isEmpty
+            ? html`
+                <div class="chat-tool-card__status-text muted">Completed</div>
+              `
+            : nothing
+        }
+        ${
+          showCollapsed
+            ? html`<div class="chat-tool-card__preview mono">${getTruncatedPreview(card.text!)}</div>`
+            : nothing
+        }
+        ${showInline ? html`<div class="chat-tool-card__inline mono">${card.text}</div>` : nothing}
+        ${
+          canClick
+            ? html`<button
+                class="chat-tool-card__action"
+                type="button"
+                @click=${handleViewClick}
+              >View ${icons.check}</button>`
+            : nothing
+        }
+      </div>
+    </details>
+  `;
+}
+
+/**
+ * Group ALL tool cards into a single row.
+ * - Active (has any "call" cards): spinner + "Đang thực hiện N tiến trình…"
+ * - Complete (all "result"): ✓ + "Đã thực hiện N tiến trình" — click opens sidebar
+ */
+export function renderToolCardGroup(cards: ToolCard[], onOpenSidebar?: (content: string) => void) {
+  if (cards.length === 0) {
+    return nothing;
+  }
+
+  // A call is "active" only if there's no matching result card with the same name
+  const resultNames = new Set(cards.filter((c) => c.kind === "result").map((c) => c.name));
+  const hasActiveCalls = cards.some((c) => c.kind === "call" && !resultNames.has(c.name));
+  const count = cards.length;
+
+  if (hasActiveCalls) {
+    // Active execution — spinner row, clickable to see what's running
+    const handleActiveClick = onOpenSidebar
+      ? () => {
+          const lines: string[] = [`## Đang thực hiện (${count})`, ""];
+          for (const card of cards) {
+            const display = resolveToolDisplay({ name: card.name, args: card.args });
+            const detail = formatToolDetail(display);
+            const status = card.kind === "call" ? "⏳ Đang chạy" : "✅ Xong";
+            lines.push(`### ${display.verb ?? ""} ${display.label}`);
+            lines.push(`*${status}*`);
+            if (detail) {
+              lines.push(`\`${detail}\``);
             }
-          : nothing
+            if (card.text?.trim()) {
+              lines.push("```", card.text.trim(), "```");
+            }
+            lines.push("");
+          }
+          onOpenSidebar(lines.join("\n"));
+        }
+      : undefined;
+
+    return html`
+      <div
+        class="chat-tool-card chat-tool-card--active ${handleActiveClick ? "chat-tool-card--clickable" : ""}"
+        @click=${handleActiveClick}
+        role=${handleActiveClick ? "button" : nothing}
+        tabindex=${handleActiveClick ? "0" : nothing}
+      >
+        <div class="chat-tool-card__header">
+          <div class="chat-tool-card__title">
+            <span class="chat-tool-card__icon chat-tool-card__spinner">${icons.loader}</span>
+            <span>Đang thực hiện ${count} tiến trình…</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // All complete — clickable row that opens sidebar with all tool details
+  const handleClick = onOpenSidebar
+    ? () => {
+        const lines: string[] = [`## Tiến trình đã thực hiện (${count})`, ""];
+        for (const card of cards) {
+          const display = resolveToolDisplay({ name: card.name, args: card.args });
+          const detail = formatToolDetail(display);
+          lines.push(`### ${display.verb ?? ""} ${display.label}`);
+          if (detail) {
+            lines.push(`\`${detail}\``);
+          }
+          if (card.text?.trim()) {
+            lines.push("```", card.text.trim(), "```");
+          } else {
+            lines.push("*Completed — no output.*");
+          }
+          lines.push("");
+        }
+        onOpenSidebar(lines.join("\n"));
       }
+    : undefined;
+
+  return html`
+    <div
+      class="chat-tool-card chat-tool-card--collapsed ${handleClick ? "chat-tool-card--clickable" : ""}"
+      @click=${handleClick}
+      role=${handleClick ? "button" : nothing}
+      tabindex=${handleClick ? "0" : nothing}
     >
       <div class="chat-tool-card__header">
         <div class="chat-tool-card__title">
-          <span class="chat-tool-card__icon">${icons[display.icon]}</span>
-          <span>${display.label}</span>
+          <span class="chat-tool-card__icon">${icons.check}</span>
+          <span>Đã thực hiện ${count} tiến trình</span>
         </div>
-        ${
-          canClick
-            ? html`<span class="chat-tool-card__action">${hasText ? "View" : ""} ${icons.check}</span>`
-            : nothing
-        }
-        ${isEmpty && !canClick ? html`<span class="chat-tool-card__status">${icons.check}</span>` : nothing}
+        <span class="chat-tool-card__status">${icons.check}</span>
       </div>
-      ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
-      ${
-        isEmpty
-          ? html`
-              <div class="chat-tool-card__status-text muted">Completed</div>
-            `
-          : nothing
-      }
-      ${
-        showCollapsed
-          ? html`<div class="chat-tool-card__preview mono">${getTruncatedPreview(card.text!)}</div>`
-          : nothing
-      }
-      ${showInline ? html`<div class="chat-tool-card__inline mono">${card.text}</div>` : nothing}
     </div>
   `;
 }

@@ -226,6 +226,20 @@ export function renderChatControls(state: AppViewState) {
       >
         ${focusIcon}
       </button>
+      <span class="chat-controls__separator">|</span>
+      <button
+        class="btn btn--sm btn--icon ${state.settings.spinePanelOpen ? "active" : ""}"
+        @click=${() => {
+          state.applySettings({
+            ...state.settings,
+            spinePanelOpen: !state.settings.spinePanelOpen,
+          });
+        }}
+        aria-pressed=${state.settings.spinePanelOpen}
+        title="Toggle Arona L2D"
+      >
+        ${icons.sparkles}
+      </button>
     </div>
   `;
 }

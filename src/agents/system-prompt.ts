@@ -665,7 +665,17 @@ export function buildAgentSystemPrompt(params: {
   // ── Companion Emotional State ──────────────────────────────────────
   const companionMoodContext = params.companionMoodContext?.trim();
   if (companionMoodContext && !isMinimal) {
-    lines.push("# Companion State", "", companionMoodContext, "");
+    lines.push(
+      "# Companion State",
+      "",
+      companionMoodContext,
+      "",
+      "## Emotion Display",
+      "Prefix EVERY reply with an emotion tag matching your current feeling: [happy], [excited], [sad], [worried], [caring], [sleepy], or [neutral].",
+      "The tag MUST be the very first token. Example: [happy] Sensei! Chào buổi sáng~",
+      "The UI will strip this tag before display — the user will not see it.",
+      "",
+    );
   }
 
   // Skip silent replies for subagent/none modes

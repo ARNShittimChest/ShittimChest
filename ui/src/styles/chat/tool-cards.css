@@ -2,16 +2,84 @@
 .chat-tool-card {
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px;
   margin-top: 8px;
   background: var(--card);
   box-shadow: inset 0 1px 0 var(--card-highlight);
   transition:
     border-color 150ms ease-out,
     background 150ms ease-out;
-  /* Fixed max-height to ensure cards don't expand too much */
-  max-height: 120px;
   overflow: hidden;
+}
+
+/* ── Collapsed state (details/summary) ──────────────────────── */
+.chat-tool-card--collapsed {
+  padding: 0;
+  max-height: none;
+}
+
+.chat-tool-card--collapsed>summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  user-select: none;
+}
+
+.chat-tool-card--collapsed>summary::-webkit-details-marker {
+  display: none;
+}
+
+.chat-tool-card--collapsed>summary::marker {
+  content: "";
+}
+
+.chat-tool-card--collapsed .chat-tool-card__body {
+  padding: 0 12px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.chat-tool-card--collapsed[open] {
+  border-color: var(--border-strong);
+}
+
+.chat-tool-card--collapsed .chat-tool-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--secondary);
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 150ms ease-out, border-color 150ms ease-out;
+}
+
+.chat-tool-card--collapsed .chat-tool-card__action:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+/* ── Active tool card (executing) ───────────────────────────── */
+.chat-tool-card--active {
+  padding: 8px 12px;
+  border-color: var(--accent-muted, rgba(108, 155, 255, 0.3));
+  background: var(--accent-subtle, rgba(108, 155, 255, 0.05));
+}
+
+.chat-tool-card__spinner svg {
+  animation: tool-spin 1s linear infinite;
+}
+
+@keyframes tool-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .chat-tool-card:hover {
@@ -189,12 +257,14 @@
 }
 
 @keyframes reading-pulse {
+
   0%,
   60%,
   100% {
     opacity: 0.3;
     transform: scale(0.8);
   }
+
   30% {
     opacity: 1;
     transform: scale(1);
