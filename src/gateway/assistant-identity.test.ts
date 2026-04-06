@@ -38,6 +38,8 @@ describe("resolveAssistantIdentity avatar normalization", () => {
       },
     };
 
-    expect(resolveAssistantIdentity({ cfg, workspaceDir: "" }).avatar).toBe("avatars/shittimchest.png");
+    expect(resolveAssistantIdentity({ cfg, workspaceDir: "" }).avatar).toBe(
+      "avatars/shittimchest.png",
+    );
   });
 });

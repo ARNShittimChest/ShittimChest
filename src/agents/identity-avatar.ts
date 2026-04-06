@@ -73,7 +73,10 @@ function resolveLocalAvatarPath(params: {
   return { ok: true, filePath: realPath };
 }
 
-export function resolveAgentAvatar(cfg: ShittimChestConfig, agentId: string): AgentAvatarResolution {
+export function resolveAgentAvatar(
+  cfg: ShittimChestConfig,
+  agentId: string,
+): AgentAvatarResolution {
   const source = resolveAvatarSource(cfg, agentId);
   if (!source) {
     return { kind: "none", reason: "missing" };

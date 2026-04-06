@@ -82,11 +82,13 @@ export class PlaywrightDiffScreenshotter implements DiffScreenshotter {
           if (document.documentElement.dataset.shittimchestDiffsReady === "true") {
             return true;
           }
-          return [...document.querySelectorAll("[data-shittimchest-diff-host]")].every((element) => {
-            return (
-              element instanceof HTMLElement && element.shadowRoot?.querySelector("[data-diffs]")
-            );
-          });
+          return [...document.querySelectorAll("[data-shittimchest-diff-host]")].every(
+            (element) => {
+              return (
+                element instanceof HTMLElement && element.shadowRoot?.querySelector("[data-diffs]")
+              );
+            },
+          );
         },
         {
           timeout: 10_000,
@@ -172,7 +174,9 @@ function injectBaseHref(html: string): string {
   return html.replace("<head>", '<head><base href="http://127.0.0.1/" />');
 }
 
-async function resolveBrowserExecutablePath(config: ShittimChestConfig): Promise<string | undefined> {
+async function resolveBrowserExecutablePath(
+  config: ShittimChestConfig,
+): Promise<string | undefined> {
   const cacheKey = JSON.stringify({
     configPath: config.browser?.executablePath?.trim() || "",
     env: [

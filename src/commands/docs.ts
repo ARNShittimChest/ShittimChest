@@ -163,7 +163,9 @@ export async function docsSearchCommand(queryParts: string[], runtime: RuntimeEn
     const docs = formatDocsLink("/", "docs.shittimchest.ai");
     if (isRich()) {
       runtime.log(`${theme.muted("Docs:")} ${docs}`);
-      runtime.log(`${theme.muted("Search:")} ${formatCliCommand('shittimchest docs "your query"')}`);
+      runtime.log(
+        `${theme.muted("Search:")} ${formatCliCommand('shittimchest docs "your query"')}`,
+      );
     } else {
       runtime.log("Docs: https://docs.shittimchest.ai/");
       runtime.log(`Search: ${formatCliCommand('shittimchest docs "your query"')}`);

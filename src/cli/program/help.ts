@@ -30,8 +30,14 @@ const EXAMPLES = [
     "Send via your web session and print JSON result.",
   ],
   ["shittimchest gateway --port 18789", "Run the WebSocket Gateway locally."],
-  ["shittimchest --dev gateway", "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001."],
-  ["shittimchest gateway --force", "Kill anything bound to the default gateway port, then start it."],
+  [
+    "shittimchest --dev gateway",
+    "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001.",
+  ],
+  [
+    "shittimchest gateway --force",
+    "Kill anything bound to the default gateway port, then start it.",
+  ],
   ["shittimchest gateway ...", "Gateway control via WebSocket."],
   [
     'shittimchest agent --to +15555550123 --message "Run summary" --deliver',

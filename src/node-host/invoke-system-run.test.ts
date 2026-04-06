@@ -315,7 +315,10 @@ describe("handleSystemRunInvoke mac app exec host routing", () => {
     }
   });
   it("denies ./sh wrapper spoof in allowlist on-miss mode before execution", async () => {
-    const marker = path.join(os.tmpdir(), `shittimchest-wrapper-spoof-${process.pid}-${Date.now()}`);
+    const marker = path.join(
+      os.tmpdir(),
+      `shittimchest-wrapper-spoof-${process.pid}-${Date.now()}`,
+    );
     const runCommand = vi.fn(async () => {
       fs.writeFileSync(marker, "executed");
       return {

@@ -3,7 +3,10 @@ import type { HookInstallRecord } from "../config/types.hooks.js";
 
 export type HookInstallUpdate = HookInstallRecord & { hookId: string };
 
-export function recordHookInstall(cfg: ShittimChestConfig, update: HookInstallUpdate): ShittimChestConfig {
+export function recordHookInstall(
+  cfg: ShittimChestConfig,
+  update: HookInstallUpdate,
+): ShittimChestConfig {
   const { hookId, ...record } = update;
   const installs = {
     ...cfg.hooks?.internal?.installs,

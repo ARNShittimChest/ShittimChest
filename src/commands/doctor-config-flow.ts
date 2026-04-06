@@ -374,7 +374,9 @@ function collectTelegramAllowFromLists(
   return refs;
 }
 
-function scanTelegramAllowFromUsernameEntries(cfg: ShittimChestConfig): TelegramAllowFromUsernameHit[] {
+function scanTelegramAllowFromUsernameEntries(
+  cfg: ShittimChestConfig,
+): TelegramAllowFromUsernameHit[] {
   const hits: TelegramAllowFromUsernameHit[] = [];
 
   const scanList = (pathLabel: string, list: unknown) => {
@@ -1794,7 +1796,9 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
     if (shouldRepair) {
       cfg = normalized.config;
     } else {
-      fixHints.push(`Run "${formatCliCommand("shittimchest doctor --fix")}" to apply these changes.`);
+      fixHints.push(
+        `Run "${formatCliCommand("shittimchest doctor --fix")}" to apply these changes.`,
+      );
     }
   }
 
@@ -1806,7 +1810,9 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
     if (shouldRepair) {
       cfg = autoEnable.config;
     } else {
-      fixHints.push(`Run "${formatCliCommand("shittimchest doctor --fix")}" to apply these changes.`);
+      fixHints.push(
+        `Run "${formatCliCommand("shittimchest doctor --fix")}" to apply these changes.`,
+      );
     }
   }
 

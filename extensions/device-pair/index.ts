@@ -432,9 +432,13 @@ export default function register(api: ShittimChestPluginApi) {
             if (send) {
               await send(
                 target,
-                ["Scan this QR code with the ShittimChest iOS app:", "", "```", qrAscii, "```"].join(
-                  "\n",
-                ),
+                [
+                  "Scan this QR code with the ShittimChest iOS app:",
+                  "",
+                  "```",
+                  qrAscii,
+                  "```",
+                ].join("\n"),
                 {
                   ...(ctx.messageThreadId != null ? { messageThreadId: ctx.messageThreadId } : {}),
                   ...(ctx.accountId ? { accountId: ctx.accountId } : {}),

@@ -17,18 +17,18 @@
   max-height: none;
 }
 
-.chat-tool-card--collapsed>summary {
+.chat-tool-card--collapsed > summary {
   list-style: none;
   cursor: pointer;
   padding: 8px 12px;
   user-select: none;
 }
 
-.chat-tool-card--collapsed>summary::-webkit-details-marker {
+.chat-tool-card--collapsed > summary::-webkit-details-marker {
   display: none;
 }
 
-.chat-tool-card--collapsed>summary::marker {
+.chat-tool-card--collapsed > summary::marker {
   content: "";
 }
 
@@ -53,7 +53,9 @@
   color: var(--accent);
   font-size: 12px;
   cursor: pointer;
-  transition: background 150ms ease-out, border-color 150ms ease-out;
+  transition:
+    background 150ms ease-out,
+    border-color 150ms ease-out;
 }
 
 .chat-tool-card--collapsed .chat-tool-card__action:hover {
@@ -257,7 +259,6 @@
 }
 
 @keyframes reading-pulse {
-
   0%,
   60%,
   100% {

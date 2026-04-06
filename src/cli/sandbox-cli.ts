@@ -29,7 +29,10 @@ const SANDBOX_EXAMPLES = {
   recreate: [
     ["shittimchest sandbox recreate --all", "Recreate all containers."],
     ["shittimchest sandbox recreate --session main", "Recreate a specific session."],
-    ["shittimchest sandbox recreate --agent mybot", "Recreate a specific agent (includes sub-agents)."],
+    [
+      "shittimchest sandbox recreate --agent mybot",
+      "Recreate a specific agent (includes sub-agents).",
+    ],
     ["shittimchest sandbox recreate --browser --all", "Recreate only browser containers."],
     ["shittimchest sandbox recreate --all --force", "Skip confirmation."],
   ],

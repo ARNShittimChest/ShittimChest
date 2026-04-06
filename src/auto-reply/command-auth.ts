@@ -16,7 +16,10 @@ export type CommandAuthorization = {
   to?: string;
 };
 
-function resolveProviderFromContext(ctx: MsgContext, cfg: ShittimChestConfig): ChannelId | undefined {
+function resolveProviderFromContext(
+  ctx: MsgContext,
+  cfg: ShittimChestConfig,
+): ChannelId | undefined {
   const explicitMessageChannel =
     normalizeMessageChannel(ctx.Provider) ??
     normalizeMessageChannel(ctx.Surface) ??

@@ -202,8 +202,12 @@ describe("abort detection", () => {
     expect(isAbortRequestText("stopp")).toBe(true);
     expect(isAbortRequestText("pare")).toBe(true);
     expect(isAbortRequestText(" توقف ")).toBe(true);
-    expect(isAbortRequestText("/stop@shittimchest_bot", { botUsername: "shittimchest_bot" })).toBe(true);
-    expect(isAbortRequestText("/Stop@shittimchest_bot", { botUsername: "shittimchest_bot" })).toBe(true);
+    expect(isAbortRequestText("/stop@shittimchest_bot", { botUsername: "shittimchest_bot" })).toBe(
+      true,
+    );
+    expect(isAbortRequestText("/Stop@shittimchest_bot", { botUsername: "shittimchest_bot" })).toBe(
+      true,
+    );
 
     expect(isAbortRequestText("/status")).toBe(false);
     expect(isAbortRequestText("do not do that")).toBe(true);

@@ -116,7 +116,9 @@ describe("secret ref resolver", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-plain-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-plain-"),
+    );
     cleanupRoots.push(root);
     const scriptPath = path.join(root, "resolver-plain.mjs");
     await writeSecureFile(
@@ -149,7 +151,9 @@ describe("secret ref resolver", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-link-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-link-"),
+    );
     cleanupRoots.push(root);
     const scriptPath = path.join(root, "resolver-target.mjs");
     const symlinkPath = path.join(root, "resolver-link.mjs");
@@ -185,7 +189,9 @@ describe("secret ref resolver", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-link-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-link-"),
+    );
     cleanupRoots.push(root);
     const scriptPath = path.join(root, "resolver-target.mjs");
     const symlinkPath = path.join(root, "resolver-link.mjs");
@@ -293,8 +299,12 @@ describe("secret ref resolver", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-link-"));
-    const outside = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-out-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-link-"),
+    );
+    const outside = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-out-"),
+    );
     cleanupRoots.push(root);
     cleanupRoots.push(outside);
     const scriptPath = path.join(outside, "resolver-target.mjs");
@@ -407,7 +417,9 @@ describe("secret ref resolver", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-json-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-exec-json-"),
+    );
     cleanupRoots.push(root);
     const scriptPath = path.join(root, "resolver-invalid-json.mjs");
     await writeSecureFile(
@@ -441,7 +453,9 @@ describe("secret ref resolver", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-resolve-single-value-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-resolve-single-value-"),
+    );
     cleanupRoots.push(root);
     const filePath = path.join(root, "token.txt");
     await writeSecureFile(filePath, "raw-token-value\n");

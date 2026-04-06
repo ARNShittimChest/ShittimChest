@@ -57,7 +57,9 @@ export function buildGatewayRuntimeHints(
     hints.push(`Then reinstall: ${formatCliCommand("shittimchest gateway install", env)}`);
   }
   if (runtime.missingUnit) {
-    hints.push(`Service not installed. Run: ${formatCliCommand("shittimchest gateway install", env)}`);
+    hints.push(
+      `Service not installed. Run: ${formatCliCommand("shittimchest gateway install", env)}`,
+    );
     if (fileLog) {
       hints.push(`File logs: ${fileLog}`);
     }

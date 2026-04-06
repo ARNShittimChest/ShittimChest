@@ -249,7 +249,9 @@ describe("commands registry", () => {
   });
 
   it("normalizes telegram-style command mentions for the current bot", () => {
-    expect(normalizeCommandBody("/help@shittimchest", { botUsername: "shittimchest" })).toBe("/help");
+    expect(normalizeCommandBody("/help@shittimchest", { botUsername: "shittimchest" })).toBe(
+      "/help",
+    );
     expect(
       normalizeCommandBody("/help@shittimchest args", {
         botUsername: "shittimchest",

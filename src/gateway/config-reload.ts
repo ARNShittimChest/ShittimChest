@@ -1,7 +1,11 @@
 import { isDeepStrictEqual } from "node:util";
 import chokidar from "chokidar";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
-import type { ShittimChestConfig, ConfigFileSnapshot, GatewayReloadMode } from "../config/config.js";
+import type {
+  ShittimChestConfig,
+  ConfigFileSnapshot,
+  GatewayReloadMode,
+} from "../config/config.js";
 import { getActivePluginRegistry } from "../plugins/runtime.js";
 import { isPlainObject } from "../utils.js";
 

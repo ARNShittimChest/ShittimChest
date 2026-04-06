@@ -35,7 +35,9 @@ const ONE_PIXEL_GIF_B64 = "R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=";
 async function withTempWorkspacePng(
   cb: (args: { workspaceDir: string; imagePath: string }) => Promise<void>,
 ) {
-  const workspaceParent = await fs.mkdtemp(path.join(process.cwd(), ".shittimchest-workspace-image-"));
+  const workspaceParent = await fs.mkdtemp(
+    path.join(process.cwd(), ".shittimchest-workspace-image-"),
+  );
   try {
     const workspaceDir = path.join(workspaceParent, "workspace");
     await fs.mkdir(workspaceDir, { recursive: true });

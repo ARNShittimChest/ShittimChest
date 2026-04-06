@@ -217,7 +217,9 @@ function estimateDurationSeconds(pcm: Buffer): number {
 }
 
 async function writeWavFile(pcm: Buffer): Promise<{ path: string; durationSeconds: number }> {
-  const tempDir = await fs.mkdtemp(path.join(resolvePreferredShittimChestTmpDir(), "discord-voice-"));
+  const tempDir = await fs.mkdtemp(
+    path.join(resolvePreferredShittimChestTmpDir(), "discord-voice-"),
+  );
   const filePath = path.join(tempDir, `segment-${randomUUID()}.wav`);
   const wav = buildWavBuffer(pcm);
   await fs.writeFile(filePath, wav);

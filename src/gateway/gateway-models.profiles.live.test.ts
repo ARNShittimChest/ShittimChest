@@ -32,7 +32,8 @@ import { hasExpectedToolNonce, shouldRetryToolReadProbe } from "./live-tool-prob
 import { startGatewayServer } from "./server.js";
 import { extractPayloadText } from "./test-helpers.agent-results.js";
 
-const LIVE = isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
+const LIVE =
+  isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
 const GATEWAY_LIVE = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_GATEWAY);
 const ZAI_FALLBACK = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_GATEWAY_ZAI_FALLBACK);
 const PROVIDERS = parseFilter(process.env.SHITTIMCHEST_LIVE_GATEWAY_PROVIDERS);

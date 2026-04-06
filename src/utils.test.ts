@@ -167,9 +167,9 @@ describe("shortenHomePath", () => {
     vi.stubEnv("SHITTIMCHEST_HOME", "/srv/shittimchest-home");
     vi.stubEnv("HOME", "/home/other");
 
-    expect(shortenHomePath(`${path.resolve("/srv/shittimchest-home")}/.shittimchest/shittimchest.json`)).toBe(
-      "$SHITTIMCHEST_HOME/.shittimchest/shittimchest.json",
-    );
+    expect(
+      shortenHomePath(`${path.resolve("/srv/shittimchest-home")}/.shittimchest/shittimchest.json`),
+    ).toBe("$SHITTIMCHEST_HOME/.shittimchest/shittimchest.json");
 
     vi.unstubAllEnvs();
   });
@@ -181,7 +181,9 @@ describe("shortenHomeInString", () => {
     vi.stubEnv("HOME", "/home/other");
 
     expect(
-      shortenHomeInString(`config: ${path.resolve("/srv/shittimchest-home")}/.shittimchest/shittimchest.json`),
+      shortenHomeInString(
+        `config: ${path.resolve("/srv/shittimchest-home")}/.shittimchest/shittimchest.json`,
+      ),
     ).toBe("config: $SHITTIMCHEST_HOME/.shittimchest/shittimchest.json");
 
     vi.unstubAllEnvs();
@@ -231,7 +233,9 @@ describe("resolveUserPath", () => {
     vi.stubEnv("SHITTIMCHEST_HOME", "/srv/shittimchest-home");
     vi.stubEnv("HOME", "/home/other");
 
-    expect(resolveUserPath("~/shittimchest")).toBe(path.resolve("/srv/shittimchest-home", "shittimchest"));
+    expect(resolveUserPath("~/shittimchest")).toBe(
+      path.resolve("/srv/shittimchest-home", "shittimchest"),
+    );
 
     vi.unstubAllEnvs();
   });

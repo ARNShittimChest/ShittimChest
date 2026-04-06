@@ -185,7 +185,9 @@ function buildCandidates(config: ShittimChestConfig): ConfigureCandidate[] {
   return out;
 }
 
-function toSourceChoices(config: ShittimChestConfig): Array<{ value: SecretRefSource; label: string }> {
+function toSourceChoices(
+  config: ShittimChestConfig,
+): Array<{ value: SecretRefSource; label: string }> {
   const hasSource = (source: SecretRefSource) =>
     Object.values(config.secrets?.providers ?? {}).some((provider) => provider?.source === source);
   const choices: Array<{ value: SecretRefSource; label: string }> = [
@@ -673,7 +675,10 @@ async function configureProvidersInteractive(config: ShittimChestConfig): Promis
   }
 }
 
-function collectProviderPlanChanges(params: { original: ShittimChestConfig; next: ShittimChestConfig }): {
+function collectProviderPlanChanges(params: {
+  original: ShittimChestConfig;
+  next: ShittimChestConfig;
+}): {
   upserts: Record<string, SecretProviderConfig>;
   deletes: string[];
 } {

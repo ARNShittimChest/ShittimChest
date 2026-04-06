@@ -26,7 +26,10 @@ function resolveAccountConfig(
   return resolveAccountEntry(cfg.channels?.discord?.accounts, accountId);
 }
 
-function mergeDiscordAccountConfig(cfg: ShittimChestConfig, accountId: string): DiscordAccountConfig {
+function mergeDiscordAccountConfig(
+  cfg: ShittimChestConfig,
+  accountId: string,
+): DiscordAccountConfig {
   const { accounts: _ignored, ...base } = (cfg.channels?.discord ?? {}) as DiscordAccountConfig & {
     accounts?: unknown;
   };

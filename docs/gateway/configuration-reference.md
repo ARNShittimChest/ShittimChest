@@ -1573,18 +1573,18 @@ Defaults for Talk mode (macOS/iOS/Android).
 
 ### Tool groups
 
-| Group              | Tools                                                                                    |
-| ------------------ | ---------------------------------------------------------------------------------------- |
-| `group:runtime`    | `exec`, `process` (`bash` is accepted as an alias for `exec`)                            |
-| `group:fs`         | `read`, `write`, `edit`, `apply_patch`                                                   |
-| `group:sessions`   | `sessions_list`, `sessions_history`, `sessions_send`, `sessions_spawn`, `session_status` |
-| `group:memory`     | `memory_search`, `memory_get`                                                            |
-| `group:web`        | `web_search`, `web_fetch`                                                                |
-| `group:ui`         | `browser`, `canvas`                                                                      |
-| `group:automation` | `cron`, `gateway`                                                                        |
-| `group:messaging`  | `message`                                                                                |
-| `group:nodes`      | `nodes`                                                                                  |
-| `group:shittimchest`   | All built-in tools (excludes provider plugins)                                           |
+| Group                | Tools                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| `group:runtime`      | `exec`, `process` (`bash` is accepted as an alias for `exec`)                            |
+| `group:fs`           | `read`, `write`, `edit`, `apply_patch`                                                   |
+| `group:sessions`     | `sessions_list`, `sessions_history`, `sessions_send`, `sessions_spawn`, `session_status` |
+| `group:memory`       | `memory_search`, `memory_get`                                                            |
+| `group:web`          | `web_search`, `web_fetch`                                                                |
+| `group:ui`           | `browser`, `canvas`                                                                      |
+| `group:automation`   | `cron`, `gateway`                                                                        |
+| `group:messaging`    | `message`                                                                                |
+| `group:nodes`        | `nodes`                                                                                  |
+| `group:shittimchest` | All built-in tools (excludes provider plugins)                                           |
 
 ### `tools.allow` / `tools.deny`
 

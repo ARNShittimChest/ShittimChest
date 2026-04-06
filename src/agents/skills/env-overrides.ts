@@ -145,7 +145,10 @@ function createEnvReverter(updates: EnvUpdate[]) {
   };
 }
 
-export function applySkillEnvOverrides(params: { skills: SkillEntry[]; config?: ShittimChestConfig }) {
+export function applySkillEnvOverrides(params: {
+  skills: SkillEntry[];
+  config?: ShittimChestConfig;
+}) {
   const { skills, config } = params;
   const updates: EnvUpdate[] = [];
 

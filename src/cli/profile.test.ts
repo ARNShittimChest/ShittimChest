@@ -149,9 +149,9 @@ describe("formatCliCommand", () => {
   });
 
   it("trims whitespace from profile", () => {
-    expect(formatCliCommand("shittimchest doctor --fix", { SHITTIMCHEST_PROFILE: "  jbshittimchest  " })).toBe(
-      "shittimchest --profile jbshittimchest doctor --fix",
-    );
+    expect(
+      formatCliCommand("shittimchest doctor --fix", { SHITTIMCHEST_PROFILE: "  jbshittimchest  " }),
+    ).toBe("shittimchest --profile jbshittimchest doctor --fix");
   });
 
   it("handles command with no args after shittimchest", () => {

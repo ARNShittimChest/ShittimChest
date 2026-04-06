@@ -226,7 +226,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");
@@ -275,7 +277,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");
@@ -339,7 +343,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");
@@ -388,7 +394,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");
@@ -429,7 +437,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");
@@ -467,7 +477,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");
@@ -495,7 +507,9 @@ describe("sessions tools", () => {
       return {};
     });
 
-    const tool = createShittimChestTools().find((candidate) => candidate.name === "sessions_history");
+    const tool = createShittimChestTools().find(
+      (candidate) => candidate.name === "sessions_history",
+    );
     expect(tool).toBeDefined();
     if (!tool) {
       throw new Error("missing sessions_history tool");

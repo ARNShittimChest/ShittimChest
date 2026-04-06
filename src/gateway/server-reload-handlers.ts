@@ -96,7 +96,9 @@ export function createGatewayReloadHandlers(params: {
         cfg: nextConfig,
         log: params.logHooks,
         onSkipped: () =>
-          params.logHooks.info("skipping gmail watcher restart (SHITTIMCHEST_SKIP_GMAIL_WATCHER=1)"),
+          params.logHooks.info(
+            "skipping gmail watcher restart (SHITTIMCHEST_SKIP_GMAIL_WATCHER=1)",
+          ),
       });
     }
 

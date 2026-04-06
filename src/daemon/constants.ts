@@ -87,7 +87,8 @@ export function resolveGatewayServiceDescription(params: {
     params.description ??
     formatGatewayServiceDescription({
       profile: params.env.SHITTIMCHEST_PROFILE,
-      version: params.environment?.SHITTIMCHEST_SERVICE_VERSION ?? params.env.SHITTIMCHEST_SERVICE_VERSION,
+      version:
+        params.environment?.SHITTIMCHEST_SERVICE_VERSION ?? params.env.SHITTIMCHEST_SERVICE_VERSION,
     })
   );
 }

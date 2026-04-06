@@ -9,7 +9,10 @@ export type PluginEnableResult = {
   reason?: string;
 };
 
-export function enablePluginInConfig(cfg: ShittimChestConfig, pluginId: string): PluginEnableResult {
+export function enablePluginInConfig(
+  cfg: ShittimChestConfig,
+  pluginId: string,
+): PluginEnableResult {
   const builtInChannelId = normalizeChatChannelId(pluginId);
   const resolvedId = builtInChannelId ?? pluginId;
   if (cfg.plugins?.enabled === false) {

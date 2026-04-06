@@ -1,6 +1,8 @@
 import type { ShittimChestConfig } from "../../config/config.js";
 
-export function makeModelFallbackCfg(overrides: Partial<ShittimChestConfig> = {}): ShittimChestConfig {
+export function makeModelFallbackCfg(
+  overrides: Partial<ShittimChestConfig> = {},
+): ShittimChestConfig {
   return {
     agents: {
       defaults: {

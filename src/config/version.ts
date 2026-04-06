@@ -7,7 +7,9 @@ export type ShittimChestVersion = {
 
 const VERSION_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-(\d+))?/;
 
-export function parseShittimChestVersion(raw: string | null | undefined): ShittimChestVersion | null {
+export function parseShittimChestVersion(
+  raw: string | null | undefined,
+): ShittimChestVersion | null {
   if (!raw) {
     return null;
   }

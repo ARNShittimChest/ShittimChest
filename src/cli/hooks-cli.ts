@@ -214,7 +214,10 @@ async function readInstalledPackageVersion(dir: string): Promise<string | undefi
 
 type HookInternalEntryLike = Record<string, unknown> & { enabled?: boolean };
 
-function enableInternalHookEntries(config: ShittimChestConfig, hookNames: string[]): ShittimChestConfig {
+function enableInternalHookEntries(
+  config: ShittimChestConfig,
+  hookNames: string[],
+): ShittimChestConfig {
   const entries = { ...config.hooks?.internal?.entries } as Record<string, HookInternalEntryLike>;
 
   for (const hookName of hookNames) {

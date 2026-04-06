@@ -24,7 +24,10 @@ const gatewayEnv = {
   SHITTIMCHEST_GATEWAY_PASSWORD: "env-password",
 } as NodeJS.ProcessEnv;
 
-function makeRemoteGatewayConfig(remote: { token?: string; password?: string }): ShittimChestConfig {
+function makeRemoteGatewayConfig(remote: {
+  token?: string;
+  password?: string;
+}): ShittimChestConfig {
   return {
     gateway: {
       mode: "remote",

@@ -52,12 +52,12 @@ What ShittimChest should do:
 
 Use ACP when you want an external harness runtime. Use sub-agents when you want ShittimChest-native delegated runs.
 
-| Area          | ACP session                           | Sub-agent run                      |
-| ------------- | ------------------------------------- | ---------------------------------- |
-| Runtime       | ACP backend plugin (for example acpx) | ShittimChest native sub-agent runtime  |
-| Session key   | `agent:<agentId>:acp:<uuid>`          | `agent:<agentId>:subagent:<uuid>`  |
-| Main commands | `/acp ...`                            | `/subagents ...`                   |
-| Spawn tool    | `sessions_spawn` with `runtime:"acp"` | `sessions_spawn` (default runtime) |
+| Area          | ACP session                           | Sub-agent run                         |
+| ------------- | ------------------------------------- | ------------------------------------- |
+| Runtime       | ACP backend plugin (for example acpx) | ShittimChest native sub-agent runtime |
+| Session key   | `agent:<agentId>:acp:<uuid>`          | `agent:<agentId>:subagent:<uuid>`     |
+| Main commands | `/acp ...`                            | `/subagents ...`                      |
+| Spawn tool    | `sessions_spawn` with `runtime:"acp"` | `sessions_spawn` (default runtime)    |
 
 See also [Sub-agents](/tools/subagents).
 

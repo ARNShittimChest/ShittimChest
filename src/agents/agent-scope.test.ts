@@ -425,6 +425,8 @@ describe("resolveAgentConfig", () => {
     vi.stubEnv("SHITTIMCHEST_STATE_DIR", "");
 
     const agentDir = resolveAgentDir({} as ShittimChestConfig, "main");
-    expect(agentDir).toBe(path.join(path.resolve(home), ".shittimchest", "agents", "main", "agent"));
+    expect(agentDir).toBe(
+      path.join(path.resolve(home), ".shittimchest", "agents", "main", "agent"),
+    );
   });
 });

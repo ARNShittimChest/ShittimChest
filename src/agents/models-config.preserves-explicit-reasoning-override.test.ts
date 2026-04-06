@@ -54,7 +54,10 @@ describe("models-config: explicit reasoning override", () => {
 
         await ensureShittimChestModelsJson(cfg);
 
-        const raw = await fs.readFile(path.join(resolveShittimChestAgentDir(), "models.json"), "utf8");
+        const raw = await fs.readFile(
+          path.join(resolveShittimChestAgentDir(), "models.json"),
+          "utf8",
+        );
         const parsed = JSON.parse(raw) as ModelsJson;
         const m25 = parsed.providers.minimax?.models?.find((m) => m.id === "MiniMax-M2.5");
         expect(m25).toBeDefined();
@@ -101,7 +104,10 @@ describe("models-config: explicit reasoning override", () => {
 
         await ensureShittimChestModelsJson(cfg);
 
-        const raw = await fs.readFile(path.join(resolveShittimChestAgentDir(), "models.json"), "utf8");
+        const raw = await fs.readFile(
+          path.join(resolveShittimChestAgentDir(), "models.json"),
+          "utf8",
+        );
         const parsed = JSON.parse(raw) as ModelsJson;
         const m25 = parsed.providers.minimax?.models?.find((m) => m.id === "MiniMax-M2.5");
         expect(m25).toBeDefined();

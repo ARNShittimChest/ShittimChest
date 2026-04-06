@@ -4,7 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ShittimChestPluginApi, ShittimChestPluginToolContext } from "../../../src/plugins/types.js";
+import type {
+  ShittimChestPluginApi,
+  ShittimChestPluginToolContext,
+} from "../../../src/plugins/types.js";
 import {
   createWindowsCmdShimFixture,
   restorePlatformPathEnv,
@@ -49,7 +52,9 @@ function fakeApi(overrides: Partial<ShittimChestPluginApi> = {}): ShittimChestPl
   };
 }
 
-function fakeCtx(overrides: Partial<ShittimChestPluginToolContext> = {}): ShittimChestPluginToolContext {
+function fakeCtx(
+  overrides: Partial<ShittimChestPluginToolContext> = {},
+): ShittimChestPluginToolContext {
   return {
     config: {},
     workspaceDir: "/tmp",

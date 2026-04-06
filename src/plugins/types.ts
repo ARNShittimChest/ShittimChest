@@ -207,7 +207,9 @@ export type ShittimChestPluginCliContext = {
   logger: PluginLogger;
 };
 
-export type ShittimChestPluginCliRegistrar = (ctx: ShittimChestPluginCliContext) => void | Promise<void>;
+export type ShittimChestPluginCliRegistrar = (
+  ctx: ShittimChestPluginCliContext,
+) => void | Promise<void>;
 
 export type ShittimChestPluginServiceContext = {
   config: ShittimChestConfig;
@@ -262,7 +264,10 @@ export type ShittimChestPluginApi = {
     opts?: ShittimChestPluginHookOptions,
   ) => void;
   registerHttpHandler: (handler: ShittimChestPluginHttpHandler) => void;
-  registerHttpRoute: (params: { path: string; handler: ShittimChestPluginHttpRouteHandler }) => void;
+  registerHttpRoute: (params: {
+    path: string;
+    handler: ShittimChestPluginHttpRouteHandler;
+  }) => void;
   registerChannel: (registration: ShittimChestPluginChannelRegistration | ChannelPlugin) => void;
   registerGatewayMethod: (method: string, handler: GatewayRequestHandler) => void;
   registerCli: (registrar: ShittimChestPluginCliRegistrar, opts?: { commands?: string[] }) => void;

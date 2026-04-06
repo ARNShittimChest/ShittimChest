@@ -85,16 +85,16 @@ Both resolve from process env at activation time. SecretRef details are document
 
 ## Path-related env vars
 
-| Variable               | Purpose                                                                                                                                                                          |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variable                   | Purpose                                                                                                                                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SHITTIMCHEST_HOME`        | Override the home directory used for all internal path resolution (`~/.shittimchest/`, agent dirs, sessions, credentials). Useful when running ShittimChest as a dedicated service user. |
-| `SHITTIMCHEST_STATE_DIR`   | Override the state directory (default `~/.shittimchest`).                                                                                                                            |
+| `SHITTIMCHEST_STATE_DIR`   | Override the state directory (default `~/.shittimchest`).                                                                                                                                |
 | `SHITTIMCHEST_CONFIG_PATH` | Override the config file path (default `~/.shittimchest/shittimchest.json`).                                                                                                             |
 
 ## Logging
 
-| Variable             | Purpose                                                                                                                                                                                      |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variable                 | Purpose                                                                                                                                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SHITTIMCHEST_LOG_LEVEL` | Override log level for both file and console (e.g. `debug`, `trace`). Takes precedence over `logging.level` and `logging.consoleLevel` in config. Invalid values are ignored with a warning. |
 
 ### `SHITTIMCHEST_HOME`

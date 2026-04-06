@@ -179,9 +179,9 @@ describe("ensureSandboxBrowser create args", () => {
       (call: unknown[]) => Array.isArray(call[0]) && call[0][0] === "create",
     )?.[0] as string[] | undefined;
     const envEntries = envEntriesFromDockerArgs(createArgs ?? []);
-    expect(envEntries.some((entry) => entry.startsWith("SHITTIMCHEST_BROWSER_NOVNC_PASSWORD="))).toBe(
-      false,
-    );
+    expect(
+      envEntries.some((entry) => entry.startsWith("SHITTIMCHEST_BROWSER_NOVNC_PASSWORD=")),
+    ).toBe(false);
     expect(result?.noVncUrl).toBeUndefined();
   });
 });

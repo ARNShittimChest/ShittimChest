@@ -1,4 +1,7 @@
-import { resolveAllowlistMatchSimple, resolveEffectiveAllowFromLists } from "shittimchest/plugin-sdk";
+import {
+  resolveAllowlistMatchSimple,
+  resolveEffectiveAllowFromLists,
+} from "shittimchest/plugin-sdk";
 
 export function normalizeMattermostAllowEntry(entry: string): string {
   const trimmed = entry.trim();

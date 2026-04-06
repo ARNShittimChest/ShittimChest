@@ -248,7 +248,8 @@ describe("packNpmSpecToArchive", () => {
     const cwd = await createFixtureDir();
     mockPackCommandResult({
       stdout: "",
-      stderr: "npm error code E404\nnpm error 404  '@shittimchest/whatsapp@*' is not in this registry.",
+      stderr:
+        "npm error code E404\nnpm error 404  '@shittimchest/whatsapp@*' is not in this registry.",
       code: 1,
     });
 

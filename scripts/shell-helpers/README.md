@@ -87,7 +87,7 @@ clawdock-approve <request-id>
 | Command                   | Description                                    |
 | ------------------------- | ---------------------------------------------- |
 | `clawdock-shell`          | Interactive shell inside the gateway container |
-| `clawdock-cli <command>`  | Run ShittimChest CLI commands                      |
+| `clawdock-cli <command>`  | Run ShittimChest CLI commands                  |
 | `clawdock-exec <command>` | Execute arbitrary commands in the container    |
 
 ### Web UI & Devices
@@ -113,14 +113,14 @@ clawdock-approve <request-id>
 
 ### Utilities
 
-| Command              | Description                               |
-| -------------------- | ----------------------------------------- |
-| `clawdock-health`    | Run gateway health check                  |
-| `clawdock-token`     | Display the gateway authentication token  |
-| `clawdock-cd`        | Jump to the ShittimChest project directory    |
-| `clawdock-config`    | Open the ShittimChest config directory        |
-| `clawdock-workspace` | Open the workspace directory              |
-| `clawdock-help`      | Show all available commands with examples |
+| Command              | Description                                |
+| -------------------- | ------------------------------------------ |
+| `clawdock-health`    | Run gateway health check                   |
+| `clawdock-token`     | Display the gateway authentication token   |
+| `clawdock-cd`        | Jump to the ShittimChest project directory |
+| `clawdock-config`    | Open the ShittimChest config directory     |
+| `clawdock-workspace` | Open the workspace directory               |
+| `clawdock-help`      | Show all available commands with examples  |
 
 ## Common Workflows
 

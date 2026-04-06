@@ -32,7 +32,10 @@ function setWhatsAppAllowFrom(cfg: ShittimChestConfig, allowFrom?: string[]): Sh
   return mergeWhatsAppConfig(cfg, { allowFrom }, { unsetOnUndefined: ["allowFrom"] });
 }
 
-function setWhatsAppSelfChatMode(cfg: ShittimChestConfig, selfChatMode: boolean): ShittimChestConfig {
+function setWhatsAppSelfChatMode(
+  cfg: ShittimChestConfig,
+  selfChatMode: boolean,
+): ShittimChestConfig {
   return mergeWhatsAppConfig(cfg, { selfChatMode });
 }
 

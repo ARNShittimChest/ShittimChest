@@ -119,11 +119,11 @@ Direct URLs are fetched as-is. This uses the `web_fetch` tool (or `exec` for POS
 
 OpenProse programs map to ShittimChest primitives:
 
-| OpenProse concept         | ShittimChest tool    |
-| ------------------------- | ---------------- |
-| Spawn session / Task tool | `sessions_spawn` |
-| File read/write           | `read` / `write` |
-| Web fetch                 | `web_fetch`      |
+| OpenProse concept         | ShittimChest tool |
+| ------------------------- | ----------------- |
+| Spawn session / Task tool | `sessions_spawn`  |
+| File read/write           | `read` / `write`  |
+| Web fetch                 | `web_fetch`       |
 
 If your tool allowlist blocks these tools, OpenProse programs will fail. See [Skills config](/tools/skills-config).
 

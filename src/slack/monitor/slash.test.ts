@@ -419,7 +419,11 @@ describe("Slack native command argument menus", () => {
     unsafeConfirmHandler = requireHandler(harness.commands, "/unsafeconfirm", "/unsafeconfirm");
     agentStatusHandler = requireHandler(harness.commands, "/agentstatus", "/agentstatus");
     argMenuHandler = requireHandler(harness.actions, "shittimchest_cmdarg", "arg-menu action");
-    argMenuOptionsHandler = requireHandler(harness.options, "shittimchest_cmdarg", "arg-menu options");
+    argMenuOptionsHandler = requireHandler(
+      harness.options,
+      "shittimchest_cmdarg",
+      "arg-menu options",
+    );
   });
 
   beforeEach(() => {

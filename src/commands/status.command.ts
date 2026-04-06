@@ -440,7 +440,9 @@ export async function statusCommand(
         ),
       );
     }
-    runtime.log(theme.muted(`Fallback: ${formatCliCommand("shittimchest devices approve --latest")}`));
+    runtime.log(
+      theme.muted(`Fallback: ${formatCliCommand("shittimchest devices approve --latest")}`),
+    );
     runtime.log(theme.muted(`Inspect: ${formatCliCommand("shittimchest devices list")}`));
   }
 

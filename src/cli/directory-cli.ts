@@ -75,7 +75,10 @@ export function registerDirectoryCli(program: Command) {
             'shittimchest directory peers list --channel slack --query "alice"',
             "Search contact/user IDs by name.",
           ],
-          ["shittimchest directory groups list --channel discord", "List available groups/channels."],
+          [
+            "shittimchest directory groups list --channel discord",
+            "List available groups/channels.",
+          ],
           [
             "shittimchest directory groups members --channel discord --group-id <id>",
             "List members for a specific group.",

@@ -690,7 +690,10 @@
   -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow);
   overflow: hidden;
-  transition: border-color var(--duration-fast) ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color var(--duration-fast) ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .config-section-card:hover {
@@ -1149,17 +1152,17 @@
     background var(--duration-normal) ease;
 }
 
-.cfg-toggle input:checked+.cfg-toggle__track {
+.cfg-toggle input:checked + .cfg-toggle__track {
   background: var(--ok-subtle);
   border-color: rgba(34, 197, 94, 0.4);
 }
 
-.cfg-toggle input:checked+.cfg-toggle__track::after {
+.cfg-toggle input:checked + .cfg-toggle__track::after {
   transform: translateX(22px);
   background: var(--ok);
 }
 
-.cfg-toggle input:focus+.cfg-toggle__track {
+.cfg-toggle input:focus + .cfg-toggle__track {
   box-shadow: var(--focus-ring);
 }
 
@@ -1493,7 +1496,7 @@
   min-width: 0;
 }
 
-.cfg-map__item-value>.cfg-fields {
+.cfg-map__item-value > .cfg-fields {
   gap: 10px;
 }
 

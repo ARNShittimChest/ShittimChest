@@ -145,7 +145,9 @@ function renderZone(opts: WideAreaGatewayZoneOpts & { serial: number }): string 
   }
 
   records.push(`_shittimchest-gw._tcp IN PTR ${instanceLabel}._shittimchest-gw._tcp`);
-  records.push(`${instanceLabel}._shittimchest-gw._tcp IN SRV 0 0 ${opts.gatewayPort} ${hostLabel}`);
+  records.push(
+    `${instanceLabel}._shittimchest-gw._tcp IN SRV 0 0 ${opts.gatewayPort} ${hostLabel}`,
+  );
   records.push(`${instanceLabel}._shittimchest-gw._tcp IN TXT ${txt.map(txtQuote).join(" ")}`);
 
   const contentBody = `${records.join("\n")}\n`;

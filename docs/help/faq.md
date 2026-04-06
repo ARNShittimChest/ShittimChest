@@ -1291,9 +1291,9 @@ Related: [Agent workspace](/concepts/agent-workspace), [Memory](/concepts/memory
 
 Everything lives under `$SHITTIMCHEST_STATE_DIR` (default: `~/.shittimchest`):
 
-| Path                                                            | Purpose                                                            |
-| --------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `$SHITTIMCHEST_STATE_DIR/shittimchest.json`                             | Main config (JSON5)                                                |
+| Path                                                                | Purpose                                                            |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `$SHITTIMCHEST_STATE_DIR/shittimchest.json`                         | Main config (JSON5)                                                |
 | `$SHITTIMCHEST_STATE_DIR/credentials/oauth.json`                    | Legacy OAuth import (copied into auth profiles on first use)       |
 | `$SHITTIMCHEST_STATE_DIR/agents/<agentId>/agent/auth-profiles.json` | Auth profiles (OAuth, API keys, and optional `keyRef`/`tokenRef`)  |
 | `$SHITTIMCHEST_STATE_DIR/secrets.json`                              | Optional file-backed secret payload for `file` SecretRef providers |

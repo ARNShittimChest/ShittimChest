@@ -121,7 +121,9 @@ export function resolveMattermostAccount(params: {
   };
 }
 
-export function listEnabledMattermostAccounts(cfg: ShittimChestConfig): ResolvedMattermostAccount[] {
+export function listEnabledMattermostAccounts(
+  cfg: ShittimChestConfig,
+): ResolvedMattermostAccount[] {
   return listMattermostAccountIds(cfg)
     .map((accountId) => resolveMattermostAccount({ cfg, accountId }))
     .filter((account) => account.enabled);

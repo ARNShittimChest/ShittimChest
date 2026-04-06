@@ -13,7 +13,8 @@ import { renderCatNoncePngBase64 } from "./live-image-probe.js";
 import { startGatewayServer } from "./server.js";
 import { extractPayloadText } from "./test-helpers.agent-results.js";
 
-const LIVE = isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
+const LIVE =
+  isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
 const CLI_LIVE = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_CLI_BACKEND);
 const CLI_IMAGE = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_CLI_BACKEND_IMAGE_PROBE);
 const CLI_RESUME = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_CLI_BACKEND_RESUME_PROBE);
@@ -191,7 +192,8 @@ describeLive("gateway live (cli backend)", () => {
           ? { command: "codex", args: DEFAULT_CODEX_ARGS }
           : null;
 
-    const cliCommand = process.env.SHITTIMCHEST_LIVE_CLI_BACKEND_COMMAND ?? providerDefaults?.command;
+    const cliCommand =
+      process.env.SHITTIMCHEST_LIVE_CLI_BACKEND_COMMAND ?? providerDefaults?.command;
     if (!cliCommand) {
       throw new Error(
         `SHITTIMCHEST_LIVE_CLI_BACKEND_COMMAND is required for provider "${providerId}".`,
@@ -203,7 +205,9 @@ describeLive("gateway live (cli backend)", () => {
         process.env.SHITTIMCHEST_LIVE_CLI_BACKEND_ARGS,
       ) ?? providerDefaults?.args;
     if (!baseCliArgs || baseCliArgs.length === 0) {
-      throw new Error(`SHITTIMCHEST_LIVE_CLI_BACKEND_ARGS is required for provider "${providerId}".`);
+      throw new Error(
+        `SHITTIMCHEST_LIVE_CLI_BACKEND_ARGS is required for provider "${providerId}".`,
+      );
     }
     const cliClearEnv =
       parseJsonStringArray(

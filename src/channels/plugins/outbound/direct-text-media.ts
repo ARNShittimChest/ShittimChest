@@ -23,7 +23,10 @@ type DirectSendFn<TOpts extends Record<string, unknown>, TResult extends DirectS
 export function resolveScopedChannelMediaMaxBytes(params: {
   cfg: ShittimChestConfig;
   accountId?: string | null;
-  resolveChannelLimitMb: (params: { cfg: ShittimChestConfig; accountId: string }) => number | undefined;
+  resolveChannelLimitMb: (params: {
+    cfg: ShittimChestConfig;
+    accountId: string;
+  }) => number | undefined;
 }): number | undefined {
   return resolveChannelMediaMaxBytes({
     cfg: params.cfg,

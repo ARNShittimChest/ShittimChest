@@ -534,8 +534,10 @@ export async function runConfigureWizard(
       basePath: nextConfig.gateway?.controlUi?.basePath,
     });
     // Try both new and old passwords since gateway may still have old config.
-    const newPassword = nextConfig.gateway?.auth?.password ?? process.env.SHITTIMCHEST_GATEWAY_PASSWORD;
-    const oldPassword = baseConfig.gateway?.auth?.password ?? process.env.SHITTIMCHEST_GATEWAY_PASSWORD;
+    const newPassword =
+      nextConfig.gateway?.auth?.password ?? process.env.SHITTIMCHEST_GATEWAY_PASSWORD;
+    const oldPassword =
+      baseConfig.gateway?.auth?.password ?? process.env.SHITTIMCHEST_GATEWAY_PASSWORD;
     const token = nextConfig.gateway?.auth?.token ?? process.env.SHITTIMCHEST_GATEWAY_TOKEN;
 
     let gatewayProbe = await probeGatewayReachable({

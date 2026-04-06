@@ -145,7 +145,10 @@ describe("workspace path resolution", () => {
       const tools = createShittimChestCodingTools({ workspaceDir, config: cfg });
       const { readTool } = expectReadWriteEditTools(tools);
 
-      const outsideAbsolute = path.resolve(path.parse(workspaceDir).root, "outside-shittimchest.txt");
+      const outsideAbsolute = path.resolve(
+        path.parse(workspaceDir).root,
+        "outside-shittimchest.txt",
+      );
       await expect(
         readTool.execute("ws-read-at-prefix", { path: `@${outsideAbsolute}` }),
       ).rejects.toThrow(/Path escapes sandbox root/i);

@@ -256,7 +256,10 @@ export async function ensureSandboxBrowser(params: {
       args.push("-p", `127.0.0.1::${params.cfg.browser.noVncPort}`);
     }
     args.push("-e", `SHITTIMCHEST_BROWSER_HEADLESS=${params.cfg.browser.headless ? "1" : "0"}`);
-    args.push("-e", `SHITTIMCHEST_BROWSER_ENABLE_NOVNC=${params.cfg.browser.enableNoVnc ? "1" : "0"}`);
+    args.push(
+      "-e",
+      `SHITTIMCHEST_BROWSER_ENABLE_NOVNC=${params.cfg.browser.enableNoVnc ? "1" : "0"}`,
+    );
     args.push("-e", `SHITTIMCHEST_BROWSER_CDP_PORT=${params.cfg.browser.cdpPort}`);
     if (cdpSourceRange) {
       args.push("-e", `${CDP_SOURCE_RANGE_ENV_KEY}=${cdpSourceRange}`);

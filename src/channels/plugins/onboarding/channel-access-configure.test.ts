@@ -97,19 +97,23 @@ describe("configureChannelAccessWithAllowlist", () => {
       text: "#general, #support",
     });
     const calls: string[] = [];
-    const setPolicy = vi.fn((next: ShittimChestConfig, policy: ChannelAccessPolicy): ShittimChestConfig => {
-      calls.push("setPolicy");
-      return {
-        ...next,
-        channels: { slack: { groupPolicy: policy } },
-      };
-    });
-    const resolveAllowlist = vi.fn(async (params: { cfg: ShittimChestConfig; entries: string[] }) => {
-      calls.push("resolve");
-      expect(params.cfg).toBe(cfg);
-      expect(params.entries).toEqual(["#general", "#support"]);
-      return ["C1", "C2"];
-    });
+    const setPolicy = vi.fn(
+      (next: ShittimChestConfig, policy: ChannelAccessPolicy): ShittimChestConfig => {
+        calls.push("setPolicy");
+        return {
+          ...next,
+          channels: { slack: { groupPolicy: policy } },
+        };
+      },
+    );
+    const resolveAllowlist = vi.fn(
+      async (params: { cfg: ShittimChestConfig; entries: string[] }) => {
+        calls.push("resolve");
+        expect(params.cfg).toBe(cfg);
+        expect(params.entries).toEqual(["#general", "#support"]);
+        return ["C1", "C2"];
+      },
+    );
     const applyAllowlist = vi.fn((params: { cfg: ShittimChestConfig; resolved: string[] }) => {
       calls.push("apply");
       expect(params.cfg.channels?.slack?.groupPolicy).toBe("allowlist");

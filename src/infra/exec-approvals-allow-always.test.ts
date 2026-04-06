@@ -25,7 +25,11 @@ describe("resolveAllowAlwaysPatterns", () => {
         {
           raw: exe,
           argv: [exe],
-          resolution: { rawExecutable: exe, resolvedPath: exe, executableName: "shittimchest-tool" },
+          resolution: {
+            rawExecutable: exe,
+            resolvedPath: exe,
+            executableName: "shittimchest-tool",
+          },
         },
       ],
     });

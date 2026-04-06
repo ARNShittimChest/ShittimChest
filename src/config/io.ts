@@ -571,7 +571,10 @@ function stampConfigVersion(cfg: ShittimChestConfig): ShittimChestConfig {
   };
 }
 
-function warnIfConfigFromFuture(cfg: ShittimChestConfig, logger: Pick<typeof console, "warn">): void {
+function warnIfConfigFromFuture(
+  cfg: ShittimChestConfig,
+  logger: Pick<typeof console, "warn">,
+): void {
   const touched = cfg.meta?.lastTouchedVersion;
   if (!touched) {
     return;

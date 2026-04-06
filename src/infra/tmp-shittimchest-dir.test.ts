@@ -1,6 +1,9 @@
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { POSIX_SHITTIMCHEST_TMP_DIR, resolvePreferredShittimChestTmpDir } from "./tmp-shittimchest-dir.js";
+import {
+  POSIX_SHITTIMCHEST_TMP_DIR,
+  resolvePreferredShittimChestTmpDir,
+} from "./tmp-shittimchest-dir.js";
 
 type TmpDirOptions = NonNullable<Parameters<typeof resolvePreferredShittimChestTmpDir>[0]>;
 

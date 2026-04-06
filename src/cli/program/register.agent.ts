@@ -219,8 +219,14 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.shittimchest.ai/cli
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['shittimchest agents set-identity --agent main --name "ShittimChest" --emoji "🦞"', "Set name + emoji."],
-  ["shittimchest agents set-identity --agent main --avatar avatars/shittimchest.png", "Set avatar path."],
+  [
+    'shittimchest agents set-identity --agent main --name "ShittimChest" --emoji "🦞"',
+    "Set name + emoji.",
+  ],
+  [
+    "shittimchest agents set-identity --agent main --avatar avatars/shittimchest.png",
+    "Set avatar path.",
+  ],
   [
     "shittimchest agents set-identity --workspace ~/.shittimchest/workspace --from-identity",
     "Load from IDENTITY.md.",

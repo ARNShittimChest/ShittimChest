@@ -115,7 +115,10 @@ export function isInboundPathAllowed(params: {
   return effectiveRoots.some((rootPattern) => matchesRootPattern({ candidatePath, rootPattern }));
 }
 
-function resolveIMessageAccountConfig(params: { cfg: ShittimChestConfig; accountId?: string | null }) {
+function resolveIMessageAccountConfig(params: {
+  cfg: ShittimChestConfig;
+  accountId?: string | null;
+}) {
   const accountId = params.accountId?.trim();
   if (!accountId) {
     return undefined;

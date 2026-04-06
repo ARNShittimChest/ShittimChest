@@ -421,7 +421,9 @@ async function resolveKeyEntry(params: {
   return null;
 }
 
-function resolveImageModelFromAgentDefaults(cfg: ShittimChestConfig): MediaUnderstandingModelConfig[] {
+function resolveImageModelFromAgentDefaults(
+  cfg: ShittimChestConfig,
+): MediaUnderstandingModelConfig[] {
   const refs: string[] = [];
   const primary = resolveAgentModelPrimaryValue(cfg.agents?.defaults?.imageModel);
   if (primary?.trim()) {

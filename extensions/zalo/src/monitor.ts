@@ -1,5 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { MarkdownTableMode, ShittimChestConfig, OutboundReplyPayload } from "shittimchest/plugin-sdk";
+import type {
+  MarkdownTableMode,
+  ShittimChestConfig,
+  OutboundReplyPayload,
+} from "shittimchest/plugin-sdk";
 import {
   createScopedPairingAccess,
   createReplyPrefixOptions,

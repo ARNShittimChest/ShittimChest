@@ -104,7 +104,11 @@ async function sendChatMessageNow(
   },
 ) {
   resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
-  const runId = await sendChatMessage(host as unknown as ShittimChestApp, message, opts?.attachments);
+  const runId = await sendChatMessage(
+    host as unknown as ShittimChestApp,
+    message,
+    opts?.attachments,
+  );
   const ok = Boolean(runId);
   if (!ok && opts?.previousDraft != null) {
     host.chatMessage = opts.previousDraft;

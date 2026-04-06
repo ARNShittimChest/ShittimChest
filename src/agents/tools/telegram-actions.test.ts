@@ -34,7 +34,9 @@ describe("handleTelegramAction", () => {
     emoji: "✅",
   } as const;
 
-  function reactionConfig(reactionLevel: "minimal" | "extensive" | "off" | "ack"): ShittimChestConfig {
+  function reactionConfig(
+    reactionLevel: "minimal" | "extensive" | "off" | "ack",
+  ): ShittimChestConfig {
     return {
       channels: { telegram: { botToken: "tok", reactionLevel } },
     } as ShittimChestConfig;

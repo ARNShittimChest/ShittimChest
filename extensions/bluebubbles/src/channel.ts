@@ -1,4 +1,8 @@
-import type { ChannelAccountSnapshot, ChannelPlugin, ShittimChestConfig } from "shittimchest/plugin-sdk";
+import type {
+  ChannelAccountSnapshot,
+  ChannelPlugin,
+  ShittimChestConfig,
+} from "shittimchest/plugin-sdk";
 import {
   applyAccountNameToChannelSection,
   buildChannelConfigSchema,

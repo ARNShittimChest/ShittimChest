@@ -17,7 +17,10 @@ const DEFAULT_CONFIG_VALUES: Record<string, boolean> = {
 
 export { hasBinary, resolveConfigPath, resolveRuntimePlatform };
 
-export function isConfigPathTruthy(config: ShittimChestConfig | undefined, pathStr: string): boolean {
+export function isConfigPathTruthy(
+  config: ShittimChestConfig | undefined,
+  pathStr: string,
+): boolean {
   return isConfigPathTruthyWithDefaults(config, pathStr, DEFAULT_CONFIG_VALUES);
 }
 

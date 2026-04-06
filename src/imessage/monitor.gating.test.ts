@@ -76,7 +76,10 @@ function resolveDispatchDecision(params: {
   return { decision, groupHistories };
 }
 
-function buildDispatchContextPayload(params: { cfg: ShittimChestConfig; message: IMessagePayload }) {
+function buildDispatchContextPayload(params: {
+  cfg: ShittimChestConfig;
+  message: IMessagePayload;
+}) {
   const { cfg, message } = params;
   const { decision, groupHistories } = resolveDispatchDecision({ cfg, message });
 

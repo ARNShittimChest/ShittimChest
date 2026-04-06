@@ -149,7 +149,9 @@ describe("secrets runtime snapshot", () => {
     if (process.platform === "win32") {
       return;
     }
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-secrets-file-provider-bad-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "shittimchest-secrets-file-provider-bad-"),
+    );
     const secretsPath = path.join(root, "secrets.json");
     try {
       await fs.writeFile(secretsPath, JSON.stringify(["not-an-object"]), "utf8");

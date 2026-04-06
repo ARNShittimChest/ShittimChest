@@ -428,8 +428,8 @@ shittimchest pairing list feishu
 
 ## Gateway management commands
 
-| Command                    | Description                   |
-| -------------------------- | ----------------------------- |
+| Command                        | Description                   |
+| ------------------------------ | ----------------------------- |
 | `shittimchest gateway status`  | Show gateway status           |
 | `shittimchest gateway install` | Install/start gateway service |
 | `shittimchest gateway stop`    | Stop gateway service          |

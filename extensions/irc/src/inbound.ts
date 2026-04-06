@@ -170,7 +170,10 @@ export async function handleIrcInbound(params: {
     message,
     allowNameMatching,
   }).allowed;
-  const hasControlCommand = core.channel.text.hasControlCommand(rawBody, config as ShittimChestConfig);
+  const hasControlCommand = core.channel.text.hasControlCommand(
+    rawBody,
+    config as ShittimChestConfig,
+  );
   const commandGate = resolveControlCommandGate({
     useAccessGroups,
     authorizers: [
@@ -292,7 +295,9 @@ export async function handleIrcInbound(params: {
   const storePath = core.channel.session.resolveStorePath(config.session?.store, {
     agentId: route.agentId,
   });
-  const envelopeOptions = core.channel.reply.resolveEnvelopeFormatOptions(config as ShittimChestConfig);
+  const envelopeOptions = core.channel.reply.resolveEnvelopeFormatOptions(
+    config as ShittimChestConfig,
+  );
   const previousTimestamp = core.channel.session.readSessionUpdatedAt({
     storePath,
     sessionKey: route.sessionKey,

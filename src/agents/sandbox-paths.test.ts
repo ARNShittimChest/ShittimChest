@@ -38,7 +38,10 @@ async function withOutsideHardlinkInShittimChestTmp<T>(
 ): Promise<void> {
   const outsideDir = await fs.mkdtemp(path.join(process.cwd(), "sandbox-media-hardlink-outside-"));
   const outsideFile = path.join(outsideDir, "outside-secret.txt");
-  const hardlinkPath = path.join(params.shittimChestTmpDir, makeTmpProbePath(params.hardlinkPrefix));
+  const hardlinkPath = path.join(
+    params.shittimChestTmpDir,
+    makeTmpProbePath(params.hardlinkPrefix),
+  );
   const symlinkPath = params.symlinkPrefix
     ? path.join(params.shittimChestTmpDir, makeTmpProbePath(params.symlinkPrefix))
     : undefined;

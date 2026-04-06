@@ -51,11 +51,17 @@ describe("program routes", () => {
   });
 
   it("returns false for memory status route when --agent value is missing", async () => {
-    await expectRunFalse(["memory", "status"], ["node", "shittimchest", "memory", "status", "--agent"]);
+    await expectRunFalse(
+      ["memory", "status"],
+      ["node", "shittimchest", "memory", "status", "--agent"],
+    );
   });
 
   it("returns false for models list route when --provider value is missing", async () => {
-    await expectRunFalse(["models", "list"], ["node", "shittimchest", "models", "list", "--provider"]);
+    await expectRunFalse(
+      ["models", "list"],
+      ["node", "shittimchest", "models", "list", "--provider"],
+    );
   });
 
   it("returns false for models status route when probe flags are missing values", async () => {

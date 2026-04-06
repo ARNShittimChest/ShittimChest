@@ -1,4 +1,8 @@
-import type { ChannelOnboardingAdapter, ShittimChestConfig, WizardPrompter } from "shittimchest/plugin-sdk";
+import type {
+  ChannelOnboardingAdapter,
+  ShittimChestConfig,
+  WizardPrompter,
+} from "shittimchest/plugin-sdk";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "shittimchest/plugin-sdk/account-id";
 import {
   listMattermostAccountIds,

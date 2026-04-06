@@ -74,10 +74,16 @@ describe("message action capability checks", () => {
     activateMessageActionTestRegistry();
 
     expect(
-      supportsChannelMessageButtonsForChannel({ cfg: {} as ShittimChestConfig, channel: "discord" }),
+      supportsChannelMessageButtonsForChannel({
+        cfg: {} as ShittimChestConfig,
+        channel: "discord",
+      }),
     ).toBe(true);
     expect(
-      supportsChannelMessageButtonsForChannel({ cfg: {} as ShittimChestConfig, channel: "telegram" }),
+      supportsChannelMessageButtonsForChannel({
+        cfg: {} as ShittimChestConfig,
+        channel: "telegram",
+      }),
     ).toBe(false);
     expect(
       supportsChannelMessageCardsForChannel({ cfg: {} as ShittimChestConfig, channel: "telegram" }),

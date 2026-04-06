@@ -382,8 +382,8 @@ shittimchest pairing list feishu
 
 在配置和使用飞书渠道时，您可能需要使用以下网关管理命令：
 
-| 命令                       | 说明              |
-| -------------------------- | ----------------- |
+| 命令                           | 说明              |
+| ------------------------------ | ----------------- |
 | `shittimchest gateway status`  | 查看网关运行状态  |
 | `shittimchest gateway install` | 安装/启动网关服务 |
 | `shittimchest gateway stop`    | 停止网关服务      |

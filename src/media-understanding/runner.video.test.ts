@@ -99,55 +99,58 @@ describe("runCapability video provider wiring", () => {
         MOONSHOT_API_KEY: undefined,
       },
       async () => {
-        await withVideoFixture("shittimchest-video-auto-moonshot", async ({ ctx, media, cache }) => {
-          const cfg = {
-            models: {
-              providers: {
-                moonshot: {
-                  apiKey: "moonshot-key",
-                  models: [],
+        await withVideoFixture(
+          "shittimchest-video-auto-moonshot",
+          async ({ ctx, media, cache }) => {
+            const cfg = {
+              models: {
+                providers: {
+                  moonshot: {
+                    apiKey: "moonshot-key",
+                    models: [],
+                  },
                 },
               },
-            },
-            tools: {
-              media: {
-                video: {
-                  enabled: true,
+              tools: {
+                media: {
+                  video: {
+                    enabled: true,
+                  },
                 },
               },
-            },
-          } as unknown as ShittimChestConfig;
+            } as unknown as ShittimChestConfig;
 
-          const result = await runCapability({
-            capability: "video",
-            cfg,
-            ctx,
-            attachments: cache,
-            media,
-            providerRegistry: new Map([
-              [
-                "google",
-                {
-                  id: "google",
-                  capabilities: ["video"],
-                  describeVideo: async () => ({ text: "google" }),
-                },
-              ],
-              [
-                "moonshot",
-                {
-                  id: "moonshot",
-                  capabilities: ["video"],
-                  describeVideo: async () => ({ text: "moonshot", model: "kimi-k2.5" }),
-                },
-              ],
-            ]),
-          });
+            const result = await runCapability({
+              capability: "video",
+              cfg,
+              ctx,
+              attachments: cache,
+              media,
+              providerRegistry: new Map([
+                [
+                  "google",
+                  {
+                    id: "google",
+                    capabilities: ["video"],
+                    describeVideo: async () => ({ text: "google" }),
+                  },
+                ],
+                [
+                  "moonshot",
+                  {
+                    id: "moonshot",
+                    capabilities: ["video"],
+                    describeVideo: async () => ({ text: "moonshot", model: "kimi-k2.5" }),
+                  },
+                ],
+              ]),
+            });
 
-          expect(result.decision.outcome).toBe("success");
-          expect(result.outputs[0]?.provider).toBe("moonshot");
-          expect(result.outputs[0]?.text).toBe("moonshot");
-        });
+            expect(result.decision.outcome).toBe("success");
+            expect(result.outputs[0]?.provider).toBe("moonshot");
+            expect(result.outputs[0]?.text).toBe("moonshot");
+          },
+        );
       },
     );
   });

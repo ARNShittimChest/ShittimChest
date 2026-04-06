@@ -63,7 +63,9 @@ describe("config io paths", () => {
   it("honors explicit SHITTIMCHEST_CONFIG_PATH override", async () => {
     await withTempHome(async (home) => {
       const customPath = await writeConfig(home, ".shittimchest", 20002, "custom.json");
-      const io = createIoForHome(home, { SHITTIMCHEST_CONFIG_PATH: customPath } as NodeJS.ProcessEnv);
+      const io = createIoForHome(home, {
+        SHITTIMCHEST_CONFIG_PATH: customPath,
+      } as NodeJS.ProcessEnv);
       expect(io.configPath).toBe(customPath);
       expect(io.loadConfig().gateway?.port).toBe(20002);
     });

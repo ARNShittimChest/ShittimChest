@@ -1059,7 +1059,10 @@ describe("gateway server auth/connect", () => {
           scopes,
           clientId: GATEWAY_CLIENT_NAMES.CONTROL_UI,
           clientMode: GATEWAY_CLIENT_MODES.WEBCHAT,
-          identityPath: path.join(os.tmpdir(), `shittimchest-controlui-device-${randomUUID()}.json`),
+          identityPath: path.join(
+            os.tmpdir(),
+            `shittimchest-controlui-device-${randomUUID()}.json`,
+          ),
           nonce: String(nonce),
         });
         const res = await connectReq(ws, {

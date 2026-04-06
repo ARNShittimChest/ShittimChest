@@ -37,7 +37,10 @@ export function registerSecurityCli(program: Command) {
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
           ["shittimchest security audit", "Run a local security audit."],
           ["shittimchest security audit --deep", "Include best-effort live Gateway probe checks."],
-          ["shittimchest security audit --fix", "Apply safe remediations and file-permission fixes."],
+          [
+            "shittimchest security audit --fix",
+            "Apply safe remediations and file-permission fixes.",
+          ],
           ["shittimchest security audit --json", "Output machine-readable JSON."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/security", "docs.shittimchest.ai/cli/security")}\n`,
     );

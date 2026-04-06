@@ -619,7 +619,9 @@ describe("prepareSlackMessage sender prefix", () => {
   }): SlackMonitorContext {
     return {
       cfg: {
-        agents: { defaults: { model: "anthropic/claude-opus-4-5", workspace: "/tmp/shittimchest" } },
+        agents: {
+          defaults: { model: "anthropic/claude-opus-4-5", workspace: "/tmp/shittimchest" },
+        },
         channels: { slack: params.channels },
       },
       accountId: "default",

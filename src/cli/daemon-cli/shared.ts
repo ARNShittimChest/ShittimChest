@@ -134,7 +134,9 @@ export function renderRuntimeHints(
     }
   })();
   if (runtime.missingUnit) {
-    hints.push(`Service not installed. Run: ${formatCliCommand("shittimchest gateway install", env)}`);
+    hints.push(
+      `Service not installed. Run: ${formatCliCommand("shittimchest gateway install", env)}`,
+    );
     if (fileLog) {
       hints.push(`File logs: ${fileLog}`);
     }

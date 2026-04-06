@@ -10,14 +10,18 @@ import type { ShittimChestConfig } from "./types.js";
 describe("config env vars", () => {
   it("applies env vars from env block when missing", async () => {
     await withEnvOverride({ OPENROUTER_API_KEY: undefined }, async () => {
-      applyConfigEnvVars({ env: { vars: { OPENROUTER_API_KEY: "config-key" } } } as ShittimChestConfig);
+      applyConfigEnvVars({
+        env: { vars: { OPENROUTER_API_KEY: "config-key" } },
+      } as ShittimChestConfig);
       expect(process.env.OPENROUTER_API_KEY).toBe("config-key");
     });
   });
 
   it("does not override existing env vars", async () => {
     await withEnvOverride({ OPENROUTER_API_KEY: "existing-key" }, async () => {
-      applyConfigEnvVars({ env: { vars: { OPENROUTER_API_KEY: "config-key" } } } as ShittimChestConfig);
+      applyConfigEnvVars({
+        env: { vars: { OPENROUTER_API_KEY: "config-key" } },
+      } as ShittimChestConfig);
       expect(process.env.OPENROUTER_API_KEY).toBe("existing-key");
     });
   });

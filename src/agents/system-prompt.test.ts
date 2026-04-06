@@ -281,7 +281,9 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).not.toContain('runtime="acp" requires `agentId`');
     expect(prompt).not.toContain("not ACP harness ids");
     expect(prompt).toContain("- sessions_spawn: Spawn an isolated sub-agent session");
-    expect(prompt).toContain("- agents_list: List ShittimChest agent ids allowed for sessions_spawn");
+    expect(prompt).toContain(
+      "- agents_list: List ShittimChest agent ids allowed for sessions_spawn",
+    );
   });
 
   it("preserves tool casing in the prompt", () => {

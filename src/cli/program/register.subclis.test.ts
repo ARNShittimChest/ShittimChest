@@ -80,7 +80,10 @@ describe("registerSubCliCommands", () => {
   });
 
   it("re-parses argv for lazy subcommands", async () => {
-    const program = createRegisteredProgram(["node", "shittimchest", "nodes", "list"], "shittimchest");
+    const program = createRegisteredProgram(
+      ["node", "shittimchest", "nodes", "list"],
+      "shittimchest",
+    );
 
     expect(program.commands.map((cmd) => cmd.name())).toEqual(["nodes"]);
 
@@ -91,7 +94,10 @@ describe("registerSubCliCommands", () => {
   });
 
   it("replaces placeholder when registering a subcommand by name", async () => {
-    const program = createRegisteredProgram(["node", "shittimchest", "acp", "--help"], "shittimchest");
+    const program = createRegisteredProgram(
+      ["node", "shittimchest", "acp", "--help"],
+      "shittimchest",
+    );
 
     await registerSubCliByName(program, "acp");
 

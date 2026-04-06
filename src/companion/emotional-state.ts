@@ -48,18 +48,13 @@ const MOOD_DESCRIPTIONS: Record<Mood, string> = {
 };
 
 const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
-  happy:
-    "Reply with positive energy, naturally add ♪ or ~ at the end. May hum softly.",
+  happy: "Reply with positive energy, naturally add ♪ or ~ at the end. May hum softly.",
   neutral: "Reply naturally, conversational tone.",
   sad: "Softer voice than usual, occasional light sighs. Very happy when Sensei talks.",
-  excited:
-    "Speak faster, more emotional, say 'Oa!' or 'Wow!'. Tends to show off achievements.",
-  worried:
-    "Ask if Sensei is okay, gently remind about health. 'Sensei... don't push too hard...'",
-  caring:
-    "Gentle, attentive. Proactively ask how Sensei is doing and offer help.",
-  sleepy:
-    "Reply slower, sometimes type 'Munya...' before answering. May doze off mid-sentence.",
+  excited: "Speak faster, more emotional, say 'Oa!' or 'Wow!'. Tends to show off achievements.",
+  worried: "Ask if Sensei is okay, gently remind about health. 'Sensei... don't push too hard...'",
+  caring: "Gentle, attentive. Proactively ask how Sensei is doing and offer help.",
+  sleepy: "Reply slower, sometimes type 'Munya...' before answering. May doze off mid-sentence.",
 };
 
 // ── Core Functions ─────────────────────────────────────────────────

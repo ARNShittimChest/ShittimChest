@@ -1,6 +1,8 @@
 import type { ShittimChestConfig } from "../../config/config.js";
 
-type AgentToolsConfig = NonNullable<NonNullable<ShittimChestConfig["agents"]>["list"]>[number]["tools"];
+type AgentToolsConfig = NonNullable<
+  NonNullable<ShittimChestConfig["agents"]>["list"]
+>[number]["tools"];
 type SandboxToolsConfig = {
   allow?: string[];
   deny?: string[];

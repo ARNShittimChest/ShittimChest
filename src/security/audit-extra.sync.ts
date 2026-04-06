@@ -474,7 +474,9 @@ function collectRiskyToolExposureContexts(cfg: ShittimChestConfig): {
 // Exported collectors
 // --------------------------------------------------------------------------
 
-export function collectAttackSurfaceSummaryFindings(cfg: ShittimChestConfig): SecurityAuditFinding[] {
+export function collectAttackSurfaceSummaryFindings(
+  cfg: ShittimChestConfig,
+): SecurityAuditFinding[] {
   const group = summarizeGroupPolicy(cfg);
   const elevated = cfg.tools?.elevated?.enabled !== false;
   const webhooksEnabled = cfg.hooks?.enabled === true;
@@ -768,7 +770,9 @@ export function collectSandboxDockerNoopFindings(cfg: ShittimChestConfig): Secur
   return findings;
 }
 
-export function collectSandboxDangerousConfigFindings(cfg: ShittimChestConfig): SecurityAuditFinding[] {
+export function collectSandboxDangerousConfigFindings(
+  cfg: ShittimChestConfig,
+): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   const agents = Array.isArray(cfg.agents?.list) ? cfg.agents.list : [];
 
@@ -916,7 +920,9 @@ export function collectSandboxDangerousConfigFindings(cfg: ShittimChestConfig): 
   return findings;
 }
 
-export function collectNodeDenyCommandPatternFindings(cfg: ShittimChestConfig): SecurityAuditFinding[] {
+export function collectNodeDenyCommandPatternFindings(
+  cfg: ShittimChestConfig,
+): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   const denyListRaw = cfg.gateway?.nodes?.denyCommands;
   if (!Array.isArray(denyListRaw) || denyListRaw.length === 0) {
@@ -1002,7 +1008,9 @@ export function collectNodeDangerousAllowCommandFindings(
   return findings;
 }
 
-export function collectMinimalProfileOverrideFindings(cfg: ShittimChestConfig): SecurityAuditFinding[] {
+export function collectMinimalProfileOverrideFindings(
+  cfg: ShittimChestConfig,
+): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   if (cfg.tools?.profile !== "minimal") {
     return findings;
@@ -1257,7 +1265,9 @@ export function collectExposureMatrixFindings(cfg: ShittimChestConfig): Security
   return findings;
 }
 
-export function collectLikelyMultiUserSetupFindings(cfg: ShittimChestConfig): SecurityAuditFinding[] {
+export function collectLikelyMultiUserSetupFindings(
+  cfg: ShittimChestConfig,
+): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   const signals = listPotentialMultiUserSignals(cfg);
   if (signals.length === 0) {

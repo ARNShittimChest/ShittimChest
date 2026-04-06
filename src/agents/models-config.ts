@@ -115,7 +115,9 @@ export async function ensureShittimChestModelsJson(
   agentDirOverride?: string,
 ): Promise<{ agentDir: string; wrote: boolean }> {
   const cfg = config ?? loadConfig();
-  const agentDir = agentDirOverride?.trim() ? agentDirOverride.trim() : resolveShittimChestAgentDir();
+  const agentDir = agentDirOverride?.trim()
+    ? agentDirOverride.trim()
+    : resolveShittimChestAgentDir();
 
   const explicitProviders = cfg.models?.providers ?? {};
   const implicitProviders = await resolveImplicitProviders({ agentDir, explicitProviders });

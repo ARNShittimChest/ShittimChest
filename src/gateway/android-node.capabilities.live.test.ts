@@ -9,7 +9,8 @@ import { buildGatewayConnectionDetails } from "./call.js";
 import { GatewayClient } from "./client.js";
 import { resolveGatewayCredentialsFromConfig } from "./credentials.js";
 
-const LIVE = isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
+const LIVE =
+  isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
 const LIVE_ANDROID_NODE = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_ANDROID_NODE);
 const describeLive = LIVE && LIVE_ANDROID_NODE ? describe : describe.skip;
 const SKIPPED_INTERACTIVE_COMMANDS = new Set<string>(["screen.record"]);

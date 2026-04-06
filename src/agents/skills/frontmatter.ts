@@ -23,7 +23,13 @@ export function parseFrontmatter(content: string): ParsedSkillFrontmatter {
 }
 
 function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
-  const parsed = parseShittimChestManifestInstallBase(input, ["brew", "node", "go", "uv", "download"]);
+  const parsed = parseShittimChestManifestInstallBase(input, [
+    "brew",
+    "node",
+    "go",
+    "uv",
+    "download",
+  ]);
   if (!parsed) {
     return undefined;
   }

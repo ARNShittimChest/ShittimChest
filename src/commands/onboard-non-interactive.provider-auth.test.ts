@@ -575,25 +575,28 @@ describe("onboard (non-interactive): provider auth", () => {
   });
 
   it("configures a custom provider from non-interactive flags", async () => {
-    await withOnboardEnv("shittimchest-onboard-custom-provider-", async ({ configPath, runtime }) => {
-      await runNonInteractiveOnboardingWithDefaults(runtime, {
-        authChoice: "custom-api-key",
-        customBaseUrl: "https://llm.example.com/v1",
-        customApiKey: "custom-test-key",
-        customModelId: "foo-large",
-        customCompatibility: "anthropic",
-        skipSkills: true,
-      });
+    await withOnboardEnv(
+      "shittimchest-onboard-custom-provider-",
+      async ({ configPath, runtime }) => {
+        await runNonInteractiveOnboardingWithDefaults(runtime, {
+          authChoice: "custom-api-key",
+          customBaseUrl: "https://llm.example.com/v1",
+          customApiKey: "custom-test-key",
+          customModelId: "foo-large",
+          customCompatibility: "anthropic",
+          skipSkills: true,
+        });
 
-      const cfg = await readJsonFile<ProviderAuthConfigSnapshot>(configPath);
+        const cfg = await readJsonFile<ProviderAuthConfigSnapshot>(configPath);
 
-      const provider = cfg.models?.providers?.["custom-llm-example-com"];
-      expect(provider?.baseUrl).toBe("https://llm.example.com/v1");
-      expect(provider?.api).toBe("anthropic-messages");
-      expect(provider?.apiKey).toBe("custom-test-key");
-      expect(provider?.models?.some((model) => model.id === "foo-large")).toBe(true);
-      expect(cfg.agents?.defaults?.model?.primary).toBe("custom-llm-example-com/foo-large");
-    });
+        const provider = cfg.models?.providers?.["custom-llm-example-com"];
+        expect(provider?.baseUrl).toBe("https://llm.example.com/v1");
+        expect(provider?.api).toBe("anthropic-messages");
+        expect(provider?.apiKey).toBe("custom-test-key");
+        expect(provider?.models?.some((model) => model.id === "foo-large")).toBe(true);
+        expect(cfg.agents?.defaults?.model?.primary).toBe("custom-llm-example-com/foo-large");
+      },
+    );
   });
 
   it("infers custom provider auth choice from custom flags", async () => {
@@ -710,19 +713,22 @@ describe("onboard (non-interactive): provider auth", () => {
   });
 
   it("fails custom provider auth when explicit provider id is invalid", async () => {
-    await withOnboardEnv("shittimchest-onboard-custom-provider-invalid-id-", async ({ runtime }) => {
-      await expect(
-        runNonInteractiveOnboardingWithDefaults(runtime, {
-          authChoice: "custom-api-key",
-          customBaseUrl: "https://models.custom.local/v1",
-          customModelId: "local-large",
-          customProviderId: "!!!",
-          skipSkills: true,
-        }),
-      ).rejects.toThrow(
-        "Invalid custom provider config: Custom provider ID must include letters, numbers, or hyphens.",
-      );
-    });
+    await withOnboardEnv(
+      "shittimchest-onboard-custom-provider-invalid-id-",
+      async ({ runtime }) => {
+        await expect(
+          runNonInteractiveOnboardingWithDefaults(runtime, {
+            authChoice: "custom-api-key",
+            customBaseUrl: "https://models.custom.local/v1",
+            customModelId: "local-large",
+            customProviderId: "!!!",
+            skipSkills: true,
+          }),
+        ).rejects.toThrow(
+          "Invalid custom provider config: Custom provider ID must include letters, numbers, or hyphens.",
+        );
+      },
+    );
   });
 
   it("fails inferred custom auth when required flags are incomplete", async () => {

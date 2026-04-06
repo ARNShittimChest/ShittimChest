@@ -1,4 +1,8 @@
-import type { ChannelMessageActionName, ChannelPlugin, ShittimChestConfig } from "shittimchest/plugin-sdk";
+import type {
+  ChannelMessageActionName,
+  ChannelPlugin,
+  ShittimChestConfig,
+} from "shittimchest/plugin-sdk";
 import {
   buildBaseChannelStatusSummary,
   buildChannelConfigSchema,

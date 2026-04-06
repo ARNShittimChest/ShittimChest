@@ -626,7 +626,9 @@ describe("security audit", () => {
     const execDockerRawFn = (async (args: string[]) => {
       if (args[0] === "ps") {
         return {
-          stdout: Buffer.from("shittimchest-sbx-browser-old\nshittimchest-sbx-browser-missing-hash\n"),
+          stdout: Buffer.from(
+            "shittimchest-sbx-browser-old\nshittimchest-sbx-browser-missing-hash\n",
+          ),
           stderr: Buffer.alloc(0),
           code: 0,
         };

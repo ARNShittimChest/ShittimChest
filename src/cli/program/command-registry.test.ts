@@ -100,7 +100,12 @@ describe("command-registry", () => {
 
   it("does not narrow to the primary command when help is requested", () => {
     const program = createProgram();
-    registerCoreCliCommands(program, testProgramContext, ["node", "shittimchest", "doctor", "--help"]);
+    registerCoreCliCommands(program, testProgramContext, [
+      "node",
+      "shittimchest",
+      "doctor",
+      "--help",
+    ]);
 
     const names = namesOf(program);
     expect(names).toContain("doctor");

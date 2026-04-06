@@ -55,7 +55,10 @@ function normalizeExecutablePath(value: string): string {
   return path.resolve(value);
 }
 
-function resolveGatewayAuthToken(cfg: ShittimChestConfig, env: NodeJS.ProcessEnv): string | undefined {
+function resolveGatewayAuthToken(
+  cfg: ShittimChestConfig,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
   const configToken = cfg.gateway?.auth?.token?.trim();
   if (configToken) {
     return configToken;

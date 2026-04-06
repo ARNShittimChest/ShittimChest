@@ -134,7 +134,10 @@ export async function handleNextcloudTalkInbound(params: {
   });
   const useAccessGroups =
     (config.commands as Record<string, unknown> | undefined)?.useAccessGroups !== false;
-  const hasControlCommand = core.channel.text.hasControlCommand(rawBody, config as ShittimChestConfig);
+  const hasControlCommand = core.channel.text.hasControlCommand(
+    rawBody,
+    config as ShittimChestConfig,
+  );
   const access = resolveDmGroupAccessWithCommandGate({
     isGroup,
     dmPolicy,
@@ -250,7 +253,9 @@ export async function handleNextcloudTalkInbound(params: {
       agentId: route.agentId,
     },
   );
-  const envelopeOptions = core.channel.reply.resolveEnvelopeFormatOptions(config as ShittimChestConfig);
+  const envelopeOptions = core.channel.reply.resolveEnvelopeFormatOptions(
+    config as ShittimChestConfig,
+  );
   const previousTimestamp = core.channel.session.readSessionUpdatedAt({
     storePath,
     sessionKey: route.sessionKey,

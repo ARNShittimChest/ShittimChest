@@ -83,7 +83,10 @@ function resolveAccountConfig(
   return resolveAccountEntry(cfg.channels?.telegram?.accounts, normalized);
 }
 
-function mergeTelegramAccountConfig(cfg: ShittimChestConfig, accountId: string): TelegramAccountConfig {
+function mergeTelegramAccountConfig(
+  cfg: ShittimChestConfig,
+  accountId: string,
+): TelegramAccountConfig {
   const { accounts: _ignored, ...base } = (cfg.channels?.telegram ??
     {}) as TelegramAccountConfig & { accounts?: unknown };
   const account = resolveAccountConfig(cfg, accountId) ?? {};

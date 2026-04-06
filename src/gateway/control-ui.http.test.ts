@@ -176,7 +176,10 @@ describe("handleControlUiHttpRequest", () => {
       fn: async (tmp) => {
         const { res, end } = makeMockHttpResponse();
         const handled = handleControlUiHttpRequest(
-          { url: `/shittimchest${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`, method: "GET" } as IncomingMessage,
+          {
+            url: `/shittimchest${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
+            method: "GET",
+          } as IncomingMessage,
           res,
           {
             basePath: "/shittimchest",
@@ -306,7 +309,9 @@ describe("handleControlUiHttpRequest", () => {
   it("rejects symlinked SPA fallback index.html outside control-ui root", async () => {
     await withControlUiRoot({
       fn: async (tmp) => {
-        const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-ui-index-outside-"));
+        const outsideDir = await fs.mkdtemp(
+          path.join(os.tmpdir(), "shittimchest-ui-index-outside-"),
+        );
         try {
           const outsideIndex = path.join(outsideDir, "index.html");
           await fs.writeFile(outsideIndex, "<html>outside</html>\n");

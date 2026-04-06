@@ -34,7 +34,9 @@ export type ModelsProviderData = {
  * Build provider/model data from config and catalog.
  * Exported for reuse by callback handlers.
  */
-export async function buildModelsProviderData(cfg: ShittimChestConfig): Promise<ModelsProviderData> {
+export async function buildModelsProviderData(
+  cfg: ShittimChestConfig,
+): Promise<ModelsProviderData> {
   const resolvedDefault = resolveConfiguredModelRef({
     cfg,
     defaultProvider: DEFAULT_PROVIDER,

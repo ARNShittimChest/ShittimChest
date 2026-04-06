@@ -4,7 +4,11 @@ import {
   validateGatewayPasswordInput,
 } from "../commands/onboard-helpers.js";
 import type { GatewayAuthChoice } from "../commands/onboard-types.js";
-import type { GatewayBindMode, GatewayTailscaleMode, ShittimChestConfig } from "../config/config.js";
+import type {
+  GatewayBindMode,
+  GatewayTailscaleMode,
+  ShittimChestConfig,
+} from "../config/config.js";
 import {
   TAILSCALE_DOCS_LINES,
   TAILSCALE_EXPOSURE_OPTIONS,

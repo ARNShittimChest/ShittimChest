@@ -537,7 +537,9 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
       }
 
       const manager = await detectPackageManager(gitRoot);
-      const preflightRoot = await fs.mkdtemp(path.join(os.tmpdir(), "shittimchest-update-preflight-"));
+      const preflightRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "shittimchest-update-preflight-"),
+      );
       const worktreeDir = path.join(preflightRoot, "worktree");
       const worktreeStep = await runStep(
         step(

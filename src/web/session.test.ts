@@ -22,7 +22,13 @@ async function emitCredsUpdateAndReadSaveCreds() {
 }
 
 function mockCredsJsonSpies(readContents: string) {
-  const credsSuffix = path.join(".shittimchest", "credentials", "whatsapp", "default", "creds.json");
+  const credsSuffix = path.join(
+    ".shittimchest",
+    "credentials",
+    "whatsapp",
+    "default",
+    "creds.json",
+  );
   const copySpy = vi.spyOn(fsSync, "copyFileSync").mockImplementation(() => {});
   const existsSpy = vi.spyOn(fsSync, "existsSync").mockImplementation((p) => {
     if (typeof p !== "string") {

@@ -104,13 +104,9 @@ describe("resolveSystemdUserUnitPath", () => {
 
 describe("splitArgsPreservingQuotes", () => {
   it("splits on whitespace outside quotes", () => {
-    expect(splitArgsPreservingQuotes('/usr/bin/shittimchest gateway start --name "My Bot"')).toEqual([
-      "/usr/bin/shittimchest",
-      "gateway",
-      "start",
-      "--name",
-      "My Bot",
-    ]);
+    expect(
+      splitArgsPreservingQuotes('/usr/bin/shittimchest gateway start --name "My Bot"'),
+    ).toEqual(["/usr/bin/shittimchest", "gateway", "start", "--name", "My Bot"]);
   });
 
   it("supports systemd-style backslash escaping", () => {

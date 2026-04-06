@@ -136,7 +136,9 @@ describe("zalouser send helpers", () => {
     process.env.ZCA_PROFILE = "env-profile";
     mockRunZca.mockResolvedValueOnce(okResult("abc123"));
 
-    const result = await sendLinkZalouser("thread-5", " https://shittimchest.ai ", { isGroup: true });
+    const result = await sendLinkZalouser("thread-5", " https://shittimchest.ai ", {
+      isGroup: true,
+    });
 
     expect(mockRunZca).toHaveBeenCalledWith(
       ["msg", "link", "thread-5", "https://shittimchest.ai", "-g"],

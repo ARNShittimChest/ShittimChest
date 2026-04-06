@@ -3,7 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
-import { resolveShittimChestPackageRoot, resolveShittimChestPackageRootSync } from "./shittimchest-root.js";
+import {
+  resolveShittimChestPackageRoot,
+  resolveShittimChestPackageRootSync,
+} from "./shittimchest-root.js";
 
 const CONTROL_UI_DIST_PATH_SEGMENTS = ["dist", "control-ui", "index.html"] as const;
 

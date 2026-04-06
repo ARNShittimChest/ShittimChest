@@ -48,7 +48,9 @@ describe("resolveEffectiveSessionToolsVisibility", () => {
 
 describe("sandbox session-tools context", () => {
   it("defaults sandbox visibility clamp to spawned", () => {
-    expect(resolveSandboxSessionToolsVisibility({} as unknown as ShittimChestConfig)).toBe("spawned");
+    expect(resolveSandboxSessionToolsVisibility({} as unknown as ShittimChestConfig)).toBe(
+      "spawned",
+    );
   });
 
   it("restricts non-subagent sandboxed sessions to spawned visibility", () => {

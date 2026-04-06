@@ -35,7 +35,11 @@ export type ParsedHookFrontmatter = Record<string, string>;
 export type Hook = {
   name: string;
   description: string;
-  source: "shittimchest-bundled" | "shittimchest-managed" | "shittimchest-workspace" | "shittimchest-plugin";
+  source:
+    | "shittimchest-bundled"
+    | "shittimchest-managed"
+    | "shittimchest-workspace"
+    | "shittimchest-plugin";
   pluginId?: string;
   filePath: string; // Path to HOOK.md
   baseDir: string; // Directory containing hook

@@ -1,4 +1,8 @@
-import type { ShittimChestConfig, PluginRuntime, ResolvedLineAccount } from "shittimchest/plugin-sdk";
+import type {
+  ShittimChestConfig,
+  PluginRuntime,
+  ResolvedLineAccount,
+} from "shittimchest/plugin-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRuntimeEnv } from "../../test-utils/runtime-env.js";
 import { linePlugin } from "./channel.js";

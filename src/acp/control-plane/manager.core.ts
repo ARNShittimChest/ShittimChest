@@ -1105,7 +1105,10 @@ export class AcpSessionManager {
     cached.appliedControlSignature = undefined;
   }
 
-  private enforceConcurrentSessionLimit(params: { cfg: ShittimChestConfig; sessionKey: string }): void {
+  private enforceConcurrentSessionLimit(params: {
+    cfg: ShittimChestConfig;
+    sessionKey: string;
+  }): void {
     const configuredLimit = params.cfg.acp?.maxConcurrentSessions;
     if (typeof configuredLimit !== "number" || !Number.isFinite(configuredLimit)) {
       return;

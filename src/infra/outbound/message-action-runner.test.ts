@@ -708,7 +708,11 @@ describe("runMessageAction sandboxed media validation", () => {
       }
       // runMessageAction normalizes media paths through platform resolution.
       expect(result.sendResult?.mediaUrl).toBe(path.resolve(tmpFile));
-      const hostTmpOutsideShittimChest = path.join(os.tmpdir(), "outside-shittimchest", "test-media.png");
+      const hostTmpOutsideShittimChest = path.join(
+        os.tmpdir(),
+        "outside-shittimchest",
+        "test-media.png",
+      );
       await expect(
         runMessageAction({
           cfg: slackConfig,

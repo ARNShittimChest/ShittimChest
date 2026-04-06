@@ -545,7 +545,10 @@ export function registerMemoryCli(program: Command) {
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
           ["shittimchest memory status", "Show index and provider status."],
           ["shittimchest memory index --force", "Force a full reindex."],
-          ['shittimchest memory search --query "deployment notes"', "Search indexed memory entries."],
+          [
+            'shittimchest memory search --query "deployment notes"',
+            "Search indexed memory entries.",
+          ],
           ["shittimchest memory status --json", "Output machine-readable JSON."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/memory", "docs.shittimchest.ai/cli/memory")}\n`,
     );

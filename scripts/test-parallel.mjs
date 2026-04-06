@@ -101,7 +101,10 @@ const nodeMajor = Number.parseInt(process.versions.node.split(".")[0] ?? "", 10)
 const supportsVmForks = Number.isFinite(nodeMajor) ? nodeMajor !== 24 : true;
 const useVmForks =
   process.env.SHITTIMCHEST_TEST_VM_FORKS === "1" ||
-  (process.env.SHITTIMCHEST_TEST_VM_FORKS !== "0" && !isWindows && supportsVmForks && !lowMemLocalHost);
+  (process.env.SHITTIMCHEST_TEST_VM_FORKS !== "0" &&
+    !isWindows &&
+    supportsVmForks &&
+    !lowMemLocalHost);
 const disableIsolation = process.env.SHITTIMCHEST_TEST_NO_ISOLATE === "1";
 const runs = [
   ...(useVmForks

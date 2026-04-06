@@ -266,9 +266,9 @@ function buildCoreToolGroupMap() {
     list.push(tool.id);
     sectionToolMap.set(groupId, list);
   }
-  const shittimchestTools = CORE_TOOL_DEFINITIONS.filter((tool) => tool.includeInShittimChestGroup).map(
-    (tool) => tool.id,
-  );
+  const shittimchestTools = CORE_TOOL_DEFINITIONS.filter(
+    (tool) => tool.includeInShittimChestGroup,
+  ).map((tool) => tool.id);
   return {
     "group:shittimchest": shittimchestTools,
     ...Object.fromEntries(sectionToolMap.entries()),

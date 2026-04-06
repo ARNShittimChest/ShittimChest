@@ -189,7 +189,9 @@ describe("msteams messenger", () => {
     });
 
     it("preserves parsed mentions when appending OneDrive fallback file links", async () => {
-      const tmpDir = await mkdtemp(path.join(resolvePreferredShittimChestTmpDir(), "msteams-mention-"));
+      const tmpDir = await mkdtemp(
+        path.join(resolvePreferredShittimChestTmpDir(), "msteams-mention-"),
+      );
       const localFile = path.join(tmpDir, "note.txt");
       await writeFile(localFile, "hello");
 

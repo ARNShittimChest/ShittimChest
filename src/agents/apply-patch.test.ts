@@ -304,7 +304,9 @@ describe("applyPatch", () => {
 
   it("allows deleting a symlink itself even if it points outside cwd", async () => {
     await withTempDir(async (dir) => {
-      const outsideDir = await fs.mkdtemp(path.join(path.dirname(dir), "shittimchest-patch-outside-"));
+      const outsideDir = await fs.mkdtemp(
+        path.join(path.dirname(dir), "shittimchest-patch-outside-"),
+      );
       try {
         const outsideTarget = path.join(outsideDir, "target.txt");
         await fs.writeFile(outsideTarget, "keep\n", "utf8");

@@ -116,7 +116,8 @@ function parseNumber(value: string | undefined, fallback: number): number {
 }
 
 function resolveStateDir(): string {
-  const override = process.env.SHITTIMCHEST_STATE_DIR?.trim() || process.env.CLAWDBOT_STATE_DIR?.trim();
+  const override =
+    process.env.SHITTIMCHEST_STATE_DIR?.trim() || process.env.CLAWDBOT_STATE_DIR?.trim();
   if (override) {
     return override.startsWith("~")
       ? path.resolve(process.env.HOME || "", override.slice(1))
@@ -204,7 +205,9 @@ function parseArgs(): Args {
     process.env.CLAWDBOT_DISCORD_SMOKE_DRIVER_TOKEN ||
     "";
   const driverTokenPrefix =
-    resolveArg("--token-prefix") || process.env.SHITTIMCHEST_DISCORD_SMOKE_DRIVER_TOKEN_PREFIX || "Bot";
+    resolveArg("--token-prefix") ||
+    process.env.SHITTIMCHEST_DISCORD_SMOKE_DRIVER_TOKEN_PREFIX ||
+    "Bot";
   const botToken =
     resolveArg("--bot-token") ||
     process.env.SHITTIMCHEST_DISCORD_SMOKE_BOT_TOKEN ||

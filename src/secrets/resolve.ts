@@ -78,7 +78,10 @@ function toProviderKey(source: SecretRefSource, provider: string): string {
   return `${source}:${provider}`;
 }
 
-function resolveConfiguredProvider(ref: SecretRef, config: ShittimChestConfig): SecretProviderConfig {
+function resolveConfiguredProvider(
+  ref: SecretRef,
+  config: ShittimChestConfig,
+): SecretProviderConfig {
   const providerConfig = config.secrets?.providers?.[ref.provider];
   if (!providerConfig) {
     if (ref.source === "env" && ref.provider === resolveDefaultSecretProviderAlias(config, "env")) {

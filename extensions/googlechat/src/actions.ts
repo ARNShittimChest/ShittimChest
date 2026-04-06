@@ -30,7 +30,10 @@ function listEnabledAccounts(cfg: ShittimChestConfig) {
   );
 }
 
-function isReactionsEnabled(accounts: ReturnType<typeof listEnabledAccounts>, cfg: ShittimChestConfig) {
+function isReactionsEnabled(
+  accounts: ReturnType<typeof listEnabledAccounts>,
+  cfg: ShittimChestConfig,
+) {
   for (const account of accounts) {
     const gate = createActionGate(
       (account.config.actions ??

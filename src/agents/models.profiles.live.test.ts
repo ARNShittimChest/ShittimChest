@@ -15,7 +15,8 @@ import { ensureShittimChestModelsJson } from "./models-config.js";
 import { isRateLimitErrorMessage } from "./pi-embedded-helpers/errors.js";
 import { discoverAuthStorage, discoverModels } from "./pi-model-discovery.js";
 
-const LIVE = isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
+const LIVE =
+  isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_TEST);
 const DIRECT_ENABLED = Boolean(process.env.SHITTIMCHEST_LIVE_MODELS?.trim());
 const REQUIRE_PROFILE_KEYS = isTruthyEnvValue(process.env.SHITTIMCHEST_LIVE_REQUIRE_PROFILE_KEYS);
 

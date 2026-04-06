@@ -42,7 +42,9 @@ describe("rewriteUpdateFlagArgv", () => {
 
 describe("shouldRegisterPrimarySubcommand", () => {
   it("skips eager primary registration for help/version invocations", () => {
-    expect(shouldRegisterPrimarySubcommand(["node", "shittimchest", "status", "--help"])).toBe(false);
+    expect(shouldRegisterPrimarySubcommand(["node", "shittimchest", "status", "--help"])).toBe(
+      false,
+    );
     expect(shouldRegisterPrimarySubcommand(["node", "shittimchest", "-V"])).toBe(false);
     expect(shouldRegisterPrimarySubcommand(["node", "shittimchest", "-v"])).toBe(false);
   });

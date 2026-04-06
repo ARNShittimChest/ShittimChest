@@ -126,11 +126,11 @@ OpenProse 支持多种状态后端：
 
 OpenProse 程序映射到 ShittimChest 原语：
 
-| OpenProse 概念       | ShittimChest 工具    |
-| -------------------- | ---------------- |
-| 生成会话 / Task 工具 | `sessions_spawn` |
-| 文件读/写            | `read` / `write` |
-| Web 获取             | `web_fetch`      |
+| OpenProse 概念       | ShittimChest 工具 |
+| -------------------- | ----------------- |
+| 生成会话 / Task 工具 | `sessions_spawn`  |
+| 文件读/写            | `read` / `write`  |
+| Web 获取             | `web_fetch`       |
 
 如果你的工具白名单阻止这些工具，OpenProse 程序将失败。参见 [Skills 配置](/tools/skills-config)。
 

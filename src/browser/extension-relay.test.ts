@@ -459,7 +459,9 @@ describe("chrome extension relay server", () => {
     cdpUrl = `http://127.0.0.1:${port}`;
     await ensureChromeExtensionRelayServer({ cdpUrl });
 
-    const token = relayAuthHeaders(`ws://127.0.0.1:${port}/extension`)["x-shittimchest-relay-token"];
+    const token = relayAuthHeaders(`ws://127.0.0.1:${port}/extension`)[
+      "x-shittimchest-relay-token"
+    ];
     expect(token).toBeTruthy();
     const ext = new WebSocket(
       `ws://127.0.0.1:${port}/extension?token=${encodeURIComponent(String(token))}`,

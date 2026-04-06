@@ -185,7 +185,10 @@ export function resolveAgentEffectiveModelPrimary(
 }
 
 // Backward-compatible alias. Prefer explicit/effective helpers at new call sites.
-export function resolveAgentModelPrimary(cfg: ShittimChestConfig, agentId: string): string | undefined {
+export function resolveAgentModelPrimary(
+  cfg: ShittimChestConfig,
+  agentId: string,
+): string | undefined {
   return resolveAgentExplicitModelPrimary(cfg, agentId);
 }
 
