@@ -100,6 +100,7 @@ import {
 } from "./server/health-state.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
 import { ensureGatewayStartupAuth } from "./startup-auth.js";
+import { startProactiveScheduler } from "../arona/proactive/scheduler.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -714,58 +715,113 @@ export async function startGatewayServer(
       ...secretsHandlers,
     },
     broadcast,
-    context: {
-      deps,
-      cron,
-      cronStorePath,
-      execApprovalManager,
-      loadGatewayModelCatalog,
-      getHealthCache,
-      refreshHealthSnapshot: refreshGatewayHealthSnapshot,
-      logHealth,
-      logGateway: log,
-      incrementPresenceVersion,
-      getHealthVersion,
-      broadcast,
-      broadcastToConnIds,
-      nodeSendToSession,
-      nodeSendToAllSubscribed,
-      nodeSubscribe,
-      nodeUnsubscribe,
-      nodeUnsubscribeAll,
-      hasConnectedMobileNode: hasMobileNodeConnected,
-      hasExecApprovalClients: () => {
-        for (const gatewayClient of clients) {
-          const scopes = Array.isArray(gatewayClient.connect.scopes)
-            ? gatewayClient.connect.scopes
-            : [];
-          if (scopes.includes("operator.admin") || scopes.includes("operator.approvals")) {
-            return true;
+    context: (() => {
+      const gCtx = {
+        deps,
+        cron,
+        cronStorePath,
+        execApprovalManager,
+        loadGatewayModelCatalog,
+        getHealthCache,
+        refreshHealthSnapshot: refreshGatewayHealthSnapshot,
+        logHealth,
+        logGateway: log,
+        incrementPresenceVersion,
+        getHealthVersion,
+        broadcast,
+        broadcastToConnIds,
+        nodeSendToSession,
+        nodeSendToAllSubscribed,
+        nodeSubscribe,
+        nodeUnsubscribe,
+        nodeUnsubscribeAll,
+        hasConnectedMobileNode: hasMobileNodeConnected,
+        hasExecApprovalClients: () => {
+          for (const gatewayClient of clients) {
+            const scopes = Array.isArray(gatewayClient.connect.scopes)
+              ? gatewayClient.connect.scopes
+              : [];
+            if (scopes.includes("operator.admin") || scopes.includes("operator.approvals")) {
+              return true;
+            }
           }
-        }
-        return false;
-      },
-      nodeRegistry,
-      agentRunSeq,
-      chatAbortControllers,
-      chatAbortedRuns: chatRunState.abortedRuns,
-      chatRunBuffers: chatRunState.buffers,
-      chatDeltaSentAt: chatRunState.deltaSentAt,
-      addChatRun,
-      removeChatRun,
-      registerToolEventRecipient: toolEventRecipients.add,
-      dedupe,
-      wizardSessions,
-      findRunningWizard,
-      purgeWizardSession,
-      getRuntimeSnapshot,
-      startChannel,
-      stopChannel,
-      markChannelLoggedOut,
-      wizardRunner,
-      broadcastVoiceWakeChanged,
-    },
+          return false;
+        },
+        nodeRegistry,
+        agentRunSeq,
+        chatAbortControllers,
+        chatAbortedRuns: chatRunState.abortedRuns,
+        chatRunBuffers: chatRunState.buffers,
+        chatDeltaSentAt: chatRunState.deltaSentAt,
+        addChatRun,
+        removeChatRun,
+        registerToolEventRecipient: toolEventRecipients.add,
+        dedupe,
+        wizardSessions,
+        findRunningWizard,
+        purgeWizardSession,
+        getRuntimeSnapshot,
+        startChannel,
+        stopChannel,
+        markChannelLoggedOut,
+        wizardRunner,
+        broadcastVoiceWakeChanged,
+      };
+      return gCtx;
+    })(),
   });
+
+  // Create an offline accessor to the same context (it's identical to what attachWsHandlers gets)
+  const gCtxOffline = {
+    deps,
+    cron,
+    cronStorePath,
+    execApprovalManager,
+    loadGatewayModelCatalog,
+    getHealthCache,
+    refreshHealthSnapshot: refreshGatewayHealthSnapshot,
+    logHealth,
+    logGateway: log,
+    incrementPresenceVersion,
+    getHealthVersion,
+    broadcast,
+    broadcastToConnIds,
+    nodeSendToSession,
+    nodeSendToAllSubscribed,
+    nodeSubscribe,
+    nodeUnsubscribe,
+    nodeUnsubscribeAll,
+    hasConnectedMobileNode: hasMobileNodeConnected,
+    hasExecApprovalClients: () => {
+      for (const gatewayClient of clients) {
+        const scopes = Array.isArray(gatewayClient.connect.scopes)
+          ? gatewayClient.connect.scopes
+          : [];
+        if (scopes.includes("operator.admin") || scopes.includes("operator.approvals")) return true;
+      }
+      return false;
+    },
+    nodeRegistry,
+    agentRunSeq,
+    chatAbortControllers,
+    chatAbortedRuns: chatRunState.abortedRuns,
+    chatRunBuffers: chatRunState.buffers,
+    chatDeltaSentAt: chatRunState.deltaSentAt,
+    addChatRun,
+    removeChatRun,
+    registerToolEventRecipient: toolEventRecipients.add,
+    dedupe,
+    wizardSessions,
+    findRunningWizard,
+    purgeWizardSession,
+    getRuntimeSnapshot,
+    startChannel,
+    stopChannel,
+    markChannelLoggedOut,
+    wizardRunner,
+    broadcastVoiceWakeChanged,
+  } as any; // Cast to any to avoid importing GatewayContext if missing
+
   logGatewayStartup({
     cfg: cfgAtStart,
     bindHost,
@@ -809,6 +865,32 @@ export async function startGatewayServer(
       logChannels,
       logBrowser,
     }));
+  }
+
+  let proactiveSchedulerStop: (() => void) | null = null;
+  if (!minimalTestGateway) {
+    proactiveSchedulerStop = startProactiveScheduler(async (event) => {
+      try {
+        const handler = gatewayMethods["chat.send"];
+        if (handler) {
+          log.info(`[Proactive] Trợ lý thức giấc gửi Greeting vào luồng "proactive"...`);
+          await handler({
+            params: {
+              sessionKey: "proactive",
+              message: event.prompt,
+              idempotencyKey: `proactive-${Date.now()}`,
+            },
+            context: gCtxOffline,
+            client: {
+              connect: { role: "operator", agent: resolveDefaultAgentId(cfgAtStart) },
+            } as any,
+            respond: () => {},
+          });
+        }
+      } catch (err) {
+        log.error(`[Proactive] Failed to generate proactive message: ${String(err)}`);
+      }
+    });
   }
 
   // Run gateway_start plugin hook (fire-and-forget)
@@ -923,6 +1005,9 @@ export async function startGatewayServer(
       if (skillsRefreshTimer) {
         clearTimeout(skillsRefreshTimer);
         skillsRefreshTimer = null;
+      }
+      if (proactiveSchedulerStop) {
+        proactiveSchedulerStop();
       }
       skillsChangeUnsub();
       authRateLimiter?.dispose();

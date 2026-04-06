@@ -481,6 +481,13 @@ export async function runOnboardingWizard(
   nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
 
   nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
+
+  // ── Deep Memory (LanceDB) defaults ──────────────────────────────
+  // Ensure memory.lancedb is always written on onboard so the block
+  // shows up prominently in the config file and is easy to customize.
+  // Skips keys that the user has already set explicitly.
+  nextConfig = applyLanceDbDefaults(nextConfig);
+
   await writeConfigFile(nextConfig);
 
   const { finalizeOnboardingWizard } = await import("./onboarding.finalize.js");
@@ -497,4 +504,35 @@ export async function runOnboardingWizard(
   if (launchedTui) {
     return;
   }
+}
+/**
+ * Stamp Deep Memory (LanceDB) defaults into the config during onboarding.
+ * Only fills in keys that the user has not already set explicitly so that
+ * re-running onboard never overwrites manual customizations.
+ *
+ * Written to the config file so users can see and tweak the block at
+ * ~/.shittimchest/shittimchest.json → memory.lancedb.
+ */
+function applyLanceDbDefaults(cfg: ShittimChestConfig): ShittimChestConfig {
+  const existing = cfg.memory?.lancedb ?? {};
+  return {
+    ...cfg,
+    memory: {
+      ...cfg.memory,
+      lancedb: {
+        // Only write defaults that are not already present
+        ...existing,
+        // logFullConversation defaults to true (enabled by default)
+        ...(existing.logFullConversation === undefined ? { logFullConversation: true } : {}),
+        // SenseiProfiler: extract user habits + preferences in the background
+        profileSensei: {
+          enabled: true,
+          batchSize: 10,
+          ...(existing.profileSensei && typeof existing.profileSensei === "object"
+            ? existing.profileSensei
+            : {}),
+        },
+      },
+    },
+  };
 }

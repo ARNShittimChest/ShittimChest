@@ -3,6 +3,7 @@ import type { ShittimChestConfig } from "../../config/config.js";
 import type { MemoryCitationsMode } from "../../config/types.memory.js";
 import { resolveMemoryBackendConfig } from "../../memory/backend-config.js";
 import { getMemorySearchManager } from "../../memory/index.js";
+import type { MemoryIndexManager } from "../../memory/manager.js";
 import type { MemorySearchResult } from "../../memory/types.js";
 import { parseAgentSessionKey } from "../../routing/session-key.js";
 import { resolveSessionAgentId } from "../agent-scope.js";
@@ -22,7 +23,10 @@ const MemoryGetSchema = Type.Object({
   lines: Type.Optional(Type.Number()),
 });
 
-function resolveMemoryToolContext(options: { config?: ShittimChestConfig; agentSessionKey?: string }) {
+function resolveMemoryToolContext(options: {
+  config?: ShittimChestConfig;
+  agentSessionKey?: string;
+}) {
   const cfg = options.config;
   if (!cfg) {
     return null;
@@ -77,10 +81,21 @@ export function createMemorySearchTool(options: {
         const status = manager.status();
         const decorated = decorateCitations(rawResults, includeCitations);
         const resolved = resolveMemoryBackendConfig({ cfg, agentId });
-        const results =
+        let results =
           status.backend === "qmd"
             ? clampResultsByInjectedChars(decorated, resolved.qmd?.limits.maxInjectedChars)
             : decorated;
+
+        // Deep Memory: merge LanceDB semantic results (sensei_profile first)
+        const lanceResults = await fetchLanceDbResults(
+          manager as MemoryIndexManager,
+          query,
+          maxResults ?? 5,
+        );
+        if (lanceResults.length > 0) {
+          results = mergeLanceResults(results, lanceResults, maxResults ?? 5);
+        }
+
         const searchMode = (status.custom as { searchMode?: string } | undefined)?.searchMode;
         return jsonResult({
           results,
@@ -239,4 +254,64 @@ function deriveChatTypeFromSessionKey(sessionKey?: string): "direct" | "group" |
     return "group";
   }
   return "direct";
+}
+
+/**
+ * Query LanceDB for semantic results and boost sensei_profile entries to the top.
+ * Returns synthetic MemorySearchResult objects so they can be merged with SQLite results.
+ * Degrades gracefully: returns [] if LanceDB is not initialized or embedding unavailable.
+ */
+async function fetchLanceDbResults(
+  manager: MemoryIndexManager,
+  query: string,
+  limit: number,
+): Promise<MemorySearchResult[]> {
+  try {
+    const lanceDb = manager.getLanceDbProvider();
+    const embeddingProvider = manager.getEmbeddingProvider();
+    if (!lanceDb || !embeddingProvider) return [];
+
+    const vector = await embeddingProvider.embedQuery(query).catch(() => null);
+    if (!vector || vector.length === 0) return [];
+
+    // Fetch more than needed so we can boost sensei_profile
+    const rawLance = await lanceDb.search(vector, limit * 2, { minScore: 0.5 });
+    if (rawLance.length === 0) return [];
+
+    // Sort: sensei_profile entries first (boosted by importance), then by score
+    rawLance.sort((a, b) => {
+      const aPriority = a.entry.category === "sensei_profile" ? a.entry.importance * 2 : a.score;
+      const bPriority = b.entry.category === "sensei_profile" ? b.entry.importance * 2 : b.score;
+      return bPriority - aPriority;
+    });
+
+    return rawLance.slice(0, limit).map((r) => ({
+      path: r.entry.source_file || "lancedb",
+      startLine: 1,
+      endLine: 1,
+      snippet: r.entry.text,
+      score: r.score,
+      source: "memory" as const,
+    }));
+  } catch {
+    // LanceDB errors are non-fatal; SQLite results still reach the user
+    return [];
+  }
+}
+
+/**
+ * Merge LanceDB results into the standard SQLite results.
+ * - sensei_profile entries (category-boosted) go first.
+ * - Deduplicates on snippet content.
+ * - Final list is capped at maxResults.
+ */
+function mergeLanceResults(
+  sqliteResults: MemorySearchResult[],
+  lanceResults: MemorySearchResult[],
+  maxResults: number,
+): MemorySearchResult[] {
+  const seen = new Set<string>(sqliteResults.map((r) => r.snippet));
+  const newFromLance = lanceResults.filter((r) => !seen.has(r.snippet));
+  // Prepend LanceDB-exclusive results (already sorted: sensei_profile first)
+  return [...newFromLance, ...sqliteResults].slice(0, maxResults);
 }

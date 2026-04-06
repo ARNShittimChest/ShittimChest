@@ -1,0 +1,22 @@
+﻿AssertionError: expected 'You are Arona (πéóπâ¡πâè), the AI companionΓÇª' to contain '## Skills'
+    at E:/Data/Arona-CLW/src/agents/system-prompt.test.ts:112:20
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///E:/Data/Arona-CLW/node_modules/.pnpm/vitest@4.0.18_@opentelemetr_d0c99d45665e40822b3011d0718251ff/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///E:/Data/Arona-CLW/node_modules/.pnpm/vitest@4.0.18_@opentelemetr_d0c99d45665e40822b3011d0718251ff/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:12)
+AssertionError: expected 'You are Arona (πéóπâ¡πâè), the AI companionΓÇª' to contain '## Skills (mandatory)'
+    at E:/Data/Arona-CLW/src/agents/system-prompt.test.ts:145:20
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///E:/Data/Arona-CLW/node_modules/.pnpm/vitest@4.0.18_@opentelemetr_d0c99d45665e40822b3011d0718251ff/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///E:/Data/Arona-CLW/node_modules/.pnpm/vitest@4.0.18_@opentelemetr_d0c99d45665e40822b3011d0718251ff/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///E:/Data/Arona-CLW/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1653:12)

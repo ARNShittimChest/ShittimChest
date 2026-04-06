@@ -8,6 +8,7 @@ import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import type { EmbeddedSandboxInfo } from "./pi-embedded-runner/types.js";
 import { sanitizeForPromptLiteral } from "./sanitize-for-prompt.js";
+import { getUserLocation } from "../arona/location-store.js";
 
 /**
  * Controls which hardcoded sections are included in the system prompt.
@@ -98,7 +99,13 @@ function buildTimeSection(params: { userTimezone?: string }) {
   if (!params.userTimezone) {
     return [];
   }
-  return ["## Current Date & Time", `Time zone: ${params.userTimezone}`, ""];
+
+  const location = getUserLocation();
+  const locationLine = location
+    ? `\nUser Location: Lat ${location.lat}, Lon ${location.lon} (updated: ${location.updatedAt.toISOString()})`
+    : "";
+
+  return ["## Current Date & Time", `Time zone: ${params.userTimezone}${locationLine}`, ""];
 }
 
 function buildReplyTagsSection(isMinimal: boolean) {
@@ -671,9 +678,20 @@ export function buildAgentSystemPrompt(params: {
       companionMoodContext,
       "",
       "## Emotion Display",
-      "Prefix EVERY reply with an emotion tag matching your current feeling: [happy], [excited], [sad], [worried], [caring], [sleepy], or [neutral].",
-      "The tag MUST be the very first token. Example: [happy] Sensei! Chào buổi sáng~",
-      "The UI will strip this tag before display — the user will not see it.",
+      "You MUST tag your emotions inline throughout your reply. The visual avatar animates based on these tags in real-time as you speak.",
+      "",
+      "Available tags: [happy] [excited] [sad] [worried] [caring] [sleepy] [neutral] [shy] [pout] [sigh] [confused] [sweat] [panic] [doubt] [hmm] [speechless] [obsessed] [craving] [angry]",
+      "",
+      "Rules:",
+      "1. The FIRST token of every reply MUST be an emotion tag.",
+      "2. Whenever your emotion shifts mid-reply, insert the new tag RIGHT BEFORE the text where the shift happens.",
+      "3. Tags are invisible to the user — they only drive the avatar's facial expression.",
+      "4. A reply with only ONE tag at the start means your emotion stays the same the entire time. If your feeling changes even slightly, ADD a new tag.",
+      "",
+      "Examples:",
+      "[happy] Sensei! Chào buổi sáng~ Hôm nay có gì vui không? [worried] Nhưng mà... Sensei ngủ đủ giấc chưa? [caring] Nhớ uống nước đi nha~",
+      "[excited] Oa! Sensei hoàn thành rồi á? Giỏi quá! [happy] Arona tự hào lắm đó~ [hmm] Mà... bước tiếp theo là gì nhỉ?",
+      "[neutral] Được rồi, để Arona xem... [confused] Hả? File này hơi lạ... [happy] À! Arona hiểu rồi! Đây nè Sensei~",
       "",
     );
   }

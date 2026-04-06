@@ -8,7 +8,13 @@ import {
   type ShittimChestPackageManifest,
   type PackageManifest,
 } from "./manifest.js";
-import { formatPosixMode, isPathInside, safeRealpathSync, safeStatSync } from "./path-safety.js";
+import {
+  formatPosixMode,
+  isPathInside,
+  isPosixPermissionReliable,
+  safeRealpathSync,
+  safeStatSync,
+} from "./path-safety.js";
 import type { PluginDiagnostic, PluginOrigin } from "./types.js";
 
 const EXTENSION_EXTS = new Set([".ts", ".js", ".mts", ".cts", ".mjs", ".cjs"]);
@@ -111,7 +117,7 @@ function checkPathStatAndPermissions(params: {
       };
     }
     const modeBits = stat.mode & 0o777;
-    if ((modeBits & 0o002) !== 0) {
+    if ((modeBits & 0o002) !== 0 && isPosixPermissionReliable(targetPath)) {
       return {
         reason: "path_world_writable",
         sourcePath: params.source,

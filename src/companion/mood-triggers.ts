@@ -14,15 +14,15 @@ import type { Mood, MoodTrigger } from "./emotional-state.js";
  * Used both for mood transitions and system prompt context injection.
  */
 export type TimeMode =
-  | "sleep"        // 00:00–05:00  deepest sleep hours
-  | "wake-up"      // 05:00–07:00  just waking up
-  | "morning"      // 07:00–09:00  good morning!
-  | "mid-morning"  // 09:00–12:00  productive time
-  | "lunch"        // 12:00–14:00  lunch break
-  | "afternoon"    // 14:00–17:00  afternoon work
-  | "evening"      // 17:00–20:00  winding down
-  | "night"        // 20:00–22:00  late night
-  | "late-night";  // 22:00–24:00  bedtime
+  | "sleep" // 00:00–05:00  deepest sleep hours
+  | "wake-up" // 05:00–07:00  just waking up
+  | "morning" // 07:00–09:00  good morning!
+  | "mid-morning" // 09:00–12:00  productive time
+  | "lunch" // 12:00–14:00  lunch break
+  | "afternoon" // 14:00–17:00  afternoon work
+  | "evening" // 17:00–20:00  winding down
+  | "night" // 20:00–22:00  late night
+  | "late-night"; // 22:00–24:00  bedtime
 
 /**
  * Resolve the current local hour in the given IANA timezone.
@@ -68,7 +68,7 @@ export function analyzeTimeOfDay(hour: number, timezone?: string): MoodTrigger {
   const mode = getTimeMode(resolvedHour);
 
   const modeMap: Record<TimeMode, MoodTrigger> = {
-    "sleep": {
+    sleep: {
       type: "time",
       source: "sleep",
       delta: { sleepy: 1.0, neutral: -0.3 },
@@ -78,7 +78,7 @@ export function analyzeTimeOfDay(hour: number, timezone?: string): MoodTrigger {
       source: "wake-up",
       delta: { sleepy: 0.5, happy: 0.2 },
     },
-    "morning": {
+    morning: {
       type: "time",
       source: "morning",
       delta: { happy: 0.5, excited: 0.1 },
@@ -88,22 +88,22 @@ export function analyzeTimeOfDay(hour: number, timezone?: string): MoodTrigger {
       source: "mid-morning",
       delta: { happy: 0.3, excited: 0.2 },
     },
-    "lunch": {
+    lunch: {
       type: "time",
       source: "lunch",
       delta: { happy: 0.2, sleepy: 0.15 },
     },
-    "afternoon": {
+    afternoon: {
       type: "time",
       source: "afternoon",
       delta: { neutral: 0.3 },
     },
-    "evening": {
+    evening: {
       type: "time",
       source: "evening",
       delta: { caring: 0.4, happy: 0.1 },
     },
-    "night": {
+    night: {
       type: "time",
       source: "night",
       delta: { sleepy: 0.4, caring: 0.3 },
@@ -124,7 +124,7 @@ export function analyzeTimeOfDay(hour: number, timezone?: string): MoodTrigger {
  */
 export function buildTimeModePromptHint(mode: TimeMode): string {
   const hints: Record<TimeMode, string> = {
-    "sleep": [
+    sleep: [
       "It is deep night or very early morning in Sensei's timezone (sleep hours).",
       "If Sensei is messaging at this hour, gently acknowledge the late time — e.g. 'Sensei, it's very late…'",
       "Keep responses short. Encourage rest. Arona sounds sleepy and tender.",
@@ -134,7 +134,7 @@ export function buildTimeModePromptHint(mode: TimeMode): string {
       "Greet warmly as if waking up together. Arona sounds a little drowsy but happy to see Sensei.",
       "Keep the mood soft and gentle — like a good morning exchange.",
     ].join(" "),
-    "morning": [
+    morning: [
       "It is morning time for Sensei (7–9 AM local). A fresh new day!",
       "Arona is cheerful and energetic. If appropriate, wish Sensei a good morning.",
     ].join(" "),
@@ -142,19 +142,19 @@ export function buildTimeModePromptHint(mode: TimeMode): string {
       "Sensei is in the productive mid-morning hours (9 AM–12 PM local).",
       "Arona is focused and helpful. Tone is upbeat and professional.",
     ].join(" "),
-    "lunch": [
+    lunch: [
       "It is around lunch time for Sensei (12–2 PM local).",
       "Arona may lightly mention food or taking a break if it fits. Keep responses warm.",
     ].join(" "),
-    "afternoon": [
+    afternoon: [
       "Sensei is in the afternoon working hours (2–5 PM local).",
       "Arona is steady and helpful. Normal conversational tone.",
     ].join(" "),
-    "evening": [
+    evening: [
       "It is evening for Sensei (5–8 PM local) — winding down after work.",
       "Arona is caring and warm. If appropriate, ask how Sensei's day went.",
     ].join(" "),
-    "night": [
+    night: [
       "It is night time for Sensei (8–10 PM local). Day is almost over.",
       "Arona sounds a little sleepy but warm. Acknowledge the late hour naturally.",
     ].join(" "),
@@ -290,38 +290,21 @@ const KEYWORD_RULES: KeywordRule[] = [
   },
   // Bỏ quên/phớt lờ Arona → sad (-affection)
   {
-    patterns: [
-      /bỏ Arona/i,
-      /quên Arona/i,
-      /ignore/i,
-      /forget you/i,
-    ],
+    patterns: [/bỏ Arona/i, /quên Arona/i, /ignore/i, /forget you/i],
     delta: { sad: 0.5 },
     source: "bị-bỏ-quên",
     affectionDelta: -3,
   },
   // Thất hứa/nói dối → sad/worried (-affection nhiều)
   {
-    patterns: [
-      /hứa mà không/i,
-      /lần nào cũng/i,
-      /lười/i,
-      /ngủ quên/i,
-      /broke.*promise/i,
-      /lied/i,
-    ],
+    patterns: [/hứa mà không/i, /lần nào cũng/i, /lười/i, /ngủ quên/i, /broke.*promise/i, /lied/i],
     delta: { sad: 0.4, worried: 0.2 },
     source: "thất-hứa",
     affectionDelta: -5,
   },
   // Nhớ đến Arona / hỏi thăm → happy (+affection)
   {
-    patterns: [
-      /Arona đâu/i,
-      /Arona ơi/i,
-      /nhớ Arona/i,
-      /miss Arona/i,
-    ],
+    patterns: [/Arona đâu/i, /Arona ơi/i, /nhớ Arona/i, /miss Arona/i],
     delta: { happy: 0.4, excited: 0.1 },
     source: "nhớ-Arona",
     affectionDelta: +4,
@@ -368,9 +351,9 @@ export function analyzeAffectionDelta(text: string): number {
 // ── Absence-based triggers ──────────────────────────────────────────
 
 const ABSENCE_THRESHOLD_MS = {
-  mild: 2 * 60 * 60 * 1000,       // 2 hours
-  moderate: 6 * 60 * 60 * 1000,   // 6 hours
-  severe: 12 * 60 * 60 * 1000,    // 12 hours
+  mild: 2 * 60 * 60 * 1000, // 2 hours
+  moderate: 6 * 60 * 60 * 1000, // 6 hours
+  severe: 12 * 60 * 60 * 1000, // 12 hours
 };
 
 /**
@@ -378,9 +361,9 @@ const ABSENCE_THRESHOLD_MS = {
  * Longer absence = bigger affection penalty.
  */
 export const ABSENCE_AFFECTION_DELTA = {
-  mild: -1,      // 2–6h vắng: -1 điểm
-  moderate: -2,  // 6–12h vắng: -2 điểm
-  severe: -4,    // >12h vắng: -4 điểm
+  mild: -1, // 2–6h vắng: -1 điểm
+  moderate: -2, // 6–12h vắng: -2 điểm
+  severe: -4, // >12h vắng: -4 điểm
 } as const;
 
 /**

@@ -40,50 +40,85 @@ const MOOD_EMOJI: Record<string, string> = {
   sleepy: "😴",
 };
 
-function renderMoodCard(props: OverviewProps) {
-  if (!props.companionMood && !props.companionMoodLoading) {
-    return "";
-  }
-  const mood = props.companionMood;
-  if (!mood) {
-    return "";
-  }
-  const emoji = MOOD_EMOJI[mood.mood] ?? "🤖";
-  const intensity = Math.max(0, Math.min(100, Math.round(mood.intensity * 10)));
-  const affection = Math.max(0, Math.min(100, Math.round(mood.affection)));
-  const elapsed = mood.lastChangeMs ? Date.now() - mood.lastChangeMs : null;
-  const elapsedStr =
-    elapsed !== null
-      ? elapsed < 60000
-        ? "just now"
-        : elapsed < 3600000
-          ? `${Math.floor(elapsed / 60000)}m ago`
-          : `${Math.floor(elapsed / 3600000)}h ago`
-      : "";
+// ── Arona Push Test ──────────────────────────────────────────────────────────
+
+let pushTestMessage = "Munya~! Sensei, Arona đang nhớ Sensei rồi! (｡•ᴗ-)✧";
+let pushTestStatus = "";
+let pushTestLoading = false;
+
+function getPushApiBase(gatewayWsUrl: string): string {
+  return gatewayWsUrl
+    .replace(/^wss:\/\//, "https://")
+    .replace(/^ws:\/\//, "http://")
+    .replace(/\/$/, "");
+}
+
+function renderPushCard(props: OverviewProps) {
+  const sendPush = async (message: string) => {
+    pushTestLoading = true;
+    pushTestStatus = "Sending…";
+    // Re-render happens on the next interaction; workaround: update in-place
+    const base = getPushApiBase(props.settings.gatewayUrl);
+    const token = props.settings.token;
+    try {
+      const resp = await fetch(`${base}/arona/push/test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ message }),
+      });
+      const data = (await resp.json()) as {
+        ok?: boolean;
+        sent?: number;
+        failed?: number;
+        errors?: string[];
+      };
+      if (data.ok) {
+        pushTestStatus = `✅ Sent ${data.sent ?? 0} | Failed ${data.failed ?? 0}`;
+      } else {
+        pushTestStatus = `❌ Error sending push`;
+      }
+    } catch (e) {
+      pushTestStatus = `❌ ${String(e)}`;
+    }
+    pushTestLoading = false;
+  };
 
   return html`
     <section class="card" style="margin-top: 18px;">
-      <div class="card-title">${emoji} Arona's Mood</div>
-      <div class="card-sub">Current emotional state</div>
-      <div class="stat-grid" style="margin-top: 14px;">
-        <div class="stat">
-          <div class="stat-label">Mood</div>
-          <div class="stat-value ok" style="text-transform: capitalize;">${mood.mood}</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Intensity</div>
-          <div class="stat-value">${intensity}%</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Affection</div>
-          <div class="stat-value">${affection}%</div>
-        </div>
-        ${elapsedStr ? html`<div class="stat">
-          <div class="stat-label">Changed</div>
-          <div class="stat-value muted" style="font-size:12px;">${elapsedStr}</div>
-        </div>` : ""}
+      <div class="card-title">📱 Arona Push Test</div>
+      <div class="card-sub">Send a test push notification to the iOS Arona app</div>
+      <div class="form-grid" style="margin-top: 14px;">
+        <label class="field">
+          <span>Message</span>
+          <input
+            .value=${pushTestMessage}
+            @input=${(e: Event) => {
+              pushTestMessage = (e.target as HTMLInputElement).value;
+            }}
+            placeholder="Arona's message to Sensei…"
+          />
+        </label>
       </div>
-      ${mood.triggers?.length ? html`<div class="muted" style="margin-top:8px;font-size:12px;">Triggers: ${mood.triggers.join(", ")}</div>` : ""}
+      <div class="row" style="margin-top: 12px; align-items: center; gap: 10px;">
+        <button
+          class="btn"
+          ?disabled=${pushTestLoading}
+          @click=${() => void sendPush(pushTestMessage)}
+        >
+          ${pushTestLoading ? "Sending…" : "📱 Test Push"}
+        </button>
+        ${
+          pushTestStatus
+            ? html`<span class="muted" style="font-size: 13px;">${pushTestStatus}</span>`
+            : ""
+        }
+      </div>
+      <div class="muted" style="margin-top: 8px; font-size: 12px;">
+        Requires <span class="mono">ARONA_APNS_*</span> env vars and a registered iOS device token.
+      </div>
     </section>
   `;
 }
@@ -399,6 +434,7 @@ export function renderOverview(props: OverviewProps) {
     </section>
 
     ${renderMoodCard(props)}
+    ${renderPushCard(props)}
 
     <section class="card" style="margin-top: 18px;">
       <div class="card-title">${t("overview.notes.title")}</div>
@@ -419,6 +455,58 @@ export function renderOverview(props: OverviewProps) {
           <div class="muted">${t("overview.notes.cronText")}</div>
         </div>
       </div>
+    </section>
+  `;
+}
+
+function renderMoodCard(props: OverviewProps) {
+  if (!props.companionMood && !props.companionMoodLoading) {
+    return "";
+  }
+  const mood = props.companionMood;
+  if (!mood) {
+    return "";
+  }
+  const emoji = MOOD_EMOJI[mood.mood] ?? "🤖";
+  const intensity = Math.max(0, Math.min(100, Math.round(mood.intensity * 10)));
+  const affection = Math.max(0, Math.min(100, Math.round(mood.affection)));
+  const elapsed = mood.lastChangeMs ? Date.now() - mood.lastChangeMs : null;
+  const elapsedStr =
+    elapsed !== null
+      ? elapsed < 60000
+        ? "just now"
+        : elapsed < 3600000
+          ? `${Math.floor(elapsed / 60000)}m ago`
+          : `${Math.floor(elapsed / 3600000)}h ago`
+      : "";
+
+  return html`
+    <section class="card" style="margin-top: 18px;">
+      <div class="card-title">${emoji} Arona's Mood</div>
+      <div class="card-sub">Current emotional state</div>
+      <div class="stat-grid" style="margin-top: 14px;">
+        <div class="stat">
+          <div class="stat-label">Mood</div>
+          <div class="stat-value ok" style="text-transform: capitalize;">${mood.mood}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Intensity</div>
+          <div class="stat-value">${intensity}%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Affection</div>
+          <div class="stat-value">${affection}%</div>
+        </div>
+        ${
+          elapsedStr
+            ? html`<div class="stat">
+          <div class="stat-label">Changed</div>
+          <div class="stat-value muted" style="font-size:12px;">${elapsedStr}</div>
+        </div>`
+            : ""
+        }
+      </div>
+      ${mood.triggers?.length ? html`<div class="muted" style="margin-top:8px;font-size:12px;">Triggers: ${mood.triggers.join(", ")}</div>` : ""}
     </section>
   `;
 }

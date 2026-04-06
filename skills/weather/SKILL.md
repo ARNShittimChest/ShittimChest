@@ -1,112 +1,87 @@
 ---
-name: weather
-description: "Get current weather and forecasts via wttr.in or Open-Meteo. Use when: user asks about weather, temperature, or forecasts for any location. NOT for: historical weather data, severe weather alerts, or detailed meteorological analysis. No API key needed."
-homepage: https://wttr.in/:help
-metadata: { "shittimchest": { "emoji": "🌤️", "requires": { "bins": ["curl"] } } }
+description: Get current weather, forecasts, and historical weather data using GPS locations (no API key required).
 ---
 
-# Weather Skill
+# Weather Integration
 
-Get current weather conditions and forecasts.
+Two free services, no API keys needed. They rely on coordinates which are provided directly in your System Prompt. No need to geocode city names.
 
-## When to Use
+## wttr.in (primary)
 
-✅ **USE this skill when:**
-
-- "What's the weather?"
-- "Will it rain today/tomorrow?"
-- "Temperature in [city]"
-- "Weather forecast for the week"
-- Travel planning weather checks
-
-## When NOT to Use
-
-❌ **DON'T use this skill when:**
-
-- Historical weather data → use weather archives/APIs
-- Climate analysis or trends → use specialized data sources
-- Hyper-local microclimate data → use local sensors
-- Severe weather alerts → check official NWS sources
-- Aviation/marine weather → use specialized services (METAR, etc.)
-
-## Location
-
-Always include a city, region, or airport code in weather queries.
-
-## Commands
-
-### Current Weather
+Quick one-liner:
 
 ```bash
-# One-line summary
-curl "wttr.in/London?format=3"
-
-# Detailed current conditions
-curl "wttr.in/London?0"
-
-# Specific city
-curl "wttr.in/New+York?format=3"
+curl -s "wttr.in/42.84,-71.74?format=3"
+# Output: City: ⛅️ +8°C
 ```
 
-### Forecasts
+Compact format:
 
 ```bash
-# 3-day forecast
-curl "wttr.in/London"
-
-# Week forecast
-curl "wttr.in/London?format=v2"
-
-# Specific day (0=today, 1=tomorrow, 2=day after)
-curl "wttr.in/London?1"
+curl -s "wttr.in/42.84,-71.74?format=%l:+%c+%t+%h+%w"
+# Output: City: ⛅️ +8°C 71% ↙5km/h
 ```
 
-### Format Options
+Full forecast:
 
 ```bash
-# One-liner
-curl "wttr.in/London?format=%l:+%c+%t+%w"
-
-# JSON output
-curl "wttr.in/London?format=j1"
-
-# PNG image
-curl "wttr.in/London.png"
+curl -s "wttr.in/42.84,-71.74?T"
 ```
 
-### Format Codes
+Format codes: `%c` condition · `%t` temp · `%h` humidity · `%w` wind · `%l` location · `%m` moon
 
-- `%c` — Weather condition emoji
-- `%t` — Temperature
-- `%f` — "Feels like"
-- `%w` — Wind
-- `%h` — Humidity
-- `%p` — Precipitation
-- `%l` — Location
+Tips:
 
-## Quick Responses
+- Units: `?m` (metric) `?u` (USCS)
+- Today only: `?1` · Current only: `?0`
 
-**"What's the weather?"**
+---
+
+## Open-Meteo (fallback, JSON)
+
+Free, no key, good for programmatic use.
+
+**Step 1 — Query current weather:**
+Substitute `latitude` and `longitude` with the values from your System Prompt!
 
 ```bash
-curl -s "wttr.in/London?format=%l:+%c+%t+(feels+like+%f),+%w+wind,+%h+humidity"
+curl -s "https://api.open-meteo.com/v1/forecast?latitude=42.84&longitude=-71.74&current_weather=true"
 ```
 
-**"Will it rain?"**
+Returns JSON with temp, windspeed, weathercode.
+
+**Step 2 — Query historical data:**
 
 ```bash
-curl -s "wttr.in/London?format=%l:+%c+%p"
+curl -s "https://archive-api.open-meteo.com/v1/archive?latitude=42.84&longitude=-71.74&start_date=2026-02-17&end_date=2026-02-17&hourly=temperature_2m,windspeed_10m,windgusts_10m,winddirection_10m,precipitation,relative_humidity_2m&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=auto"
 ```
 
-**"Weekend forecast"**
+Available hourly variables:
+
+- `temperature_2m` — Air temperature
+- `windspeed_10m` — Wind speed
+- `windgusts_10m` — Wind gusts
+- `winddirection_10m` — Wind direction (degrees)
+- `precipitation` — Rain/snow (mm)
+- `relative_humidity_2m` — Humidity (%)
+- `snowfall` — Snowfall (cm)
+- `cloudcover` — Cloud cover (%)
+- `pressure_msl` — Sea-level pressure (hPa)
+
+Daily aggregates are also available — replace hourly with daily:
 
 ```bash
-curl "wttr.in/London?format=v2"
+curl -s "https://archive-api.open-meteo.com/v1/archive?latitude=42.84&longitude=-71.74&start_date=2026-02-10&end_date=2026-02-17&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=auto"
 ```
 
-## Notes
+Tips:
 
-- No API key needed (uses wttr.in)
-- Rate limited; don't spam requests
-- Works for most global cities
-- Supports airport codes: `curl wttr.in/ORD`
+- Date range: `start_date` and `end_date` in YYYY-MM-DD format
+- Max range per request: 1 year
+- Data availability: 1940–yesterday (updates daily)
+- Use `timezone=auto` to get local times based on coordinates
+
+Docs:
+
+- https://open-meteo.com/en/docs
+- https://open-meteo.com/en/docs/historical-weather-api

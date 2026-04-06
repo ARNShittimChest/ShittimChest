@@ -4,6 +4,7 @@ import { CURRENT_SESSION_VERSION } from "@mariozechner/pi-coding-agent";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { resolveThinkingDefault } from "../../agents/model-selection.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
+import { enqueuePush } from "../../arona/push/pending-store.js";
 import { dispatchInboundMessage } from "../../auto-reply/dispatch.js";
 import { createReplyDispatcher } from "../../auto-reply/reply/reply-dispatcher.js";
 import type { MsgContext } from "../../auto-reply/templating.js";
@@ -505,6 +506,21 @@ function broadcastChatFinal(params: {
     state: "final" as const,
     message: stripInlineDirectiveTagsFromMessageForDisplay(strippedEnvelopeMessage),
   };
+
+  // Extract inner text and enqueue a push notification for iOS
+  try {
+    const contentArr = Array.isArray(params.message?.content) ? params.message?.content : [];
+    const textChunks = contentArr
+      .filter((c: any) => c && c.type === "text" && typeof c.text === "string")
+      .map((c: any) => c.text);
+    const bodyInfo = textChunks.join("\n").trim();
+    if (bodyInfo) {
+      enqueuePush({ title: "Arona", body: bodyInfo });
+    }
+  } catch {
+    // disregard parse errors for push
+  }
+
   params.context.broadcast("chat", payload);
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
   params.context.agentRunSeq.delete(params.runId);
@@ -1038,6 +1054,19 @@ export const chatHandlers: GatewayRequestHandlers = {
         stripEnvelopeFromMessage(appended.message) as Record<string, unknown>,
       ),
     };
+
+    // Auto-enqueue push for injected messages (e.g. from proactive scheduler / boot.md logic)
+    try {
+      const contentArr = Array.isArray(appended.message?.content) ? appended.message?.content : [];
+      const textChunks = contentArr
+        .filter((c: any) => c && c.type === "text" && typeof c.text === "string")
+        .map((c: any) => c.text);
+      const bodyInfo = textChunks.join("\n").trim();
+      if (bodyInfo) {
+        enqueuePush({ title: "Arona", body: bodyInfo });
+      }
+    } catch {}
+
     context.broadcast("chat", chatPayload);
     context.nodeSendToSession(rawSessionKey, "chat", chatPayload);
 

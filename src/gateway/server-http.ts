@@ -63,6 +63,7 @@ import { GATEWAY_CLIENT_MODES, normalizeGatewayClientMode } from "./protocol/cli
 import { isProtectedPluginRoutePath } from "./security-path.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
 import { handleToolsInvokeHttpRequest } from "./tools-invoke-http.js";
+import { handleAronaPushRequest } from "../arona/push/push-handler.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -525,6 +526,10 @@ export function createGatewayHttpServer(opts: {
         return;
       }
       if (await handleSlackHttpRequest(req, res)) {
+        return;
+      }
+      // Arona push notification routes (/arona/push/*)
+      if (await handleAronaPushRequest(req, res)) {
         return;
       }
       if (handlePluginRequest) {

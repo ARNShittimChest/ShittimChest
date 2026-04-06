@@ -1,3 +1,4 @@
+import os from "node:os";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -5,6 +6,8 @@ import { type FSWatcher } from "chokidar";
 import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import type { ResolvedMemorySearchConfig } from "../agents/memory-search.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
+import { SenseiProfiler } from "../agents/sensei-profiler.js";
+import { runMemoryReflection } from "../agents/memory-reflect.js";
 import type { ShittimChestConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
@@ -19,6 +22,7 @@ import {
 import { isFileMissingError, statRegularFile } from "./fs-utils.js";
 import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js";
 import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
+import { LanceDbProvider } from "./lancedb-provider.js";
 import { MemoryManagerEmbeddingOps } from "./manager-embedding-ops.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
 import { extractKeywords } from "./query-expansion.js";
@@ -104,6 +108,11 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   private readonlyRecoverySuccesses = 0;
   private readonlyRecoveryFailures = 0;
   private readonlyRecoveryLastError?: string;
+  // Deep Memory (LanceDB) fields — initialized lazily, fire-and-forget
+  private lanceDb: LanceDbProvider | null = null;
+  private lanceDbReady: Promise<void> | null = null;
+  private senseiProfiler: SenseiProfiler | null = null;
+  private reflectTimer: NodeJS.Timeout | null = null;
 
   static async get(params: {
     cfg: ShittimChestConfig;
@@ -209,6 +218,116 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     const statusOnly = params.purpose === "status";
     this.dirty = this.sources.has("memory") && (statusOnly ? !meta : true);
     this.batch = this.resolveBatchConfig();
+    // Deep Memory: initialize LanceDB and SenseiProfiler if configured
+    this.initLanceDb();
+  }
+
+  /** Resolve the default LanceDB storage path: ~/.shittimchest/memory/lancedb */
+  private resolveLanceDbPath(): string {
+    const configured = this.cfg.memory?.lancedb?.storagePath;
+    if (configured) return configured;
+    return path.join(os.homedir(), ".shittimchest", "memory", "lancedb");
+  }
+
+  /**
+   * Initialize LanceDB provider and SenseiProfiler asynchronously.
+   * LanceDB is ALWAYS ON by default — only skipped when explicitly disabled via
+   * `memory.lancedb.logFullConversation: false`.
+   * This is fire-and-forget — failures are logged but never bubble up.
+   */
+  private initLanceDb(): void {
+    const lancedbCfg = this.cfg.memory?.lancedb;
+    // Only skip if user has explicitly set logFullConversation to false
+    if (lancedbCfg?.logFullConversation === false) {
+      log.debug("LanceDB deep memory disabled via config (logFullConversation: false)");
+      return;
+    }
+
+    const dbPath = this.resolveLanceDbPath();
+    // Vector dim: use provider dim if known, else default 1536 (text-embedding-3-small)
+    const vectorDim = this.vector.dims ?? 1536;
+    this.lanceDb = new LanceDbProvider(dbPath, vectorDim);
+
+    // Kick off async init (connect + create table) in background
+    this.lanceDbReady = (async () => {
+      try {
+        // Trigger a benign operation to ensure table is created before first write
+        await this.lanceDb!.count();
+        log.debug("LanceDB initialized for deep memory");
+      } catch (err) {
+        log.warn(`LanceDB init failed: ${String(err)}`);
+        this.lanceDb = null;
+      }
+    })();
+
+    // Initialize SenseiProfiler unless explicitly disabled
+    if (lancedbCfg?.profileSensei?.enabled !== false) {
+      this.senseiProfiler = new SenseiProfiler(this.cfg, this.agentId, this);
+    }
+
+    // Schedule nightly reflection (default: 3am daily ≈ every 24h)
+    this.ensureReflectJob();
+  }
+
+  /** Schedule the memory reflection job. Uses a simple 24h interval for MVP. */
+  private ensureReflectJob(): void {
+    // Run once 24h after startup, then repeat every 24h
+    const MS_24H = 24 * 60 * 60 * 1000;
+    this.reflectTimer = setInterval(() => {
+      runMemoryReflection(this.cfg, this.agentId).catch((err) => {
+        log.warn(`Memory reflection failed: ${String(err)}`);
+      });
+    }, MS_24H);
+    // Unref so it doesn't keep Node alive
+    this.reflectTimer.unref();
+  }
+
+  /** Return the active LanceDbProvider, or null if not initialized. */
+  getLanceDbProvider(): LanceDbProvider | null {
+    return this.lanceDb;
+  }
+
+  /** Return the active embedding provider (same one used by SQLite search). */
+  getEmbeddingProvider(): EmbeddingProvider | null {
+    return this.provider;
+  }
+
+  /**
+   * Record a single chat turn into LanceDB (fire-and-forget).
+   * Safe to call on every message; silently skips if LanceDB is not enabled.
+   */
+  recordChatTurn(role: "user" | "assistant" | "system", text: string): void {
+    if (!this.lanceDb || !text.trim()) return;
+
+    // Add user messages to SenseiProfiler buffer (batched background analysis)
+    if (role === "user" && this.senseiProfiler) {
+      this.senseiProfiler.addMessage(text);
+    }
+
+    void (async () => {
+      try {
+        // Wait for LanceDB to be ready before first write
+        if (this.lanceDbReady) await this.lanceDbReady;
+        if (!this.lanceDb) return;
+
+        const embeddingProvider = this.provider;
+        const vector = embeddingProvider
+          ? await embeddingProvider.embedQuery(text).catch(() => [])
+          : [];
+
+        await this.lanceDb.store({
+          role,
+          text,
+          vector,
+          source_file: `chat/${this.agentId}`,
+          category: "chat_log",
+          // User messages get slightly higher importance for profiling
+          importance: role === "user" ? 1.2 : 1.0,
+        });
+      } catch (err) {
+        log.debug(`LanceDB chat turn recording failed: ${String(err)}`);
+      }
+    })();
   }
 
   async warmSession(sessionKey?: string): Promise<void> {
@@ -755,6 +874,10 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       clearInterval(this.intervalTimer);
       this.intervalTimer = null;
     }
+    if (this.reflectTimer) {
+      clearInterval(this.reflectTimer);
+      this.reflectTimer = null;
+    }
     if (this.watcher) {
       await this.watcher.close();
       this.watcher = null;
@@ -767,6 +890,10 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       try {
         await pendingSync;
       } catch {}
+    }
+    if (this.lanceDb) {
+      await this.lanceDb.close().catch(() => {});
+      this.lanceDb = null;
     }
     this.db.close();
     INDEX_CACHE.delete(this.cacheKey);

@@ -111,11 +111,32 @@ const MemoryQmdSchema = z
   })
   .strict();
 
+const MemoryLanceDbSenseiSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    batchSize: z.number().int().positive().optional(),
+  })
+  .strict();
+
+const MemoryLanceDbSchema = z
+  .object({
+    /** When false, disables LanceDB deep-memory entirely. Default: true (always on). */
+    logFullConversation: z.boolean().optional(),
+    /** Absolute path to LanceDB storage directory. Default: ~/.shittimchest/memory/lancedb */
+    storagePath: z.string().optional(),
+    /** SenseiProfiler extracts user habits/preferences in the background. */
+    profileSensei: MemoryLanceDbSenseiSchema.optional(),
+    /** Cron schedule for nightly memory reflection. Default: "0 3 * * *" */
+    reflectSchedule: z.string().optional(),
+  })
+  .strict();
+
 const MemorySchema = z
   .object({
     backend: z.union([z.literal("builtin"), z.literal("qmd")]).optional(),
     citations: z.union([z.literal("auto"), z.literal("on"), z.literal("off")]).optional(),
     qmd: MemoryQmdSchema.optional(),
+    lancedb: MemoryLanceDbSchema.optional(),
   })
   .strict()
   .optional();

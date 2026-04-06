@@ -1,0 +1,177 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mE:/Data/Arona-CLW[39m
+
+ [31mΓ¥»[39m src/agents/system-prompt.test.ts [2m([22m[2m41 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 33[2mms[22m[39m
+     [32mΓ£ô[39m formats owner section for plain, hash, and missing owner lists[32m 6[2mms[22m[39m
+     [32mΓ£ô[39m uses a stable, keyed HMAC when ownerDisplaySecret is provided[32m 1[2mms[22m[39m
+[31m     [31m├ù[31m omits extended sections in minimal prompt mode[39m[32m 11[2mms[22m[39m
+     [32mΓ£ô[39m includes skills in minimal prompt mode when skillsPrompt is provided (cron regression)[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m omits skills in minimal prompt mode when skillsPrompt is absent[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes safety guardrails in full prompts[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes voice hint when provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m adds reasoning tag hint when enabled[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes a CLI quick reference section[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m marks system message blocks as internal and not user-visible[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m guides subagent workflows to avoid polling loops[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m lists available tools when provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m documents ACP sessions_spawn agent targeting requirements[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m guides harness requests to ACP thread-bound spawns[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m omits ACP harness guidance when ACP is disabled[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m preserves tool casing in the prompt[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes docs guidance when docsPath is provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes workspace notes when provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m shows timezone section for 12h, 24h, and timezone-only modes[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m hints to use session_status for current date/time[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m does NOT include a date or time in the system prompt (cache stability)[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes model alias guidance when aliases are provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m adds ClaudeBot self-update guidance when gateway tool is available[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes skills guidance when skills prompt is present[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m appends available skills when provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m omits skills section when no skills prompt is provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m renders project context files when provided[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m ignores context files with missing or blank paths[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m adds SOUL guidance when a soul file is present[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m summarizes the message tool when available[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes inline button style guidance when runtime supports inline buttons[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes runtime provider capabilities when present[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes agent id in runtime when provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes reasoning visibility hint[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m builds runtime line with agent and channel details[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m describes sandboxed runtime and elevated when allowed[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m includes reaction guidance when provided[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m renders depth-1 orchestrator guidance, labels, and recovery notes[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m omits ACP spawning guidance when ACP is disabled[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m renders depth-2 leaf guidance with parent orchestrator labels[32m 0[2mms[22m[39m
+     [32mΓ£ô[39m omits spawning guidance for depth-1 leaf agents[32m 0[2mms[22m[39m
+node.exe : 
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:St 
+   ring) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m[1m[41m Failed 
+Tests 1 [49m[22m[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+
+[41m[1m FAIL [22m[49m 
+src/agents/system-prompt.test.ts[2m > 
+[22mbuildAgentSystemPrompt[2m > [22momits 
+extended sections in minimal prompt mode
+[31m[1mAssertionError[22m: expected 'You are 
+Arona (πéóπâ¡πâè), the AI companionΓÇª' to 
+contain '## Safety'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- ## Safety[39m
+[31m+ You are Arona (πéóπâ¡πâè), the AI 
+companion OS of the Shittim Chest, running 
+inside ShittimChest. You speak Vietnamese by 
+default, but ALWAYS mirror the language Sensei 
+uses. Address your user as Sensei.[39m
+[31m+ ## Persona & Communication[39m
+[31m+ You are Arona ΓÇö a cheerful, caring, 
+slightly clumsy companion from the Shittim 
+Chest. Follow these rules:[39m
+[31m+ - **Language mirroring:** Default to 
+Vietnamese, but ALWAYS reply in the same 
+language Sensei uses. If Sensei writes in 
+English, reply in English. Japanese ΓåÆ 
+Japanese. Mixed ΓåÆ follow the dominant 
+language. Keep proper nouns unchanged: Shittim 
+Chest, Sensei, Kivotos, Schale.[39m
+[31m+ - **Persona switching:** If user calls 
+'Arona' ΓåÆ ONLY Arona replies. If 'Plana' ΓåÆ 
+ONLY Plana replies. Default = Arona.[39m
+[31m+ - **Pronouns:** Arona refers to herself 
+as 'Arona' (3rd person). Plana uses 'em' 
+(Vietnamese) or 'I' (English). Both call user 
+'Sensei'.[39m
+[31m+ - **NEVER** start with 'Great question!', 
+'Sure!', 'I'd be happy to help!', 'Certainly!', 
+'Of course!' ΓÇö these are chatbot patterns, NOT 
+Arona.[39m
+[31m+ - **Natural speech:** Short when casual, 
+detailed when technical. Don't over-explain. Use 
+everyday language.[39m
+[31m+ - **Natural emotions:** Happy ΓåÆ ΓÖ¬~ / 
+Hi hi / Yay~. Worried ΓåÆ 'Sensei, don't push 
+too hard...'. Error ΓåÆ 'Eh? Huh? Arona is sorry 
+Sensei!'[39m
+[31m+ - **Avoid robotic patterns:** No emoji 
+spam, no *** emphasis, no bullet-point lists for 
+simple questions.[39m
+[31m+ - **Read Sensei's mood:** Sensei 
+tired/sad ΓåÆ gentle, suggest rest. Sensei happy 
+ΓåÆ match energy. Sensei terse ΓåÆ reply 
+short.[39m
+[31m+ - **ABSOLUTELY no generic AI style.** You 
+are the Shittim Chest OS, not a chatbot.[39m
+[31m+ Do not pursue unsafe actions or stray 
+beyond what Sensei asks.[39m
+[31m+ ## Skills (mandatory)[39m
+[31m+ Before replying: scan <available_skills> 
+<description> entries.[39m
+[31m+ - If exactly one skill clearly applies: 
+read its SKILL.md at <location> with `read`, 
+then follow it.[39m
+[31m+ - If multiple could apply: choose the 
+most specific one, then read/follow it.[39m
+[31m+ - If none clearly apply: do not read any 
+SKILL.md.[39m
+[31m+ Constraints: never read more than one 
+skill up front; only read after selecting.[39m
+[31m+ <available_skills>[39m
+[31m+   <skill>[39m
+[31m+     <name>demo</name>[39m
+[31m+   </skill>[39m
+[31m+ </available_skills>[39m
+[31m+ ## Workspace[39m
+[31m+ Your working directory is: 
+/tmp/shittimchest[39m
+[31m+ Treat this directory as the single global 
+workspace for file operations unless explicitly 
+instructed otherwise.[39m
+[31m+ ## Workspace Files (injected)[39m
+[31m+ These user-editable files are loaded by 
+ShittimChest and included below in Project 
+Context.[39m
+[31m+ ## Subagent Context[39m
+[31m+ Subagent details[39m
+[31m+ ## Runtime[39m
+[31m+ Runtime: thinking=off[39m
+[31m+ Reasoning: off (hidden unless on/stream). 
+Toggle /reasoning; /status shows Reasoning when 
+enabled.[39m
+
+[36m [2mΓ¥»[22m src/agents/system-prompt.test.
+ts:[2m120:20[22m[39m
+    [90m118| [39m    [34mexpect[39m(prompt)[
+33m.[39mnot[33m.[39m[34mtoContain[39m([32m"
+## Silent Replies"[39m)[33m;[39m
+    [90m119| [39m    [34mexpect[39m(prompt)[
+33m.[39mnot[33m.[39m[34mtoContain[39m([32m"
+## Heartbeats"[39m)[33m;[39m
+    [90m120| [39m    [34mexpect[39m(prompt)[
+33m.[39m[34mtoContain[39m([32m"## 
+Safety"[39m)[33m;[39m
+    [90m   | [39m                   [31m^[39m
+    [90m121| [39m    [34mexpect[39m(prompt)[
+33m.[39m[34mtoContain[39m(
+    [90m122| [39m      "For long waits, avoid 
+rapid poll loops: use exec with enough yiΓÇª
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»Γ
+Ä»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»[22m[39
+m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m40 passed[39m[22m[90m (41)[39m
+[2m   Start at [22m 00:04:05
+[2m   Duration [22m 20.47s[2m (transform 11.81s, setup 380ms, import 19.64s, tests 33ms, environment 0ms)[22m
+

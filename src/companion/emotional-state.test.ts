@@ -478,7 +478,9 @@ describe("getAffectionPromptModifier", () => {
   });
 
   it("each level has a unique modifier", () => {
-    const modifiers = new Set([1, 2, 3, 4, 5].map((l) => getAffectionPromptModifier(l as AffectionLevel)));
+    const modifiers = new Set(
+      [1, 2, 3, 4, 5].map((l) => getAffectionPromptModifier(l as AffectionLevel)),
+    );
     expect(modifiers.size).toBe(5);
   });
 });

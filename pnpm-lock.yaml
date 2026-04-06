@@ -45,6 +45,9 @@ importers:
       '@homebridge/ciao':
         specifier: ^1.3.5
         version: 1.3.5
+      '@lancedb/lancedb':
+        specifier: 0.26.2
+        version: 0.26.2(apache-arrow@18.1.0)
       '@larksuiteoapi/node-sdk':
         specifier: ^1.59.0
         version: 1.59.0
@@ -492,6 +495,12 @@ importers:
 
   ui:
     dependencies:
+      '@esotericsoftware/spine-core':
+        specifier: ^4.2.106
+        version: 4.2.108
+      '@esotericsoftware/spine-webgl':
+        specifier: ^4.2.106
+        version: 4.2.108
       '@lit-labs/signals':
         specifier: ^0.2.0
         version: 0.2.0
@@ -996,6 +1005,12 @@ packages:
 
   '@eshaz/web-worker@1.2.2':
     resolution: {integrity: sha512-WxXiHFmD9u/owrzempiDlBB1ZYqiLnm9s6aPc8AlFQalq2tKmqdmMr9GXOupDgzXtqnBipj8Un0gkIm7Sjf8mw==}
+
+  '@esotericsoftware/spine-core@4.2.108':
+    resolution: {integrity: sha512-pU/0KO1RqMRcg5ncwHVuCOjanGGNB1bzp8x6/hBoCH04mYLwF8QyxhFUQD+4/SrLipK6Wychj3PFaiyzK/mjnw==}
+
+  '@esotericsoftware/spine-webgl@4.2.108':
+    resolution: {integrity: sha512-9zJRruTNrftxSdR1bA1GQmTgZ/hZGPNgRisGRday0OG4GvSMK66PkhEnrv+3XZJsB6REVg8VmmDj/NwKu62xPg==}
 
   '@google/genai@1.43.0':
     resolution: {integrity: sha512-hklCsJNdMlDM1IwcCVcGQFBg2izY0+t5BIGbRsxi2UnKi6AGKL7pqJqmBDNRbw0bYCs4y3NA7TB+fkKfP/Nrdw==}
@@ -6697,6 +6712,12 @@ snapshots:
 
   '@eshaz/web-worker@1.2.2':
     optional: true
+
+  '@esotericsoftware/spine-core@4.2.108': {}
+
+  '@esotericsoftware/spine-webgl@4.2.108':
+    dependencies:
+      '@esotericsoftware/spine-core': 4.2.108
 
   '@google/genai@1.43.0':
     dependencies:

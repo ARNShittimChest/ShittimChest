@@ -1,13 +1,30 @@
 import type { SessionSendPolicyConfig } from "./types.base.js";
 
-export type MemoryBackend = "builtin" | "qmd";
+export type MemoryBackend = "builtin" | "qmd" | "lancedb";
 export type MemoryCitationsMode = "auto" | "on" | "off";
 export type MemoryQmdSearchMode = "query" | "search" | "vsearch";
+
+export type MemoryLanceDbConfig = {
+  /** Log every chat turn (user + assistant) into LanceDB. Default: true */
+  logFullConversation?: boolean;
+  /** Absolute path to LanceDB storage directory. Default: ~/.shittimchest/memory/lancedb */
+  storagePath?: string;
+  /** Background Sensei profile extraction config */
+  profileSensei?: {
+    /** Enable background profiling. Default: true */
+    enabled?: boolean;
+    /** Number of user messages to buffer before running analysis. Default: 10 */
+    batchSize?: number;
+  };
+  /** Cron schedule for nightly memory reflection. Default: "0 3 * * *" */
+  reflectSchedule?: string;
+};
 
 export type MemoryConfig = {
   backend?: MemoryBackend;
   citations?: MemoryCitationsMode;
   qmd?: MemoryQmdConfig;
+  lancedb?: MemoryLanceDbConfig;
 };
 
 export type MemoryQmdConfig = {
