@@ -9,6 +9,7 @@ import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import type { EmbeddedSandboxInfo } from "./pi-embedded-runner/types.js";
 import { sanitizeForPromptLiteral } from "./sanitize-for-prompt.js";
 import { getUserLocation } from "../arona/location-store.js";
+import { formatLocationForPrompt } from "../arona/geocoding.js";
 
 /**
  * Controls which hardcoded sections are included in the system prompt.
@@ -101,9 +102,10 @@ function buildTimeSection(params: { userTimezone?: string }) {
   }
 
   const location = getUserLocation();
-  const locationLine = location
-    ? `\nUser Location: Lat ${location.lat}, Lon ${location.lon} (updated: ${location.updatedAt.toISOString()})`
-    : "";
+  let locationLine = "";
+  if (location) {
+    locationLine = `\nUser Location: ${formatLocationForPrompt(location)}`;
+  }
 
   return ["## Current Date & Time", `Time zone: ${params.userTimezone}${locationLine}`, ""];
 }
@@ -242,6 +244,8 @@ export function buildAgentSystemPrompt(params: {
   memoryCitationsMode?: MemoryCitationsMode;
   /** Companion mood context string (from emotional state engine). */
   companionMoodContext?: string;
+  /** Weather context string (from weather core feature). */
+  weatherContext?: string;
   /** Smart routing query tier for prompt detail control. */
   queryTier?: QueryTier;
 }) {
@@ -599,6 +603,8 @@ export function buildAgentSystemPrompt(params: {
     ...buildTimeSection({
       userTimezone,
     }),
+    // ── Weather context (injected from weather core feature) ──
+    ...(params.weatherContext?.trim() && !isMinimal ? [params.weatherContext.trim(), ""] : []),
     "## Workspace Files (injected)",
     "These user-editable files are loaded by ShittimChest and included below in Project Context.",
     "",

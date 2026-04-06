@@ -101,6 +101,12 @@ import {
 import { loadGatewayTlsRuntime } from "./server/tls.js";
 import { ensureGatewayStartupAuth } from "./startup-auth.js";
 import { startProactiveScheduler } from "../arona/proactive/scheduler.js";
+import { loadOrInitLocation } from "../arona/location-store.js";
+import { startWeatherScheduler } from "../arona/weather/weather-scheduler.js";
+import type { WeatherSchedulerHandle } from "../arona/weather/weather-scheduler.js";
+import { startMoodTicker, type MoodTickerHandle } from "../arona/mood-ticker.js";
+import { applyTrigger, decayMood } from "../companion/emotional-state.js";
+import { loadOrCreateMoodState, saveMoodState } from "../companion/mood-persistence.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -618,20 +624,31 @@ export async function startGatewayServer(
     }));
   }
 
+  // Track the last time a user sent a chat message (for absence detection in mood ticker)
+  let lastUserInteractionMs: number = Date.now();
+
+  const baseAgentEventHandler = createAgentEventHandler({
+    broadcast,
+    broadcastToConnIds,
+    nodeSendToSession,
+    agentRunSeq,
+    chatRunState,
+    resolveSessionKeyForRun,
+    clearAgentRunContext,
+    toolEventRecipients,
+  });
   const agentUnsub = minimalTestGateway
     ? null
-    : onAgentEvent(
-        createAgentEventHandler({
-          broadcast,
-          broadcastToConnIds,
-          nodeSendToSession,
-          agentRunSeq,
-          chatRunState,
-          resolveSessionKeyForRun,
-          clearAgentRunContext,
-          toolEventRecipients,
-        }),
-      );
+    : onAgentEvent((event) => {
+        // Track last user interaction for absence detection in mood ticker
+        if (
+          event.stream === "lifecycle" &&
+          (event.data as Record<string, unknown>).phase === "start"
+        ) {
+          lastUserInteractionMs = Date.now();
+        }
+        baseAgentEventHandler(event);
+      });
 
   const heartbeatUnsub = minimalTestGateway
     ? null
@@ -868,28 +885,86 @@ export async function startGatewayServer(
   }
 
   let proactiveSchedulerStop: (() => void) | null = null;
+  let weatherSchedulerHandle: WeatherSchedulerHandle | null = null;
+  let moodTickerHandle: MoodTickerHandle | null = null;
   if (!minimalTestGateway) {
-    proactiveSchedulerStop = startProactiveScheduler(async (event) => {
-      try {
-        const handler = gatewayMethods["chat.send"];
-        if (handler) {
-          log.info(`[Proactive] Trợ lý thức giấc gửi Greeting vào luồng "proactive"...`);
-          await handler({
-            params: {
+    // Load persisted location from disk
+    try {
+      loadOrInitLocation(defaultWorkspaceDir);
+    } catch {
+      // Non-critical — location will be set on first iOS push
+    }
+
+    proactiveSchedulerStop = startProactiveScheduler(
+      async (event) => {
+        try {
+          const handler = coreGatewayHandlers["chat.send"];
+          if (handler) {
+            log.info(
+              `[Proactive] Firing window="${event.windowKey}" → sending to session "proactive"`,
+            );
+            const proactiveParams = {
               sessionKey: "proactive",
               message: event.prompt,
               idempotencyKey: `proactive-${Date.now()}`,
-            },
-            context: gCtxOffline,
-            client: {
-              connect: { role: "operator", agent: resolveDefaultAgentId(cfgAtStart) },
-            } as any,
-            respond: () => {},
-          });
+            };
+            await handler({
+              req: {
+                type: "req" as const,
+                id: `proactive-${Date.now()}`,
+                method: "chat.send",
+                params: proactiveParams,
+              },
+              params: proactiveParams,
+              context: gCtxOffline,
+              client: {
+                connect: { role: "operator", agent: resolveDefaultAgentId(cfgAtStart) },
+              } as any,
+              isWebchatConnect: () => false,
+              respond: () => {},
+            });
+            log.info(`[Proactive] window="${event.windowKey}" delivered successfully`);
+          } else {
+            log.warn(`[Proactive] chat.send handler not found — cannot deliver`);
+          }
+        } catch (err) {
+          log.error(`[Proactive] Failed window="${event.windowKey}": ${String(err)}`);
         }
-      } catch (err) {
-        log.error(`[Proactive] Failed to generate proactive message: ${String(err)}`);
-      }
+      },
+      { workspaceDir: defaultWorkspaceDir },
+    );
+
+    // Start weather scheduler (fetches every 30 min, applies mood triggers)
+    weatherSchedulerHandle = startWeatherScheduler({
+      onWeatherUpdate: () => {
+        log.info("[Weather] Weather data refreshed");
+      },
+      onMoodTrigger: (trigger) => {
+        try {
+          let moodState = loadOrCreateMoodState(defaultWorkspaceDir);
+          // Apply natural decay before applying the new trigger
+          moodState = decayMood(moodState, Date.now());
+          moodState = applyTrigger(moodState, trigger);
+          saveMoodState(defaultWorkspaceDir, moodState);
+          log.info(
+            `[Weather→Mood] Applied trigger "${trigger.source}" → mood: ${moodState.mood} (${moodState.intensity.toFixed(2)})`,
+          );
+        } catch (err) {
+          log.error(`[Weather→Mood] Failed to apply mood trigger: ${String(err)}`);
+        }
+      },
+    });
+
+    // Start autonomous mood ticker (evaluates time-of-day, weather, absence every 15 min)
+    moodTickerHandle = startMoodTicker({
+      workspaceDir: defaultWorkspaceDir,
+      getLastInteractionMs: () => lastUserInteractionMs,
+      onMoodUpdate: (state, triggers) => {
+        const triggerNames = triggers.map((t) => t.source).join(", ");
+        log.info(
+          `[MoodTicker] Updated: ${state.mood} (${state.intensity.toFixed(2)}) — triggers: ${triggerNames}`,
+        );
+      },
     });
   }
 
@@ -1008,6 +1083,12 @@ export async function startGatewayServer(
       }
       if (proactiveSchedulerStop) {
         proactiveSchedulerStop();
+      }
+      if (weatherSchedulerHandle) {
+        weatherSchedulerHandle.stop();
+      }
+      if (moodTickerHandle) {
+        moodTickerHandle.stop();
       }
       skillsChangeUnsub();
       authRateLimiter?.dispose();

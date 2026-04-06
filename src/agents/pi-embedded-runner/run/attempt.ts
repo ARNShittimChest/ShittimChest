@@ -757,6 +757,27 @@ export async function runEmbeddedAttempt(
       }
     }
 
+    // ── Weather Context (non-blocking) ──────────────────────────────
+    let weatherContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { getWeatherData, buildWeatherPromptContext } =
+          await import("../../../arona/weather/index.js");
+        const weather = getWeatherData();
+        if (weather) {
+          // Attach location name if available
+          const { getUserLocation } = await import("../../../arona/location-store.js");
+          const loc = getUserLocation();
+          if (loc?.place) {
+            weather.locationName = loc.place.displayName;
+          }
+          weatherContext = buildWeatherPromptContext(weather);
+        }
+      } catch {
+        // Weather engine is non-critical — do not break agent run
+      }
+    }
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
@@ -787,6 +808,7 @@ export async function runEmbeddedAttempt(
       contextFiles,
       memoryCitationsMode: params.config?.memory?.citations,
       companionMoodContext,
+      weatherContext,
       queryTier: params.queryTier,
     });
     const systemPromptReport = buildSystemPromptReport({

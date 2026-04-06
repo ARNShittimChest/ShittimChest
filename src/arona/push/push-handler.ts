@@ -9,9 +9,11 @@
  *   GET  /arona/push/pending    — drain queued messages + current mood snapshot (open)
  *   GET  /arona/push/long-poll  — hold connection until message arrives or timeout + mood (open)
  *   GET  /arona/push/mood       — current mood snapshot only (open, for widget refresh)
+ *   GET  /arona/push/weather    — current weather snapshot (open, for widget refresh)
  *   POST /arona/push/send       — enqueue a push (requires gateway token header)
  *   POST /arona/push/test       — enqueue test push (requires gateway token header)
  *   GET  /arona/push/tokens     — list registration count (requires gateway token header)
+ *   POST /arona/push/location   — update GPS coordinates (requires gateway token header)
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -22,7 +24,16 @@ import { loadMoodState } from "../../companion/mood-persistence.js";
 import { getAffectionLevel } from "../../companion/emotional-state.js";
 import { drainPending, enqueuePush, pendingCount, waitForPending } from "./pending-store.js";
 import { getApnsTokens, registerToken } from "./token-store.js";
-import { setUserLocation } from "../location-store.js";
+import {
+  setUserLocation,
+  hasLocationChanged,
+  saveLocation,
+  setUserPlace,
+} from "../location-store.js";
+import { reverseGeocode } from "../geocoding.js";
+import { getWeatherData } from "../weather/weather-store.js";
+import { forceRefreshWeather } from "../weather/weather-store.js";
+import { buildWeatherShortSummary } from "../weather/weather-mood.js";
 
 const PUSH_BASE = "/arona/push";
 
@@ -240,11 +251,61 @@ export async function handleAronaPushRequest(
       return true;
     }
     if (typeof body.lat === "number" && typeof body.lon === "number") {
+      const locationChanged = hasLocationChanged(body.lat, body.lon);
       setUserLocation(body.lat, body.lon);
-      sendJson(res, 200, { ok: true });
+
+      // Persist to disk
+      const cfg = loadConfig();
+      const rawWs = cfg.agents?.defaults?.workspace ?? "~/.shittimchest/workspace";
+      const workspaceDir = rawWs.startsWith("~/") ? path.join(os.homedir(), rawWs.slice(2)) : rawWs;
+      saveLocation(workspaceDir);
+
+      // Async: reverse geocode + refresh weather if location changed significantly
+      if (locationChanged) {
+        void (async () => {
+          try {
+            const place = await reverseGeocode(body.lat!, body.lon!);
+            if (place) {
+              setUserPlace(place);
+              saveLocation(workspaceDir);
+            }
+          } catch {
+            // Geocoding failure is non-fatal
+          }
+          try {
+            await forceRefreshWeather(body.lat!, body.lon!);
+          } catch {
+            // Weather refresh failure is non-fatal
+          }
+        })();
+      }
+
+      sendJson(res, 200, { ok: true, locationChanged });
     } else {
       sendJson(res, 400, { ok: false, error: "missing lat/lon" });
     }
+    return true;
+  }
+
+  // ── GET /arona/push/weather ─────────────────────────────────────────────
+  // Returns current weather snapshot for iOS widget.
+  if (subPath === "weather" && req.method === "GET") {
+    const weather = getWeatherData();
+    if (!weather) {
+      sendJson(res, 200, { ok: true, weather: null });
+      return true;
+    }
+    sendJson(res, 200, {
+      ok: true,
+      weather: {
+        current: weather.current,
+        forecast: weather.forecast,
+        locationName: weather.locationName,
+        source: weather.source,
+        fetchedAt: weather.fetchedAt,
+        shortSummary: buildWeatherShortSummary(weather),
+      },
+    });
     return true;
   }
 

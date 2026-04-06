@@ -55,6 +55,8 @@ export function buildEmbeddedSystemPrompt(params: {
   memoryCitationsMode?: MemoryCitationsMode;
   /** Companion mood context string (from emotional state engine). */
   companionMoodContext?: string;
+  /** Weather context string (from weather core feature). */
+  weatherContext?: string;
   /** Smart routing query tier for prompt detail control. */
   queryTier?: QueryTier;
 }): string {
@@ -87,6 +89,7 @@ export function buildEmbeddedSystemPrompt(params: {
     contextFiles: params.contextFiles,
     memoryCitationsMode: params.memoryCitationsMode,
     companionMoodContext: params.companionMoodContext,
+    weatherContext: params.weatherContext,
     queryTier: params.queryTier,
   });
 }
