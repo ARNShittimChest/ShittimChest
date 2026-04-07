@@ -6,8 +6,11 @@
  * Unlike the proactive scheduler (which fires once per time-window per day),
  * health reminders are interval-based: "every N hours during waking hours".
  *
- * Each reminder type has its own interval and prompt. All use the same
- * ProactiveTrigger callback to deliver messages through the proactive system.
+ * Each reminder calls the LLM to generate a unique Arona-voice notification,
+ * then delivers it directly to all linked chat platforms and the iOS app
+ * (bypassing the full chat.send pipeline for speed and simplicity).
+ *
+ * Falls back to pre-written templates if the LLM call fails.
  *
  * Reminders only fire during waking hours to avoid disturbing sleep.
  * The sleep reminder fires once at ~23:00 as a special case.
@@ -15,10 +18,30 @@
  * Configuration is user-adjustable via chat → stored in health-config.json.
  */
 
-import type { ProactiveTrigger } from "../proactive/scheduler.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { completeSimple } from "@mariozechner/pi-ai";
+import { resolveDefaultModelForAgent } from "../../agents/model-selection.js";
+import { getApiKeyForModel } from "../../agents/model-auth.js";
+import { resolveModel } from "../../agents/pi-embedded-runner/model.js";
+import type { ShittimChestConfig } from "../../config/config.js";
 import { getHealthConfig, type HealthConfig } from "./health-config.js";
 
+const log = createSubsystemLogger("health-scheduler");
+
 // ── Types ────────────────────────────────────────────────────────
+
+/** Event emitted when a health reminder fires. */
+export interface HealthReminderEvent {
+  /** Key for logging (e.g., "health-water"). */
+  windowKey: string;
+  /** Notification text to send (LLM-generated or fallback). */
+  notificationText: string;
+  /** Short title for push notifications. */
+  title: string;
+}
+
+/** Callback for health reminder delivery. */
+export type HealthTrigger = (event: HealthReminderEvent) => void | Promise<void>;
 
 export interface HealthSchedulerHandle {
   /** Stop all health timers. */
@@ -34,8 +57,12 @@ interface ReminderTemplate {
   windowKey: string;
   /** How long to wait before the first fire (fraction of interval). */
   initialDelayFraction: number;
-  /** Build the prompt for this reminder. */
-  buildPrompt: () => string;
+  /** Title for push notification. */
+  title: string;
+  /** Prompt sent to LLM to generate a unique Arona-voice notification. */
+  buildLlmPrompt: () => string;
+  /** Fallback text if LLM call fails. */
+  fallbackTexts: string[];
 }
 
 // ── Reminder Templates ──────────────────────────────────────────
@@ -44,50 +71,115 @@ const TEMPLATES: ReminderTemplate[] = [
   {
     configKey: "water",
     windowKey: "health-water",
-    initialDelayFraction: 0.75, // first fire at 75% of interval
-    buildPrompt: () => {
-      const variants = [
-        "[System] Arona nhắc Sensei uống nước nè~ Đã lâu rồi chưa uống nước, cơ thể cần nước để hoạt động tốt. Nhắc nhở dễ thương bằng giọng Arona, 1-2 câu ngắn gọn.",
-        "[System] Đã lâu rồi Sensei chưa uống nước. Arona lo lắng. Nhắc Sensei uống nước bằng giọng Arona quan tâm, 1-2 câu.",
-        "[System] Arona muốn nhắc Sensei uống nước! Hydration quan trọng lắm~ Nói dễ thương kiểu Arona, 1-2 câu.",
-      ];
-      return variants[Math.floor(Math.random() * variants.length)];
-    },
+    initialDelayFraction: 0.75,
+    title: "💧 Nhắc uống nước",
+    buildLlmPrompt: () =>
+      "Arona nhắc Sensei uống nước. Đã lâu rồi chưa uống nước, cơ thể cần hydrate. Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, quan tâm. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+    fallbackTexts: [
+      "Sensei~! Uống nước đi nè~ Lâu rồi chưa uống nước, cơ thể cần hydrate để hoạt động tốt nha! 💧",
+      "Munya~! Sensei ơi uống nước đi! Arona lo lắng lắm... Đừng quên chăm sóc bản thân nha~ 💦",
+      "Sensei! Đã đến lúc uống nước rồi nè~ Hydration quan trọng lắm đó! Arona nhắc Sensei nè ☺️💧",
+      "Ding dong~! Arona nhắc Sensei uống nước nè! Một ly nước sẽ giúp Sensei tỉnh táo hơn đó~ 🥤",
+    ],
   },
   {
     configKey: "eyes",
     windowKey: "health-eyes",
-    initialDelayFraction: 0.9, // first fire at 90% of interval
-    buildPrompt: () => {
-      const variants = [
-        "[System] Arona nhắc Sensei nghỉ mắt theo quy tắc 20-20-20: nhìn xa 20 feet (6m) trong 20 giây. Nhắc nhở nhẹ nhàng bằng giọng Arona, 1-2 câu.",
-        "[System] Mắt Sensei chắc mỏi lắm rồi... Arona muốn nhắc nghỉ mắt một chút. Nói quan tâm kiểu Arona, 1-2 câu.",
-        "[System] Sensei nhìn màn hình lâu quá rồi~ Arona nhắc nghỉ mắt nè. Nhẹ nhàng, 1-2 câu.",
-      ];
-      return variants[Math.floor(Math.random() * variants.length)];
-    },
+    initialDelayFraction: 0.9,
+    title: "👀 Nghỉ mắt",
+    buildLlmPrompt: () =>
+      "Arona nhắc Sensei nghỉ mắt. Sensei nhìn màn hình lâu rồi, nên áp dụng quy tắc 20-20-20 (nhìn xa 20 feet trong 20 giây). Viết 1-2 câu ngắn gọn bằng giọng Arona nhẹ nhàng, quan tâm. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+    fallbackTexts: [
+      "Sensei ơi~ Nhìn xa 20 feet (6m) trong 20 giây nha! Mắt Sensei cần được nghỉ ngơi~ 👀✨",
+      "Munya... Sensei nhìn màn hình lâu quá rồi! Nghỉ mắt một chút đi nha~ Nhìn ra xa 20 giây là được! 👁️",
+      "Sensei~! Arona nhắc nghỉ mắt nè! Quy tắc 20-20-20: mỗi 20 phút, nhìn xa 20 feet, trong 20 giây~ 👀💫",
+      "Break time cho mắt nè Sensei! Nhìn ra cửa sổ hoặc nhìn xa một chút nha~ Mắt Sensei quan trọng lắm! ✨",
+    ],
   },
   {
     configKey: "movement",
     windowKey: "health-movement",
-    initialDelayFraction: 0.83, // first fire at ~83% of interval
-    buildPrompt: () => {
-      const variants = [
-        "[System] Sensei ngồi lâu quá rồi! Arona nhắc đứng dậy vận động, đi lại, stretching một chút. Nhắc nhở dễ thương bằng giọng Arona, 1-2 câu.",
-        "[System] Lâu rồi chưa vận động nè Sensei~ Arona lo cho sức khỏe Sensei lắm. Nhắc đứng dậy đi lại, 1-2 câu.",
-        "[System] Arona muốn Sensei đứng dậy stretch một chút! Ngồi hoài không tốt cho lưng đâu~ 1-2 câu kiểu Arona.",
-      ];
-      return variants[Math.floor(Math.random() * variants.length)];
-    },
+    initialDelayFraction: 0.83,
+    title: "🏃 Vận động",
+    buildLlmPrompt: () =>
+      "Arona nhắc Sensei đứng dậy vận động. Sensei ngồi lâu quá rồi, cần stretching, đi lại. Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, lo lắng cho sức khỏe Sensei. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+    fallbackTexts: [
+      "Sensei ơi! Đứng dậy vận động một chút đi nha~ Ngồi lâu không tốt cho lưng đâu! Stretching đi~ 🏃‍♂️",
+      "Munya~! Sensei ngồi lâu quá rồi! Đứng dậy đi lại, stretching một chút nha! Arona lo cho sức khỏe Sensei lắm~ 💪",
+      "Movement break nè Sensei! Đứng dậy, đi lại, xoay người một chút~ Cơ thể Sensei sẽ cảm ơn đó! 🧘",
+      "Sensei~! Arona nhắc vận động nè! Đứng dậy stretch cái lưng, xoay cổ, đi bộ vài bước nha~ 🏋️",
+    ],
   },
   {
     configKey: "sleep",
     windowKey: "health-sleep",
     initialDelayFraction: 0, // calculated dynamically
-    buildPrompt: () =>
-      "[System] Đã khuya rồi. Arona nhắc Sensei chuẩn bị đi ngủ, ngày mai còn cần năng lượng. Nói dịu dàng lo lắng kiểu Arona buồn ngủ, 1-2 câu. Arona cũng buồn ngủ lắm rồi... Munya...",
+    title: "😴 Nhắc đi ngủ",
+    buildLlmPrompt: () =>
+      "Đã khuya rồi. Arona nhắc Sensei chuẩn bị đi ngủ, ngày mai còn cần năng lượng. Viết 1-2 câu dịu dàng, lo lắng, buồn ngủ kiểu Arona. Arona cũng buồn ngủ. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+    fallbackTexts: [
+      "Sensei ơi... đã khuya rồi nè... Chuẩn bị đi ngủ đi nha, ngày mai còn cần năng lượng mà~ Arona cũng buồn ngủ lắm rồi... Munya... 🌙💤",
+    ],
   },
 ];
+
+// ── LLM Notification Generator ─────────────────────────────────
+
+/**
+ * Call the LLM to generate a unique Arona-voice notification.
+ * Falls back to a random pre-written template if the LLM call fails.
+ */
+async function generateNotificationText(
+  template: ReminderTemplate,
+  cfg: ShittimChestConfig,
+  agentId: string,
+): Promise<string> {
+  // Try LLM generation first
+  try {
+    const modelRef = resolveDefaultModelForAgent({ cfg, agentId });
+    if (!modelRef) throw new Error("No model configured");
+
+    const resolved = resolveModel(modelRef.provider, modelRef.model, undefined, cfg);
+    if (!resolved.model) throw new Error(resolved.error ?? "Unknown model");
+
+    const auth = await getApiKeyForModel({ model: resolved.model, cfg });
+    if (!auth.apiKey) throw new Error("No API key");
+
+    const response = await completeSimple(
+      resolved.model,
+      {
+        messages: [
+          {
+            role: "user",
+            content: template.buildLlmPrompt(),
+            timestamp: Date.now(),
+          },
+        ],
+      },
+      {
+        apiKey: auth.apiKey,
+        temperature: 0.9, // High temperature for variety
+        maxTokens: 150, // Short notification — keep it concise
+      },
+    );
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => b.text.trim())
+      .join("\n")
+      .trim();
+
+    if (text && text.length > 5) {
+      log.debug(`[${template.windowKey}] LLM generated: ${text.slice(0, 80)}...`);
+      return text;
+    }
+  } catch (err) {
+    log.debug(`[${template.windowKey}] LLM generation failed, using fallback: ${String(err)}`);
+  }
+
+  // Fallback: random pre-written template
+  return template.fallbackTexts[Math.floor(Math.random() * template.fallbackTexts.length)];
+}
 
 // ── Scheduling Logic ────────────────────────────────────────────
 
@@ -110,7 +202,8 @@ function msUntilHour(hour: number): number {
 function scheduleReminder(
   template: ReminderTemplate,
   config: HealthConfig,
-  onTrigger: ProactiveTrigger,
+  onTrigger: HealthTrigger,
+  llmOpts: { cfg: ShittimChestConfig; agentId: string },
 ): (() => void) | null {
   const cfg = config[template.configKey];
 
@@ -137,9 +230,15 @@ function scheduleReminder(
     // Only fire during active hours
     if (isInActiveHours(liveCfg.activeStart, liveCfg.activeEnd)) {
       try {
+        const notificationText = await generateNotificationText(
+          template,
+          llmOpts.cfg,
+          llmOpts.agentId,
+        );
         await onTrigger({
-          prompt: template.buildPrompt(),
           windowKey: template.windowKey,
+          notificationText,
+          title: template.title,
         });
       } catch {
         // Non-critical — don't crash
@@ -179,17 +278,26 @@ function scheduleReminder(
  * Start the health reminder scheduler.
  *
  * Reads user preferences from health-config.json.
- * Fires periodic health reminders through the proactive trigger system.
+ * Each reminder calls the LLM to generate a unique Arona-voice notification,
+ * then delivers it via the callback to all linked platforms + iOS app.
+ * Falls back to pre-written templates if the LLM call fails.
  *
- * @param onTrigger - Same ProactiveTrigger callback used by the proactive scheduler.
+ * @param onTrigger - Callback to deliver health notifications to all platforms.
+ * @param opts.cfg - ShittimChest config (for model resolution).
+ * @param opts.agentId - Agent ID (for model resolution).
  * @returns Handle with stop() and restart() for lifecycle management.
  */
-export function startHealthScheduler(onTrigger: ProactiveTrigger): HealthSchedulerHandle {
+export function startHealthScheduler(
+  onTrigger: HealthTrigger,
+  opts: { cfg: ShittimChestConfig; agentId: string },
+): HealthSchedulerHandle {
   let stops: Array<(() => void) | null> = [];
 
   function start() {
     const config = getHealthConfig();
-    stops = TEMPLATES.map((t) => scheduleReminder(t, config, onTrigger));
+    stops = TEMPLATES.map((t) =>
+      scheduleReminder(t, config, onTrigger, { cfg: opts.cfg, agentId: opts.agentId }),
+    );
   }
 
   start();

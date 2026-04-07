@@ -284,6 +284,42 @@
   - Better message group spacing (20px from 16px)
   - Timestamp font-size 10px (from 11px) for subtlety
 
+#### XVII. Health Reminders — LLM-Generated Direct Notification Delivery
+
+- [x] **LLM-Generated Notifications** (`src/arona/health/health-scheduler.ts`)
+  - Removed `chat.send` pipeline (no full agent run, no session, no broadcast interception/wait)
+  - Each reminder calls `completeSimple()` with a short prompt to generate unique Arona-voice text
+  - `temperature: 0.9` for high variety, `maxTokens: 150` for concise output
+  - Graceful fallback: if LLM fails → random pre-written template (4 variants per type)
+  - New types: `HealthReminderEvent` (windowKey, notificationText, title), `HealthTrigger`
+  - `generateNotificationText()`: resolves model → gets API key → calls LLM → extracts text
+  - Templates: water, eyes, movement, sleep — each with `buildLlmPrompt()` + `fallbackTexts[]`
+- [x] **Multi-platform Delivery** (`src/gateway/server.impl.ts`)
+  - All linked chat platforms: iterate session store → `routeReply()` per channel (Telegram, WhatsApp, etc.)
+  - iOS app: `enqueuePush({ title, body })` → long-poll / background fetch pickup
+  - Webchat: `broadcast("chat", ...)` for WebSocket-connected clients
+  - Logging: tracks which platforms received delivery
+  - Benefits: faster than full chat.send pipeline, no session needed, natural Arona voice via LLM
+- [x] **Sent Reminder History** (`src/arona/health/health-config.ts`)
+  - In-memory ring buffer (`sentHistory[]`): last 8 reminders, max age 2 hours
+  - `recordSentReminder(type, text)`: called after successful delivery in `server.impl.ts`
+  - `getRecentReminders()`: returns reminders within 2h window, auto-prunes expired
+  - Injected into system prompt via `buildHealthConfigSummary()` → `[Recently Sent Health Reminders]` section
+  - Format: `- [Uống nước] (15 phút trước) "Sensei~! Uống nước đi nè~..."`
+  - Contextual guidance: tells Arona to acknowledge Sensei's feedback naturally (e.g. "uống rồi", "ok", "lát nữa")
+  - Not persisted to disk — ephemeral by design, only relevant to active conversation
+- [x] **Health Config Agent Tool** (`src/agents/tools/health-config-tool.ts`)
+  - New AI tool `health_config` registered in `shittimchest-tools.ts`
+  - `ownerOnly: true` — only Sensei can modify health settings
+  - 3 actions:
+    - `get`: view current config for all 4 types (water/eyes/movement/sleep)
+    - `toggle`: enable/disable a specific reminder type
+    - `update`: change intervalMinutes (5–10080), activeStart (0–23), activeEnd (0–23)
+  - Returns formatted config after every mutation for Arona to confirm
+  - Input validation with friendly error messages
+  - No scheduler restart needed — `health-scheduler.ts` re-reads config via `getHealthConfig()` on every fire
+  - Natural language: Sensei says "nhắc uống nước mỗi 2 tiếng" → Arona calls `health_config { action: "update", type: "water", intervalMinutes: 120 }`
+
 ---
 
 ### 🔲 CHƯA LÀM — Theo Priority

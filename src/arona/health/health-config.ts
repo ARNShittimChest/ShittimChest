@@ -5,6 +5,8 @@
  * Sensei can configure intervals and toggle reminders on/off through chat.
  * Arona saves preferences using memory_search and this config file.
  *
+ * Also tracks recently sent reminders so Arona knows context when Sensei replies.
+ *
  * Storage: `.arona/health-config.json` (atomic write — tmp file + rename).
  */
 
@@ -28,6 +30,16 @@ export interface HealthConfig {
   eyes: HealthReminderConfig;
   movement: HealthReminderConfig;
   sleep: HealthReminderConfig;
+}
+
+/** A record of a recently sent health reminder. */
+export interface SentReminder {
+  /** Reminder type (water, eyes, movement, sleep). */
+  type: string;
+  /** The notification text that was sent. */
+  text: string;
+  /** When it was sent (epoch ms). */
+  sentAt: number;
 }
 
 // ── Defaults ────────────────────────────────────────────────────
@@ -63,6 +75,15 @@ export const DEFAULT_HEALTH_CONFIG: HealthConfig = {
 
 let config: HealthConfig | null = null;
 let configPath: string | null = null;
+
+/**
+ * Ring buffer of recently sent reminders (in-memory only, not persisted).
+ * Kept small — only the last few so Arona has context when Sensei replies.
+ * Max age: 2 hours (reminders older than that are irrelevant to conversation).
+ */
+const MAX_SENT_HISTORY = 8;
+const SENT_MAX_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
+const sentHistory: SentReminder[] = [];
 
 // ── Persistence ─────────────────────────────────────────────────
 
@@ -125,6 +146,60 @@ export function toggleReminder(type: keyof HealthConfig, enabled: boolean): Heal
   return updateReminderConfig(type, { enabled });
 }
 
+// ── Sent Reminder History ──────────────────────────────────────
+
+/**
+ * Record that a health reminder was just sent.
+ * Called by the health scheduler after successful delivery.
+ */
+export function recordSentReminder(type: string, text: string): void {
+  sentHistory.push({ type, text, sentAt: Date.now() });
+  // Trim to max size
+  while (sentHistory.length > MAX_SENT_HISTORY) {
+    sentHistory.shift();
+  }
+}
+
+/**
+ * Get recently sent reminders (within the last 2 hours).
+ * Used by system prompt to give Arona context about what was sent.
+ */
+export function getRecentReminders(): SentReminder[] {
+  const cutoff = Date.now() - SENT_MAX_AGE_MS;
+  return sentHistory.filter((r) => r.sentAt >= cutoff);
+}
+
+// ── System Prompt Context ──────────────────────────────────────
+
+/** Format relative time ago in a compact way. */
+function formatTimeAgo(ms: number): string {
+  const mins = Math.round(ms / 60_000);
+  if (mins < 1) return "vừa xong";
+  if (mins < 60) return `${mins} phút trước`;
+  const hrs = Math.round(mins / 60);
+  return `${hrs} giờ trước`;
+}
+
+/** Map windowKey/type back to a friendly label. */
+function reminderLabel(type: string): string {
+  switch (type) {
+    case "water":
+    case "health-water":
+      return "Uống nước";
+    case "eyes":
+    case "health-eyes":
+      return "Nghỉ mắt";
+    case "movement":
+    case "health-movement":
+      return "Vận động";
+    case "sleep":
+    case "health-sleep":
+      return "Đi ngủ";
+    default:
+      return type;
+  }
+}
+
 /** Build a summary of health config for system prompt injection. */
 export function buildHealthConfigSummary(): string {
   const cfg = getHealthConfig();
@@ -139,6 +214,27 @@ export function buildHealthConfigSummary(): string {
   lines.push(describe("Eye break", cfg.eyes));
   lines.push(describe("Movement", cfg.movement));
   lines.push(describe("Sleep", cfg.sleep));
+
+  // Append recently sent reminders so Arona knows context
+  const recent = getRecentReminders();
+  if (recent.length > 0) {
+    const now = Date.now();
+    lines.push("");
+    lines.push("[Recently Sent Health Reminders]");
+    for (const r of recent) {
+      const ago = formatTimeAgo(now - r.sentAt);
+      const label = reminderLabel(r.type);
+      // Truncate text to keep prompt lean
+      const shortText = r.text.length > 80 ? r.text.slice(0, 77) + "..." : r.text;
+      lines.push(`- [${label}] (${ago}) "${shortText}"`);
+    }
+    lines.push("");
+    lines.push(
+      "If Sensei mentions something related to a recent reminder (e.g. 'uống rồi', 'ok', 'lát nữa'), " +
+        "acknowledge it naturally — Arona sent these reminders and should respond to feedback about them.",
+    );
+  }
+
   lines.push("");
   lines.push(
     "Sensei can adjust these by telling Arona, e.g. 'nhắc uống nước mỗi 1.5 tiếng' or 'turn off eye break reminders'.",

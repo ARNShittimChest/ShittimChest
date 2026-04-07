@@ -10,6 +10,7 @@ import { createCanvasTool } from "./tools/canvas-tool.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { createCronTool } from "./tools/cron-tool.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
+import { createHealthConfigTool } from "./tools/health-config-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
@@ -130,6 +131,7 @@ export function createShittimChestTools(options?: {
       agentChannel: options?.agentChannel,
       config: options?.config,
     }),
+    createHealthConfigTool(),
     createGatewayTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,

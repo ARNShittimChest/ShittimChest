@@ -109,7 +109,7 @@ import {
   startHealthScheduler,
   type HealthSchedulerHandle,
 } from "../arona/health/health-scheduler.js";
-import { initHealthConfig } from "../arona/health/health-config.js";
+import { initHealthConfig, recordSentReminder } from "../arona/health/health-config.js";
 import { initTaskStore } from "../arona/tasks/index.js";
 import { applyTrigger, decayMood } from "../companion/emotional-state.js";
 import { loadOrCreateMoodState, saveMoodState } from "../companion/mood-persistence.js";
@@ -1081,104 +1081,89 @@ export async function startGatewayServer(
     }
 
     // Start health reminder scheduler (water, eyes, movement, sleep)
-    // Uses the same proactive trigger pattern for cross-channel delivery
-    healthSchedulerHandle = startHealthScheduler(async (event) => {
-      try {
-        const handler = coreGatewayHandlers["chat.send"];
-        if (handler) {
-          log.info(`[Health] Firing reminder="${event.windowKey}"`);
-          const healthRunId = `health-${Date.now()}`;
-          const healthParams = {
-            sessionKey: "health",
-            message: event.prompt,
-            idempotencyKey: healthRunId,
-          };
+    // LLM-generated notifications delivered directly to all linked platforms + iOS
+    healthSchedulerHandle = startHealthScheduler(
+      async (event) => {
+        try {
+          log.info(`[Health] Firing reminder="${event.windowKey}" → direct notification`);
 
-          // Wrap broadcast to intercept the final chat response text
-          let capturedFinalText: string | null = null;
-          const healthBroadcast: typeof broadcast = (evt, payload, opts) => {
-            if (evt === "chat" && payload && typeof payload === "object") {
-              const p = payload as Record<string, unknown>;
-              if (p.state === "final" && p.runId === healthRunId && p.message) {
-                const msg = p.message as Record<string, unknown>;
-                const content = msg.content as Array<{ type: string; text?: string }> | undefined;
-                if (Array.isArray(content)) {
-                  const textPart = content.find((c) => c.type === "text" && c.text);
-                  if (textPart?.text) {
-                    capturedFinalText = textPart.text;
-                  }
-                }
+          const notificationText = event.notificationText;
+          const deliveredTo: string[] = [];
+
+          // 1. Deliver to all linked chat platforms (Telegram, WhatsApp, etc.)
+          try {
+            const cfg = loadConfig();
+            const storePath = resolveStorePath(undefined, {
+              agentId: resolveDefaultAgentId(cfg),
+            });
+            const sessions = loadSessionStore(storePath);
+
+            for (const [sessionKey, entry] of Object.entries(sessions)) {
+              const channel = entry.lastChannel;
+              const to = entry.lastTo;
+              if (!channel || !to || !isRoutableChannel(channel)) continue;
+
+              try {
+                await routeReply({
+                  payload: { text: notificationText },
+                  channel,
+                  to,
+                  sessionKey,
+                  accountId: entry.lastAccountId,
+                  threadId: entry.lastThreadId,
+                  cfg,
+                });
+                deliveredTo.push(`${channel}→${to}`);
+              } catch {
+                // Best-effort per-channel delivery
               }
             }
-            broadcast(evt, payload, opts);
-          };
-
-          const healthContext = {
-            ...gCtxOffline,
-            broadcast: healthBroadcast,
-          };
-
-          await handler({
-            req: {
-              type: "req" as const,
-              id: healthRunId,
-              method: "chat.send",
-              params: healthParams,
-            },
-            params: healthParams,
-            context: healthContext,
-            client: {
-              connect: { role: "operator", agent: resolveDefaultAgentId(cfgAtStart) },
-            } as any,
-            isWebchatConnect: () => false,
-            respond: () => {},
-          });
-
-          // Wait for completion
-          const maxWaitMs = 60_000;
-          const pollIntervalMs = 2_000;
-          const startWait = Date.now();
-          while (Date.now() - startWait < maxWaitMs) {
-            if (!chatRunState.buffers.has(healthRunId) && capturedFinalText !== null) break;
-            if (!chatAbortControllers.has(healthRunId) && Date.now() - startWait > 5_000) break;
-            await new Promise((r) => setTimeout(r, pollIntervalMs));
+          } catch {
+            // Non-critical — continue to iOS delivery
           }
 
-          // Cross-channel delivery
-          if (capturedFinalText) {
-            try {
-              const cfg = loadConfig();
-              const storePath = resolveStorePath(undefined, {
-                agentId: resolveDefaultAgentId(cfg),
-              });
-              const sessions = loadSessionStore(storePath);
-              for (const [sessionKey, entry] of Object.entries(sessions)) {
-                const channel = entry.lastChannel;
-                const to = entry.lastTo;
-                if (!channel || !to || !isRoutableChannel(channel)) continue;
-                try {
-                  await routeReply({
-                    payload: { text: capturedFinalText },
-                    channel,
-                    to,
-                    sessionKey,
-                    accountId: entry.lastAccountId,
-                    threadId: entry.lastThreadId,
-                    cfg,
-                  });
-                } catch {
-                  // Best-effort cross-channel
-                }
-              }
-            } catch {
-              // Non-critical
-            }
+          // 2. Deliver to iOS app via push queue (long-poll / background fetch)
+          try {
+            const { enqueuePush } = await import("../arona/push/pending-store.js");
+            enqueuePush({
+              title: event.title,
+              body: notificationText,
+            });
+            deliveredTo.push("ios-push");
+          } catch {
+            // Non-critical
           }
+
+          // 3. Broadcast to webchat (WebSocket connected clients)
+          try {
+            broadcast("chat", {
+              state: "final",
+              runId: `health-notif-${Date.now()}`,
+              sessionKey: "health",
+              message: {
+                role: "assistant",
+                content: [{ type: "text", text: notificationText }],
+                createdAt: Date.now(),
+              },
+            });
+            deliveredTo.push("webchat");
+          } catch {
+            // Non-critical
+          }
+
+          if (deliveredTo.length > 0) {
+            log.info(`[Health] Delivered "${event.windowKey}" to: ${deliveredTo.join(", ")}`);
+            // Record in sent history so Arona has context when Sensei replies
+            recordSentReminder(event.windowKey, notificationText);
+          } else {
+            log.warn(`[Health] No delivery targets for "${event.windowKey}"`);
+          }
+        } catch (err) {
+          log.error(`[Health] Failed reminder="${event.windowKey}": ${String(err)}`);
         }
-      } catch (err) {
-        log.error(`[Health] Failed reminder="${event.windowKey}": ${String(err)}`);
-      }
-    });
+      },
+      { cfg: cfgAtStart, agentId: resolveDefaultAgentId(cfgAtStart) },
+    );
     log.info("[Health] Health reminder scheduler started");
   }
 
