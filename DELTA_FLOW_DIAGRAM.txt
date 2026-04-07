@@ -1,0 +1,190 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║         ARONA-CLW STREAMING TEXT DELTA FLOW & THROTTLE ARCHITECTURE            ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           LLM PROVIDER STREAM                               │
+│  (Claude, OpenAI, Ollama, etc. - sends text_delta, text_start, text_end)   │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                    text_delta/text_start/text_end events
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│       pi-embedded-subscribe.handlers.messages.ts                            │
+│       handleMessageUpdate(ctx, evt)                                         │
+│                                                                             │
+│  • Processes incoming text events from provider                            │
+│  • Accumulates chunks in ctx.state.deltaBuffer                            │
+│  • Calculates incremental delta (new text this frame)                      │
+│  • Strips directive tags and cleans output                                 │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                     stream: "assistant" agent event
+                    {text: fullText, delta: incrementalText}
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│            infra/agent-events.ts                                            │
+│            emitAgentEvent({runId, stream: "assistant", data})              │
+│                                                                             │
+│  • Publishes agent event to internal event bus                             │
+│  • Event is delivered to registered handlers (including createAgentEventHandler)
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                    Agent event routing/delivery
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│           src/gateway/server-chat.ts                                        │
+│           createAgentEventHandler(options) → (evt) => {...}               │
+│                                                                             │
+│  This is where chat deltas for clients are handled                        │
+│  Handler checks: is this an assistant stream event?                        │
+│  YES → calls emitChatDelta()                                              │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                    emitChatDelta(sessionKey, clientRunId, sourceRunId, seq, text)
+                                   │
+                                   ▼
+    ╔════════════════════════════════════════════════════════════════════╗
+    ║  ┌──────────────────────────────────────────────────────────────┐ ║
+    ║  │  ⭐ THROTTLE CHECKPOINT #1: DELTA RATE LIMITER ⭐          │ ║
+    ║  ├──────────────────────────────────────────────────────────────┤ ║
+    ║  │ const now = Date.now();                                     │ ║
+    ║  │ const last = chatRunState.deltaSentAt.get(clientRunId) ?? 0;│ ║
+    ║  │ if (now - last < 50) {  ← HARD-CODED 50ms THROTTLE        │ ║
+    ║  │   return;  // SILENTLY DROP this delta                      │ ║
+    ║  │ }                                                            │ ║
+    ║  │ chatRunState.deltaSentAt.set(clientRunId, now);            │ ║
+    ║  │                                                              │ ║
+    ║  │ 📊 EFFECT:                                                  │ ║
+    ║  │  • Maximum 20 deltas per second per client                 │ ║
+    ║  │  • Per-client tracking (clientRunId is unique per user)    │ ║
+    ║  │  • Dropped deltas' text is buffered for next delta         │ ║
+    ║  └──────────────────────────────────────────────────────────────┘ ║
+    ╚════════════════════════════════════════════════════════════════════╝
+                                   │
+              Delta passed throttle check
+            (or was buffered and is now being sent)
+                                   │
+                                   ▼
+    ┌──────────────────────────────────────────────────────────────────┐
+    │  Buffer Management                                               │
+    ├──────────────────────────────────────────────────────────────────┤
+    │ chatRunState.buffers.set(clientRunId, cleaned);                 │
+    │                                                                  │
+    │ This buffered text persists across throttle windows and is      │
+    │ included in the next delta that passes the throttle.            │
+    └──────────────────────────────────────────────────────────────────┘
+                                   │
+              Construct chat delta payload
+                                   │
+                                   ▼
+    ┌──────────────────────────────────────────────────────────────────┐
+    │  Payload Construction                                            │
+    ├──────────────────────────────────────────────────────────────────┤
+    │ {                                                                │
+    │   runId: clientRunId,                                           │
+    │   sessionKey,                                                   │
+    │   seq,                                                          │
+    │   state: "delta",                                              │
+    │   message: {                                                    │
+    │     role: "assistant",                                         │
+    │     content: [{ type: "text", text: cleaned }],               │
+    │     timestamp: now,                                            │
+    │   },                                                            │
+    │ }                                                                │
+    └──────────────────────────────────────────────────────────────────┘
+                                   │
+                  ┌────────────────┴────────────────┐
+                  │                                 │
+                  ▼                                 ▼
+    ┌──────────────────────────────┐   ┌──────────────────────────────┐
+    │   broadcast("chat", payload)  │   │ nodeSendToSession(...)       │
+    │                               │   │                              │
+    │  • Sends to all connected     │   │ • Sends to specific session  │
+    │    WebSocket clients          │   │   (channel subscribers)      │
+    │  • dropIfSlow: true prevents  │   │ • Routes to messaging        │
+    │    buffer overflow            │   │   channels (Telegram, etc.)  │
+    └──────────────────────────────┘   └──────────────────────────────┘
+                  │                                 │
+                  └────────────────┬────────────────┘
+                                   │
+                                   ▼
+            ┌─────────────────────────────────────────┐
+            │  Client WebSocket Receives Delta        │
+            │  Updates UI incrementally in real-time │
+            └─────────────────────────────────────────┘
+
+
+════════════════════════════════════════════════════════════════════════════════
+                            TIMING DIAGRAM
+════════════════════════════════════════════════════════════════════════════════
+
+Scenario: Fast LLM streaming with 50ms throttle
+
+Time(ms)   Provider Chunks         Throttle Check        Delta Sent?
+────────────────────────────────────────────────────────────────────
+  0        text_delta: "Hello"     last=0, now=0 ✓           YES  ✓
+           Δ=0ms                   0-0 = 0 >= 50? NO
+
+ 10        text_delta: " my"       last=0, now=10 ✗          NO   ✗
+           Δ=10ms                  10-0 = 10 < 50? YES
+           [buffered, will be sent later]
+
+ 20        text_delta: " friend"   last=0, now=20 ✗          NO   ✗
+           Δ=20ms                  20-0 = 20 < 50? YES
+           [buffered, will be sent later]
+
+ 50        [no new chunk]           (50ms window elapsed)
+
+ 51        text_delta: "!"         last=0, now=51 ✓          YES  ✓
+           Δ=51ms                  51-0 = 51 >= 50? YES
+                                   Sends: "Hello my friend!"
+                                   last=51
+
+ 100       text_delta: "\nHow"     last=51, now=100 ✗        NO   ✗
+           Δ=100ms                 100-51 = 49 < 50? YES
+           [buffered]
+
+ 101       text_delta: " are"      last=51, now=101 ✓        YES  ✓
+           Δ=101ms                 101-51 = 50 >= 50? YES
+                                   Sends: "How are"
+                                   last=101
+
+════════════════════════════════════════════════════════════════════════════════
+                         FINAL MESSAGE (No Throttle)
+════════════════════════════════════════════════════════════════════════════════
+
+When LLM finishes, lifecycle event with phase: "end" triggers:
+
+    emitChatFinal(sessionKey, clientRunId, sourceRunId, seq, "done")
+           ↓
+    Retrieve bufferedText from chatRunState.buffers (all accumulated text)
+           ↓
+    Send FINAL state message (bypasses 50ms throttle)
+           ↓
+    Clean up: buffers.delete(), deltaSentAt.delete()
+
+This ensures the COMPLETE response reaches the client.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                         KEY STATE STRUCTURES
+════════════════════════════════════════════════════════════════════════════════
+
+ChatRunState (in server-chat.ts):
+  {
+    deltaSentAt: Map<clientRunId, timestampMs>,    ← Tracks last delta time
+    buffers: Map<clientRunId, accumulatedText>,    ← Holds throttled text
+    registry: ChatRunRegistry,                      ← Tracks active runs
+    abortedRuns: Map<runId, timestampMs>           ← Tracks cancellations
+  }
+
+Per-Client Throttling:
+  • Each clientRunId gets its own timestamp in deltaSentAt
+  • Multiple concurrent users don't interfere with each other
+  • Each has independent 50ms throttle window
+
+════════════════════════════════════════════════════════════════════════════════

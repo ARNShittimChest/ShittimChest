@@ -19,7 +19,7 @@ import {
   writeConfigFile,
 } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
-import { resolveMainSessionKey } from "../config/sessions.js";
+import { resolveMainSessionKey, loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
 import {
   ensureControlUiAssetsBuilt,
@@ -107,6 +107,7 @@ import type { WeatherSchedulerHandle } from "../arona/weather/weather-scheduler.
 import { startMoodTicker, type MoodTickerHandle } from "../arona/mood-ticker.js";
 import { applyTrigger, decayMood } from "../companion/emotional-state.js";
 import { loadOrCreateMoodState, saveMoodState } from "../companion/mood-persistence.js";
+import { isRoutableChannel, routeReply } from "../auto-reply/reply/route-reply.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -903,27 +904,116 @@ export async function startGatewayServer(
             log.info(
               `[Proactive] Firing window="${event.windowKey}" → sending to session "proactive"`,
             );
+            const proactiveRunId = `proactive-${Date.now()}`;
             const proactiveParams = {
               sessionKey: "proactive",
               message: event.prompt,
-              idempotencyKey: `proactive-${Date.now()}`,
+              idempotencyKey: proactiveRunId,
             };
+
+            // Wrap broadcast to intercept the final chat response text for cross-channel delivery
+            let capturedFinalText: string | null = null;
+            const proactiveBroadcast: typeof broadcast = (evt, payload, opts) => {
+              // Intercept "chat" final events for this proactive run
+              if (evt === "chat" && payload && typeof payload === "object") {
+                const p = payload as Record<string, unknown>;
+                if (p.state === "final" && p.runId === proactiveRunId && p.message) {
+                  const msg = p.message as Record<string, unknown>;
+                  const content = msg.content as Array<{ type: string; text?: string }> | undefined;
+                  if (Array.isArray(content)) {
+                    const textPart = content.find((c) => c.type === "text" && c.text);
+                    if (textPart?.text) {
+                      capturedFinalText = textPart.text;
+                    }
+                  }
+                }
+              }
+              // Always pass through to original broadcast
+              broadcast(evt, payload, opts);
+            };
+
+            const proactiveContext = {
+              ...gCtxOffline,
+              broadcast: proactiveBroadcast,
+            };
+
             await handler({
               req: {
                 type: "req" as const,
-                id: `proactive-${Date.now()}`,
+                id: proactiveRunId,
                 method: "chat.send",
                 params: proactiveParams,
               },
               params: proactiveParams,
-              context: gCtxOffline,
+              context: proactiveContext,
               client: {
                 connect: { role: "operator", agent: resolveDefaultAgentId(cfgAtStart) },
               } as any,
               isWebchatConnect: () => false,
               respond: () => {},
             });
-            log.info(`[Proactive] window="${event.windowKey}" delivered successfully`);
+
+            // Wait for the agent run to complete (chat.send fires dispatch async)
+            // Poll the chatRunState buffer for up to 2 minutes for the run to finish
+            const maxWaitMs = 120_000;
+            const pollIntervalMs = 2_000;
+            const startWait = Date.now();
+            while (Date.now() - startWait < maxWaitMs) {
+              // If the run is no longer active (buffer cleaned up in emitChatFinal), it's done
+              if (!chatRunState.buffers.has(proactiveRunId) && capturedFinalText !== null) {
+                break;
+              }
+              // Also check if abort controller was cleaned up (run finished)
+              if (!chatAbortControllers.has(proactiveRunId) && Date.now() - startWait > 5_000) {
+                break;
+              }
+              await new Promise((r) => setTimeout(r, pollIntervalMs));
+            }
+
+            log.info(`[Proactive] window="${event.windowKey}" webchat delivery done`);
+
+            // Cross-channel delivery: route to all sessions with external channels
+            if (capturedFinalText) {
+              try {
+                const cfg = loadConfig();
+                const storePath = resolveStorePath(undefined, {
+                  agentId: resolveDefaultAgentId(cfg),
+                });
+                const sessions = loadSessionStore(storePath);
+                const routedChannels: string[] = [];
+
+                for (const [sessionKey, entry] of Object.entries(sessions)) {
+                  const channel = entry.lastChannel;
+                  const to = entry.lastTo;
+                  if (!channel || !to || !isRoutableChannel(channel)) continue;
+
+                  try {
+                    await routeReply({
+                      payload: { text: capturedFinalText },
+                      channel,
+                      to,
+                      sessionKey,
+                      accountId: entry.lastAccountId,
+                      threadId: entry.lastThreadId,
+                      cfg,
+                    });
+                    routedChannels.push(`${channel}→${to}`);
+                  } catch (routeErr) {
+                    log.warn(
+                      `[Proactive] Failed to route to ${channel}/${to}: ${String(routeErr)}`,
+                    );
+                  }
+                }
+
+                if (routedChannels.length > 0) {
+                  log.info(`[Proactive] Cross-channel delivered to: ${routedChannels.join(", ")}`);
+                }
+              } catch (crossErr) {
+                log.warn(`[Proactive] Cross-channel delivery error: ${String(crossErr)}`);
+              }
+            } else {
+              log.warn(`[Proactive] No final text captured — cross-channel delivery skipped`);
+            }
           } else {
             log.warn(`[Proactive] chat.send handler not found — cannot deliver`);
           }

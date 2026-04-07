@@ -297,7 +297,7 @@ export function createAgentEventHandler({
     }
     const now = Date.now();
     const last = chatRunState.deltaSentAt.get(clientRunId) ?? 0;
-    if (now - last < 50) {
+    if (now - last < 120) {
       return;
     }
     chatRunState.deltaSentAt.set(clientRunId, now);

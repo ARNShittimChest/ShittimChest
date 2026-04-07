@@ -1,0 +1,297 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║           ARONA PROACTIVE SYSTEM - VISUAL ARCHITECTURE SUMMARY           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. SCHEDULER FIRES AT RANDOM TIME (within daily windows)                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Morning         Lunch         Evening       Late-night
+    5:30-7:30    11:30-13:00    20:00-22:30   23:00-00:30
+       ↓             ↓              ↓             ↓
+   [Timer]       [Timer]        [Timer]       [Timer]
+       |             |              |             |
+       └─────────────┼──────────────┼─────────────┘
+                     ↓
+            Plus random nudges
+            2.5-5 hours apart
+            (6 AM - 10 PM only)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. SCHEDULER TRIGGERS HANDLER                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    scheduler.ts::scheduleWindow()
+         ↓
+    fire()
+         ↓
+    onTrigger({
+      prompt: "[System] Vietnamese system message",
+      windowKey: "morning|lunch|evening|late-night|nudge"
+    })
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. HANDLER INVOKES GATEWAY CHAT.SEND                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    gateway/server.impl.ts:898-935
+         ↓
+    handler = coreGatewayHandlers["chat.send"]
+         ↓
+    await handler({
+      params: {
+        sessionKey: "proactive",
+        message: prompt,
+        idempotencyKey: "proactive-<timestamp>"
+      },
+      context: gCtxOffline,  ← ← ← NO WEBSOCKET CLIENT
+      client: { connect: { role: "operator", agent: ... } },
+      respond: () => {}      ← ← ← FIRE AND FORGET
+    })
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. CHAT.SEND CREATES MESSAGE CONTEXT                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    gateway/server-methods/chat.ts:688-998
+         ↓
+    const ctx: MsgContext = {
+      SessionKey: "proactive",
+      Provider: "webchat",            ← INTERNAL
+      Surface: "webchat",             ← INTERNAL
+      OriginatingChannel: "webchat",  ← INTERNAL ← ← ← KEY!
+      OriginatingTo: undefined,       ← NO TARGET
+      ChatType: "direct",
+      ...
+    }
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. DISPATCH TO AUTO-REPLY (WHERE ROUTING DECISION HAPPENS)                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    dispatchInboundMessage(ctx, cfg, dispatcher)
+         ↓
+         ↓─→ dispatchReplyFromConfig()
+         ↓
+         ↓   auto-reply/reply/dispatch-from-config.ts:~200
+         ↓
+         ↓   CRITICAL CHECK:
+         ↓   ─────────────────────────────────────────
+         ↓   const shouldRouteToOriginating = Boolean(
+         ↓     isRoutableChannel(originatingChannel) &&
+         ↓     originatingTo &&
+         ↓     originatingChannel !== currentSurface
+         ↓   );
+         ↓
+         ├─→ isRoutableChannel("webchat")     → FALSE ✗
+         ├─→ originatingTo                    → undefined ✗
+         └─→ Result: shouldRouteToOriginating = FALSE
+             ↓
+             MESSAGE STAYS INTERNAL (no Discord/Telegram/email routing)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. PROCESS LOCALLY                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Since shouldRouteToOriginating = FALSE:
+         ↓
+    ┌────────────────────────────────────┐
+    │ Invoke Agent                       │
+    │ Send system prompt                 │
+    │ Agent generates Vietnamese reply   │
+    └────────────────────────────────────┘
+         ↓
+    ┌────────────────────────────────────┐
+    │ Stream Deltas                      │
+    │ (every 50ms throttle)              │
+    │ To WebSocket clients               │
+    │ broadcast("chat", delta)           │
+    └────────────────────────────────────┘
+         ↓
+    ┌────────────────────────────────────┐
+    │ Save to Transcript                 │
+    │ appendAssistantTranscriptMessage() │
+    │ to "proactive" session             │
+    └────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 7. EMIT FINAL MESSAGE + ENQUEUE iOS PUSH                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Agent lifecycle ends (phase="end" or "error")
+         ↓
+    emitChatFinal()
+         ├─→ broadcast("chat", final)           [WebSocket clients]
+         ├─→ nodeSendToSession("chat", final)   [Node subscribers]
+         └─→ enqueuePush({
+               title: "Arona",
+               body: "Munya~! Sensei..."
+             })                                  [iOS QUEUE] ← ← ← KEY!
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 8. PUSH NOTIFICATION QUEUE                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    pending-store.ts (in-memory only):
+         ↓
+    queue = [
+      {
+        title: "Arona",
+        body: "Munya~! Sensei...",
+        queuedAt: "2026-04-07T06:45:00Z"
+      }
+    ]
+         ↓
+    flushWaiters()  ← Wakes any long-poll connections
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 9. iOS APP POLLING                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Option A: BGAppRefreshTask
+    ─────────────────────────
+    Every 15-30 minutes:
+    GET /arona/push/pending
+         ↓
+    drainPending()  ← Returns queue and clears it
+         ↓
+    Response: { ok: true, messages: [...], mood: {...} }
+
+    Option B: Long-Poll (near-instant)
+    ──────────────────────────────────
+    GET /arona/push/long-poll?timeout=25000
+         ↓
+    waitForPending(25000)  ← Waits up to 25 seconds
+         ↓
+    When enqueuePush() called:
+    flushWaiters() wakes connection immediately
+         ↓
+    Response: { ok: true, messages: [...], mood: {...} }
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 10. iOS DISPLAYS NOTIFICATION                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Home Screen or Lock Screen:
+    ┌─────────────────────────┐
+    │ Arona                   │
+    │ Munya~! Sensei...       │
+    └─────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ ROUTING DECISION TREE - WHY PROACTIVE DOESN'T REACH DISCORD/TELEGRAM    ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+    shouldRouteToOriginating = 
+        isRoutableChannel(originatingChannel) AND
+        originatingTo AND
+        originatingChannel != currentSurface
+
+    For PROACTIVE MESSAGE:
+    ─────────────────────
+    originatingChannel = "webchat"
+              ↓
+    isRoutableChannel("webchat")?
+              ↓
+    if (!channel || channel === INTERNAL_MESSAGE_CHANNEL) {
+      return false;  ← ← ← STOPS HERE, returns FALSE
+    }
+              ↓
+    Result: FALSE AND undefined AND ... = FALSE
+              ↓
+    shouldRouteToOriginating = FALSE
+              ↓
+    MESSAGE STAYS INTERNAL ✗ No Discord, no Telegram, no email
+
+    For USER MESSAGE FROM TELEGRAM:
+    ──────────────────────────────
+    originatingChannel = "telegram"
+    originatingTo = chat_id
+    currentSurface = "telegram"
+              ↓
+    isRoutableChannel("telegram")?
+              ↓
+    if (!channel || channel === INTERNAL_MESSAGE_CHANNEL) {
+      // SKIPPED - "telegram" is routable
+    }
+    return true;  ← ← ← RETURNS TRUE
+              ↓
+    Result: TRUE AND chat_id AND (telegram == telegram is FALSE)
+              ↓
+    shouldRouteToOriginating = FALSE (same channel)
+              ↓
+    But if message needs to go to Discord:
+    currentSurface = "discord"
+              ↓
+    Result: TRUE AND chat_id AND (telegram != discord) = TRUE
+              ↓
+    shouldRouteToOriginating = TRUE
+              ↓
+    MESSAGE ROUTES TO DISCORD ✓
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ DELIVERY SUMMARY                                                         ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+    ✓ iOS Push Notification      Via: /arona/push/pending or /long-poll
+    ✓ WebSocket Broadcast        Via: broadcast("chat", delta/final)
+    ✓ Session Transcript         Via: appendAssistantTranscriptMessage()
+    ✓ Mood State Updates         Via: Mood system
+    
+    ✗ Discord                    Blocked: Internal channel (no routing)
+    ✗ Telegram                   Blocked: Internal channel (no routing)
+    ✗ Slack                      Blocked: Internal channel (no routing)
+    ✗ Email                      Blocked: Not supported
+    ✗ External APIs              Blocked: Internal channel (no routing)
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ FILES INVOLVED IN THIS FLOW                                              ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+    1. src/arona/proactive/scheduler.ts
+       ├─ startProactiveScheduler()
+       ├─ scheduleWindow() + fire()
+       └─ Logs to .arona/proactive-log.json
+
+    2. src/gateway/server.impl.ts:898-935
+       └─ Wiring: scheduler → chat.send
+
+    3. src/gateway/server-methods/chat.ts:688-998
+       └─ "chat.send" handler
+
+    4. src/auto-reply/reply/dispatch-from-config.ts:~200
+       └─ shouldRouteToOriginating check
+
+    5. src/gateway/server-chat.ts:280-368
+       ├─ emitChatDelta()
+       └─ emitChatFinal()
+
+    6. src/arona/push/pending-store.ts
+       ├─ enqueuePush()
+       ├─ drainPending()
+       └─ waitForPending()
+
+    7. src/arona/push/push-handler.ts
+       ├─ POST /arona/push/register
+       ├─ GET /arona/push/pending
+       ├─ GET /arona/push/long-poll
+       └─ GET /arona/push/mood
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║ KEY METRICS                                                              ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+    Trigger Frequency:  5 times daily (4 windows + nudges)
+    
+    Time Windows:
+    • Morning:     5:30 - 7:30    (random offset)
+    • Lunch:      11:30 - 13:00   (random offset)
+    • Evening:    20:00 - 22:30   (random offset)
+    • Late-night: 23:00 - 00:30   (random offset)
+    • Nudges:      2.5 - 5 hours  (waking hours only)
+    
+    Streaming:     50ms throttle per delta
+    Push Queue:    In-memory only (no persistence)
+    Session:       "proactive" (fixed name)
+    Channel:       "webchat" (internal, non-routable)
+

@@ -4,6 +4,200 @@
 
 ---
 
+## 📋 Implementation Progress — Checklist (Cập nhật: 2026-04-07)
+
+### ✅ ĐÃ HOÀN THÀNH
+
+#### I. Companion System — Core Foundation
+
+- [x] **Emotional State Engine** (`src/companion/emotional-state.ts`)
+  - State machine hoàn chỉnh: mood, intensity, affection, triggers
+  - 20 mood tags: happy, excited, sad, worried, caring, sleepy, neutral, shy, pout, sigh, confused, sweat, panic, doubt, hmm, speechless, obsessed, craving, angry, chill
+  - Mood inject vào system prompt
+- [x] **Mood Triggers** (`src/companion/mood-triggers.ts`)
+  - Input → mood change rules (thời gian, keywords, events)
+- [x] **Mood Persistence** (`src/companion/mood-persistence.ts`)
+  - Save/load mood state vào `.arona/mood.json` (atomic write tmp+rename)
+- [x] **Affection Analyzer** (`src/companion/affection-analyzer.ts`)
+  - Affection levels 1-5, tăng/giảm theo tương tác
+- [x] **Query Classifier** (`src/companion/query-classifier.ts`)
+  - Phân loại intent từ tin nhắn user
+- [x] **Query Router** (`src/companion/query-router.ts`)
+  - Route query tới handler phù hợp
+- [x] **Unit Tests**: emotional-state.test.ts, mood-triggers.test.ts, mood-persistence.test.ts, query-classifier.test.ts
+
+#### II. Proactive System
+
+- [x] **Proactive Scheduler** (`src/arona/proactive/scheduler.ts`)
+  - Randomized time windows (không fixed cron, tự nhiên hơn)
+  - Morning (6-8h), lunch (11-13h), evening (17-19h), night (22-24h) windows
+  - Nudge messages (2.5-5h random interval) khi Sensei vắng lâu
+  - Execution logging vào `.arona/proactive-log.json`
+  - Async/await support cho onTrigger callback
+  - Graceful shutdown (clearTimeout)
+- [x] **Cross-platform Proactive Delivery** (`src/gateway/server.impl.ts`)
+  - Proactive messages tự động gửi tới TẤT CẢ channels đang kết nối (Discord, Telegram, Zalo, etc.)
+  - Broadcast interception pattern: wrap broadcast → capture final text → poll completion → routeReply()
+  - Dùng `loadSessionStore()` để tìm tất cả sessions có external channels
+  - Dùng `routeReply()` để forward text tới từng channel
+
+#### III. Weather System (Core Feature)
+
+- [x] **Weather Types** (`src/arona/weather/types.ts`)
+  - CurrentWeather, WeatherForecast, WeatherCategory interfaces
+- [x] **WMO Codes** (`src/arona/weather/wmo-codes.ts`)
+  - Map WMO weather codes (0-99) → description + emoji + category
+  - `categorizeWeather(tempC, code)` tổng hợp nhiệt độ + điều kiện
+- [x] **Weather Fetcher** (`src/arona/weather/fetcher.ts`)
+  - Primary: wttr.in (JSON format), timeout 8s
+  - Fallback: Open-Meteo API (free, no key)
+  - `fetchWeather(lat, lon)` with automatic fallback
+- [x] **Weather Store** (`src/arona/weather/weather-store.ts`)
+  - In-memory cache, 30 min TTL
+  - Deduplicate concurrent fetch calls
+  - `getWeatherData()` sync getter cho system prompt
+- [x] **Weather → Mood** (`src/arona/weather/weather-mood.ts`)
+  - Weather conditions → MoodTrigger mapping
+  - Rain → caring, Storm → worried, Snow → excited, Nice → happy, Hot → worried
+  - `buildWeatherPromptContext()` cho system prompt injection
+- [x] **Weather Scheduler** (`src/arona/weather/weather-scheduler.ts`)
+  - 30 phút auto-refresh
+  - Initial fetch sau 5s delay (chờ location load)
+  - Apply mood triggers tự động
+- [x] **Barrel Export** (`src/arona/weather/index.ts`)
+
+#### IV. Location & Geocoding
+
+- [x] **Location Store** (`src/arona/location-store.ts`)
+  - GeocodedPlace interface: city, district, country, displayName
+  - UserLocation.place — kết quả reverse geocode
+  - Persistence: saveLocation/loadLocation vào `.arona/location.json`
+  - `hasLocationChanged()` — Haversine distance check (threshold 0.5km)
+- [x] **Geocoding Service** (`src/arona/geocoding.ts`)
+  - Nominatim (OpenStreetMap) — FREE, no API key
+  - In-memory cache 6h TTL, keyed by rounded lat/lon
+  - `reverseGeocode(lat, lon)` → GeocodedPlace
+  - `formatLocationForPrompt()` → "Quận 7, Hồ Chí Minh, Vietnam (10.732°N, 106.722°E)"
+
+#### V. Mood Ticker (Autonomous)
+
+- [x] **Mood Ticker** (`src/arona/mood-ticker.ts`)
+  - Autonomous mood changes dựa trên environmental triggers
+  - Weather, time-of-day, inactivity → mood shifts
+  - Wired into server startup/shutdown
+
+#### VI. iOS App Improvements (Arona-AI)
+
+- [x] **Spine Emotion Debounce** (`AronaViewModel.swift`)
+  - 500ms debounce timer cho streaming mood changes
+  - `setEmotionDebounced()` cho delta events (streaming)
+  - `setEmotionImmediate()` cho final events
+  - Ngăn flickering khi [mood] tags thay đổi nhanh trong streaming
+- [x] **Widget Auto-Reconnect** (`AronaWidgetTimelineProvider.swift`)
+  - Widget tự fetch mood trực tiếp từ server khi stale (>5 min)
+  - Không cần mở main app để reconnect
+  - Gateway URL được sync vào App Group để widget truy cập
+  - Staleness detection: 5 min threshold
+  - Refresh rate: 15 min (normal) / 5 min (stale recovery)
+- [x] **Gateway URL Sync** (`GatewaySettings.swift`, `AronaViewModel.swift`)
+  - Gateway URL tự động sync vào App Group (`group.com.furiri.Arona-AI`)
+  - Widget extension có thể đọc URL từ shared UserDefaults
+- [x] **Heartbeat System** (`AronaViewModel.swift`)
+  - Timer mỗi 2 phút ghi fresh snapshot vào App Group
+  - Widget detect staleness khi app bị kill (không còn heartbeat)
+- [x] **Push Notification Support** (`AronaViewModel.swift`)
+  - Nhận proactive messages qua push khi app ở foreground
+  - Deduplicate với WebSocket messages
+
+#### VII. Gateway & Streaming
+
+- [x] **Streaming Delta Throttle** (`src/gateway/server-chat.ts`)
+  - 120ms minimum interval giữa các streaming chunks (trước đó 50ms)
+  - Tạo nhịp đọc tự nhiên hơn, giống con người nói chuyện
+  - Giảm chaos cho spine animation khi mood tags thay đổi
+- [x] **Push Handler** (`src/arona/push/push-handler.ts`)
+  - `GET /arona/push/mood` — mood snapshot cho iOS widget
+  - `POST /arona/push/location` — nhận location từ iOS, trigger geocode
+  - Push notification delivery qua APNs
+- [x] **Companion Gateway Methods** (`src/gateway/server-methods/companion.ts`)
+  - `companion.mood` — trả mood state qua WebSocket
+  - `companion.weather` — trả weather data qua WebSocket
+  - `companion.location` — trả location + geocoded place name
+
+#### VIII. System Prompt Integration
+
+- [x] **Weather Context in System Prompt** (`src/agents/pi-embedded-runner/run/attempt.ts`)
+  - Compute `weatherContext` từ `getWeatherData()` + `buildWeatherPromptContext()`
+  - Attach location name từ geocoded place
+  - Pass vào `buildEmbeddedSystemPrompt()` → inject sau time/location section
+  - Non-critical: wrapped trong try-catch, không break agent run
+- [x] **Location in System Prompt** (`src/agents/system-prompt.ts`)
+  - `buildTimeSection()` dùng `formatLocationForPrompt()` thay vì raw lat/lon
+  - Hiển thị: "Quận 7, Hồ Chí Minh, Vietnam (10.732°N, 106.722°E)"
+- [x] **Proactive Weather Hints** (`src/arona/proactive/scheduler.ts`)
+  - Morning + Lunch windows có `includeWeather: true`
+  - `getWeatherHint()` gọi `getWeatherData()` + `buildWeatherShortSummary()`
+  - Weather interpolated: `"Bây giờ là buổi sáng sớm. Thời tiết tại HCM: ☀️ 32°C..."`
+
+#### IX. Server Integration
+
+- [x] **server.impl.ts Wiring**
+  - Weather scheduler start/stop trong server lifecycle
+  - Mood ticker start/stop trong server lifecycle
+  - Proactive scheduler wired với cross-channel delivery
+  - Weather mood triggers → companion emotional state
+
+---
+
+### 🔲 CHƯA LÀM — Theo Priority
+
+#### 🔴 P0 — MVP (Còn lại)
+
+- [ ] **Process Monitor** (`src/gaming/integrations/process-monitor.ts`)
+  - Detect game process đang chạy (`tasklist`/`ps` wrapper)
+  - Nền tảng cho gaming features
+- [ ] **Session Health Monitor** (`src/gaming/session/health.ts`)
+  - Theo dõi thời gian chơi game liên tục
+  - Nhắc nghỉ mắt, đứng dậy, đi ngủ khi khuya
+- [ ] **Task Manager chat-based** (`src/productivity/tasks/`)
+  - Parse "nhắc tôi gửi báo cáo thứ 6" → Task object
+  - CRUD tasks qua chat tự nhiên
+  - Cron reminders cho deadlines
+- [ ] **Daily Briefing** (`src/productivity/briefing/daily-briefing.ts`)
+  - Thu thập weather + calendar + tasks → morning digest
+  - Gửi qua proactive system
+- [ ] **Health Reminders** (cron-based)
+  - Uống nước (mỗi 2h), nghỉ mắt (20-20-20), vận động (mỗi 3h)
+  - Nhắc đi ngủ (23h)
+
+#### 🟡 P1 — Important
+
+- [ ] Quest System
+- [ ] Valorant Integration
+- [ ] Steam Deal Hunter
+- [ ] Finance Tracker
+- [ ] Dynamic Theme Engine
+- [ ] Shopping Price Tracker
+- [ ] Communication Coach
+- [ ] Translation Service
+- [ ] Document Helper
+- [ ] Multi-Agent Personas (Shiroko, Hoshino, Aru, Yuuka, Himari)
+- [ ] Wiki Assistant
+
+#### 🟢 P2 — Nice-to-have
+
+- [ ] Email Assistant (OAuth2)
+- [ ] Calendar Integration (OAuth2)
+- [ ] Home Assistant Integration
+- [ ] Energy Monitor
+- [ ] Security & Camera
+- [ ] Home Automation Engine
+- [ ] MikroTik Network Integration
+- [ ] Live2D Avatar
+- [ ] Desktop Pet (Tauri)
+
+---
+
 ## Kiến trúc tổng quan
 
 ```mermaid

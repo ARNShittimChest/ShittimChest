@@ -1,0 +1,373 @@
+================================================================================
+ARONA PROACTIVE SYSTEM ANALYSIS - COMPLETE
+================================================================================
+
+CREATED: 2026-04-07
+LOCATION: /Volumes/OCungRoi/PRJ/Arona-CLW/
+
+ANALYSIS DOCUMENTS:
+  1. PROACTIVE_SYSTEM_ANALYSIS.md     (10 parts, comprehensive)
+  2. PROACTIVE_QUICK_REFERENCE.md     (Quick debugging guide)
+  3. PROACTIVE_CODE_MAP.md            (Code-level data flow)
+
+================================================================================
+KEY FINDINGS
+================================================================================
+
+MAIN QUESTION: Why don't proactive messages go to Discord/Telegram?
+
+ANSWER: By design. Proactive messages use OriginatingChannel="webchat" 
+(internal channel) which CANNOT route to external channels.
+
+CRITICAL CODE LOCATION:
+  File: src/auto-reply/reply/dispatch-from-config.ts (~line 200)
+  Check: shouldRouteToOriginating = 
+           isRoutableChannel(originatingChannel) &&
+           originatingTo &&
+           originatingChannel !== currentSurface
+  
+  For proactive: isRoutableChannel("webchat") → FALSE → No routing
+
+================================================================================
+ARCHITECTURE OVERVIEW
+================================================================================
+
+TRIGGER MECHANISM:
+  • Scheduler fires at 5 different times daily:
+    - Morning:    5:30 - 7:30 (random)
+    - Lunch:      11:30 - 13:00 (random)
+    - Evening:    20:00 - 22:30 (random)
+    - Late-night: 23:00 - 00:30 (random)
+    - Nudges:     2.5 - 5 hours apart (during 6 AM - 10 PM)
+
+MESSAGE FLOW:
+  1. Scheduler fires    → calls onTrigger()
+  2. Invokes chat.send  → with sessionKey="proactive"
+  3. Creates context    → OriginatingChannel="webchat" (INTERNAL)
+  4. Dispatch           → Check shouldRouteToOriginating
+  5. NOT routable       → Process locally instead
+  6. Agent replies      → Stream deltas (50ms throttle)
+  7. Emit final         → Broadcast to WebSocket + enqueue iOS push
+  8. iOS polling        → GET /arona/push/pending or /long-poll
+  9. Display            → User sees notification on iOS app
+
+DELIVERY CHANNELS:
+  ✓ iOS app            (push notification via long-poll or BGAppRefresh)
+  ✓ WebSocket clients  (live broadcast if connected)
+  ✓ Session transcript (saved to "proactive" session)
+  ✗ Discord            (internal channel, cannot route)
+  ✗ Telegram           (internal channel, cannot route)
+  ✗ Email              (not supported)
+
+================================================================================
+FILE STRUCTURE
+================================================================================
+
+KEY IMPLEMENTATION FILES:
+
+  src/arona/proactive/scheduler.ts
+    • Time windows: morning, lunch, evening, late-night
+    • Random offset calculation: msUntilRandomInWindow()
+    • Execution logging: .arona/proactive-log.json
+    • Lines: 258-270 (startProactiveScheduler)
+
+  src/gateway/server.impl.ts
+    • Wiring: scheduler → chat.send handler
+    • Fire-and-forget invocation with gCtxOffline
+    • Lines: 898-935
+
+  src/gateway/server-methods/chat.ts
+    • chat.send handler implementation
+    • Message context creation (OriginatingChannel setup)
+    • Lines: 688-998
+
+  src/auto-reply/reply/dispatch-from-config.ts
+    • CRITICAL: shouldRouteToOriginating check
+    • Route decision logic
+    • Line: ~200
+
+  src/gateway/server-chat.ts
+    • Agent event handler
+    • emitChatDelta() - streaming deltas every 50ms
+    • emitChatFinal() - final emission + push enqueue
+    • Lines: 280-368
+
+  src/arona/push/push-handler.ts
+    • HTTP endpoints for iOS app
+    • /arona/push/pending, /long-poll, /mood, /weather
+    • Registration, token management
+
+  src/arona/push/pending-store.ts
+    • In-memory push queue
+    • enqueuePush() - add to queue
+    • drainPending() - called by iOS app
+    • waitForPending() - long-poll support
+
+================================================================================
+CRITICAL DECISION POINT
+================================================================================
+
+The moment that prevents routing to external channels:
+
+FILE: src/auto-reply/reply/dispatch-from-config.ts
+LINE: ~200 (in dispatchReplyFromConfig function)
+
+CODE:
+  const shouldRouteToOriginating = Boolean(
+    isRoutableChannel(originatingChannel) &&    // ← "webchat" → FALSE
+    originatingTo &&                            // ← undefined → FALSE
+    originatingChannel !== currentSurface
+  );
+
+RESULT:
+  For proactive: shouldRouteToOriginating = FALSE
+  → Message is NOT routed to external channels
+  → Message is processed locally instead
+
+DEFINITION OF isRoutableChannel:
+  export function isRoutableChannel(
+    channel: OriginatingChannelType | undefined,
+  ): channel is Exclude<OriginatingChannelType, typeof INTERNAL_MESSAGE_CHANNEL> {
+    if (!channel || channel === INTERNAL_MESSAGE_CHANNEL) {
+      return false;  // ← "webchat" returns FALSE here
+    }
+    // ... checks for telegram, discord, slack, signal, etc.
+  }
+
+WHAT THIS MEANS:
+  • "webchat" is INTERNAL_MESSAGE_CHANNEL
+  • Internal channels CANNOT route to external destinations
+  • Proactive messages are INTENTIONALLY kept internal
+  • This is a design decision, not a bug
+
+================================================================================
+DATA FLOW DIAGRAM
+================================================================================
+
+SCHEDULER FIRES at 5:45 (within 5:30-7:30 morning window)
+    ↓
+onTrigger({
+  prompt: "[System] Bây giờ là buổi sáng sớm...",
+  windowKey: "morning"
+})
+    ↓
+chat.send HANDLER
+  sessionKey: "proactive"
+  message: event.prompt
+    ↓
+MESSAGE CONTEXT:
+  OriginatingChannel: "webchat"  ← INTERNAL, NOT ROUTABLE
+  OriginatingTo: undefined       ← NO TARGET USER/CHANNEL
+  Surface: "webchat"
+  Provider: "webchat"
+    ↓
+ROUTE CHECK:
+  shouldRouteToOriginating = 
+    isRoutableChannel("webchat") &&  ← FALSE!
+    undefined &&                     ← FALSE!
+    "webchat" !== "webchat"          ← false
+  Result: FALSE → NO ROUTING
+    ↓
+PROCESS LOCALLY:
+  1. Invoke agent with system prompt
+  2. Agent generates Vietnamese greeting
+  3. Stream deltas to WebSocket clients (if any)
+  4. Store in "proactive" session transcript
+  5. Emit final message + enqueue iOS push
+    ↓
+DELIVERY:
+  • WebSocket: broadcast("chat", delta)
+  • Push: enqueuePush({ title: "Arona", body: "..." })
+    ↓
+iOS APP POLLING:
+  GET /arona/push/long-poll?timeout=25000
+  or
+  GET /arona/push/pending (via BGAppRefreshTask)
+    ↓
+iOS RECEIVES:
+  { messages: [{title: "Arona", body: "...", queuedAt: "..."}], mood: {...} }
+    ↓
+DISPLAY:
+  Notification on iOS home screen or lock screen
+
+================================================================================
+STREAMING MECHANICS
+================================================================================
+
+DELTA THROTTLING:
+  • emitChatDelta() is called for each token from the agent
+  • Deltas are only sent to clients every 50ms MINIMUM
+  • If a delta has been sent within 50ms, it's skipped
+  • This prevents overwhelming WebSocket clients
+
+BROADCAST BEHAVIOR:
+  • broadcast("chat", payload, { dropIfSlow: true })
+    - Message dropped if WebSocket buffer fills
+    - Ensures gateway doesn't block on slow clients
+
+SEQUENCE TRACKING:
+  • Each message has a seq number
+  • Clients can detect gaps in sequence
+  • Helps detect message loss or reordering
+
+BUFFERING:
+  • Text is buffered in chatRunState.buffers
+  • Used to accumulate multi-part responses
+  • Cleaned up after final message sent
+
+================================================================================
+PUSH NOTIFICATION FLOW
+================================================================================
+
+ENQUEUE:
+  enqueuePush({ title: "Arona", body: "Munya~! Sensei..." })
+  → Added to in-memory queue
+  → flushWaiters() called to wake long-poll connections
+
+QUEUE:
+  • In-memory only (no persistence)
+  • Stored in pending-store.ts module variable
+  • Max size: unlimited (could fill memory if app doesn't poll)
+
+POLLING:
+  iOS app calls one of:
+  1. GET /arona/push/pending (via BGAppRefreshTask every 15-30 min)
+  2. GET /arona/push/long-poll?timeout=25000 (via URLSession background task)
+
+RESPONSE:
+  {
+    ok: true,
+    messages: [
+      { title: "Arona", body: "...", queuedAt: "2026-04-07T06:45:30Z" },
+      ...
+    ],
+    mood: {
+      mood: "happy",
+      intensity: 0.8,
+      affection: 0.7,
+      affectionLevel: "fond",
+      triggers: [...]
+    }
+  }
+
+DISPLAY:
+  iOS shows notification to user
+
+================================================================================
+DEBUGGING CHECKLIST
+================================================================================
+
+1. SCHEDULER FIRING:
+   $ cat ~/.shittimchest/workspace/.arona/proactive-log.json | tail -20
+   
+   Expected: Entries for scheduled windows
+   Check: timestamp, windowKey, scheduledFor
+
+2. HANDLER EXECUTION:
+   $ grep "\[Proactive\]" ~/.shittimchest/workspace/logs/gateway.log
+   
+   Expected: Lines like "[Proactive] Firing window="morning"..."
+
+3. SESSION TRANSCRIPT:
+   $ cat ~/.shittimchest/workspace/sessions/proactive.json 2>/dev/null | jq '.messages | .[-1]'
+   
+   Expected: Most recent message from "proactive" session
+
+4. PUSH QUEUE STATUS:
+   $ curl -s http://localhost:8888/arona/push/tokens \
+     -H "Authorization: Bearer $(cat ~/.shittimchest/workspace/gateway-token.txt)" | jq '.'
+   
+   Expected: { pendingCount: X, apnsCount: Y, tokens: [...] }
+
+5. iOS APP POLLING:
+   $ grep -i "long-poll\|pending" ~/.shittimchest/workspace/logs/gateway.log | tail -5
+   
+   Expected: GET /arona/push/pending or /long-poll requests
+
+6. AGENT EXECUTION:
+   $ grep -i "agent.*run\|workflow.*start" ~/.shittimchest/workspace/logs/gateway.log | tail -5
+   
+   Expected: Lines showing agent was invoked
+
+7. WEBSOCKET ACTIVITY:
+   $ grep -i "broadcast.*chat\|registertool" ~/.shittimchest/workspace/logs/gateway.log
+   
+   Expected: Some chat broadcast events
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+
+Component                  | Proactive Session | Regular User Message
+--------------------------|-------------------|---------------------
+Triggered by               | Scheduler timer   | User sends message
+Session name               | "proactive"       | Any session key
+OriginatingChannel         | "webchat"         | "telegram", "discord", etc.
+OriginatingTo              | undefined         | User/channel ID
+Can route to external?     | NO                | YES
+Routes via chat routing?   | NO                | YES (if config allows)
+WebSocket broadcast?       | YES (if clients)  | YES (if clients)
+iOS push notification?     | YES               | Depends on config
+Saved to transcript?       | YES               | YES
+Typing indicators?         | NO (suppressed)   | YES (if enabled)
+Channel routing logic      | Blocked at        | Passes through
+                          | shouldRoute check  | routing logic
+Delivery destinations      | iOS + dashboard   | Original channel + config
+
+================================================================================
+COMPLETE FILES WRITTEN
+================================================================================
+
+1. PROACTIVE_SYSTEM_ANALYSIS.md
+   • 10 comprehensive sections
+   • Full code traces
+   • Architecture explanation
+   • Debugging guide
+   • ~1000 lines
+
+2. PROACTIVE_QUICK_REFERENCE.md
+   • Quick facts
+   • Key files table
+   • Debugging checklist
+   • Summary tables
+   • ~300 lines
+
+3. PROACTIVE_CODE_MAP.md
+   • Line-by-line code walkthrough
+   • All key functions with full code
+   • Data flow with annotations
+   • ~700 lines
+
+4. ANALYSIS_COMPLETE.txt (this file)
+   • Summary of analysis
+   • Key findings
+   • Quick reference
+   • Checklist
+
+================================================================================
+CONCLUSION
+================================================================================
+
+The Arona proactive system is working as designed:
+
+✓ Scheduler fires at randomized times within configured windows
+✓ Messages are sent to the internal "proactive" session
+✓ Text is streamed to WebSocket clients (if any connected)
+✓ iOS push notifications are always enqueued
+✓ Messages are saved to session transcript
+
+× Proactive messages CANNOT route to Discord/Telegram/email
+× This is INTENTIONAL - proactive is for personal notifications only
+× The system explicitly blocks external routing at shouldRouteToOriginating
+
+The system is designed for local, personal AI companion notifications,
+not for broadcasting to team channels or external systems.
+
+For messages to reach external channels (Discord, Telegram, etc.),
+they must:
+1. Be triggered by a user message on that channel, OR
+2. Be explicitly sent via an external API/tool
+
+Proactive messages are internal-only by architectural design.
+
+================================================================================

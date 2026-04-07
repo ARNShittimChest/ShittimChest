@@ -24,7 +24,7 @@ export type ProactiveEvent = {
   windowKey: string;
 };
 
-export type ProactiveTrigger = (evt: ProactiveEvent) => void;
+export type ProactiveTrigger = (evt: ProactiveEvent) => void | Promise<void>;
 
 // ── Time Windows ─────────────────────────────────────────────────
 
@@ -187,24 +187,38 @@ function scheduleWindow(window: TimeWindow, onTrigger: ProactiveTrigger): Dispos
   let timer: ReturnType<typeof setTimeout>;
   let stopped = false;
 
-  function fire() {
+  async function fire() {
     if (stopped) return;
 
     const weatherHint = getWeatherHint(window.includeWeather);
     const prompt = window.buildPrompt(weatherHint);
 
-    onTrigger({ prompt, windowKey: window.key });
+    try {
+      await onTrigger({ prompt, windowKey: window.key });
+      appendLogEntry({
+        timestamp: new Date().toISOString(),
+        windowKey: window.key,
+        success: true,
+      });
+    } catch (err) {
+      appendLogEntry({
+        timestamp: new Date().toISOString(),
+        windowKey: window.key,
+        success: false,
+        error: String(err),
+      });
+    }
 
     // Schedule next occurrence (tomorrow, random time in window)
     const nextMs = msUntilRandomInWindow(window.startHour, window.endHour);
     logScheduled(window.key, nextMs);
-    timer = setTimeout(fire, nextMs);
+    timer = setTimeout(() => void fire(), nextMs);
   }
 
   // Initial scheduling
   const initialMs = msUntilRandomInWindow(window.startHour, window.endHour);
   logScheduled(window.key, initialMs);
-  timer = setTimeout(fire, initialMs);
+  timer = setTimeout(() => void fire(), initialMs);
 
   return () => {
     stopped = true;
@@ -218,29 +232,43 @@ function scheduleRandomNudge(onTrigger: ProactiveTrigger): Disposable {
   let timer: ReturnType<typeof setTimeout>;
   let stopped = false;
 
-  function fire() {
+  async function fire() {
     if (stopped) return;
 
     const hour = new Date().getHours();
     // Only nudge during waking hours (6 AM to 10 PM)
     if (hour >= 6 && hour <= 22) {
-      onTrigger({
-        prompt:
-          "[System] Sensei đang làm việc vắng mặt khá lâu, hãy nói một lời chào quan tâm đến Sensei bằng giọng của Arona. Viết ngắn gọn 1-2 câu thôi.",
-        windowKey: "nudge",
-      });
+      try {
+        await onTrigger({
+          prompt:
+            "[System] Sensei đang làm việc vắng mặt khá lâu, hãy nói một lời chào quan tâm đến Sensei bằng giọng của Arona. Viết ngắn gọn 1-2 câu thôi.",
+          windowKey: "nudge",
+        });
+        appendLogEntry({
+          timestamp: new Date().toISOString(),
+          windowKey: "nudge",
+          success: true,
+        });
+      } catch (err) {
+        appendLogEntry({
+          timestamp: new Date().toISOString(),
+          windowKey: "nudge",
+          success: false,
+          error: String(err),
+        });
+      }
     }
 
     // Next nudge in 2.5 to 5 hours
     const nextMs = randomBetween(2.5 * 60 * 60_000, 5 * 60 * 60_000);
     logScheduled("nudge", nextMs);
-    timer = setTimeout(fire, nextMs);
+    timer = setTimeout(() => void fire(), nextMs);
   }
 
   // First nudge in 2 to 4 hours
   const initialMs = randomBetween(2 * 60 * 60_000, 4 * 60 * 60_000);
   logScheduled("nudge", initialMs);
-  timer = setTimeout(fire, initialMs);
+  timer = setTimeout(() => void fire(), initialMs);
 
   return () => {
     stopped = true;

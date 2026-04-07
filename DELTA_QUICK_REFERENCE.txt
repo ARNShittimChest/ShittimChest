@@ -1,0 +1,129 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║             ARONA-CLW STREAMING DELTA RATE - QUICK REFERENCE               ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📍 THE THROTTLE
+  Location: src/gateway/server-chat.ts, line 300
+  Function: emitChatDelta()
+  Current: if (now - last < 50) { return; }
+
+⚡ CURRENT RATE
+  Throttle:  50ms minimum between deltas
+  Frequency: 20 deltas per second (max)
+  Bandwidth: ~1KB/sec per client (minimal)
+  
+  LLM chunks are batched automatically:
+  • Chunks arriving <50ms apart are combined
+  • Buffered text included in next delta
+  • Final message sent without throttle
+
+🎛️ CONTROLLING THE RATE
+
+  OPTION A: Change the number (for testing)
+  ─────────────────────────────────────────
+  if (now - last < 25) { }   → 40 deltas/sec (faster, smoother)
+  if (now - last < 50) { }   → 20 deltas/sec (current, balanced)
+  if (now - last < 100) { }  → 10 deltas/sec (slower, less bandwidth)
+  if (now - last < 0) { }    → No throttle (immediate delivery)
+
+  OPTION B: Use environment variable (RECOMMENDED)
+  ─────────────────────────────────────────────────
+  At top of src/gateway/server-chat.ts:
+  
+    const CHAT_DELTA_THROTTLE_MS = process.env.CHAT_DELTA_THROTTLE_MS
+      ? parseInt(process.env.CHAT_DELTA_THROTTLE_MS, 10)
+      : 50;
+  
+  Replace: if (now - last < 50) { }
+  With:    if (now - last < CHAT_DELTA_THROTTLE_MS) { }
+  
+  Then use:
+    CHAT_DELTA_THROTTLE_MS=25 npm start   # Smoother (40/sec)
+    CHAT_DELTA_THROTTLE_MS=50 npm start   # Default (20/sec)
+    CHAT_DELTA_THROTTLE_MS=100 npm start  # Efficient (10/sec)
+    CHAT_DELTA_THROTTLE_MS=0 npm start    # No throttle
+
+📊 RECOMMENDED SETTINGS
+
+  Desktop/Web Chat:        50ms (default)  - balanced
+  Smoother Experience:     25ms            - 2x network overhead
+  Bandwidth Limited:       100ms           - 50% less overhead
+  Mobile/Cellular:         100-150ms       - save data
+  Adaptive (Advanced):     25-100ms        - auto-adjust per client
+
+✅ WHAT HAPPENS
+
+  With 50ms throttle and fast LLM:
+  
+    Time  Chunk Arrives    Throttle Check    Sent?   Buffered Until
+    ────  ─────────────    ──────────────    ─────   ──────────────
+     0ms  "Hello"          0ms OK            YES ✓
+    10ms  " my"            10ms < 50? NO     NO ✗    (in buffer)
+    20ms  " friend"        20ms < 50? NO     NO ✗    (in buffer)
+    51ms  "!"              51ms >= 50? YES   YES ✓   Sends: "Hello my friend!"
+   100ms  "\nHow"          49ms < 50? NO     NO ✗    (in buffer)
+   101ms  " are"           50ms >= 50? YES   YES ✓   Sends: "\nHow are"
+   
+  FINAL MESSAGE (no throttle, all text):
+    When LLM done → sends full response → clears buffers
+
+🔧 KEY FILES
+
+  Source (where chunks come from):
+    src/agents/pi-embedded-subscribe.handlers.messages.ts:216
+    
+  Throttle (the 50ms limit):
+    src/gateway/server-chat.ts:300
+    
+  Buffering (text accumulation):
+    src/gateway/server-chat.ts:294
+
+📋 STATE STRUCTURES
+
+  Per-client throttle tracking:
+    chatRunState.deltaSentAt: Map<clientRunId, timestampMs>
+  
+  Per-client text buffering:
+    chatRunState.buffers: Map<clientRunId, accumulatedText>
+
+❓ FAQ
+
+  Q: Does it work per-client?
+  A: YES - each clientRunId has independent throttle window
+  
+  Q: Does buffering add latency?
+  A: NO - dropped text is accumulated in-memory, included in next delta
+  
+  Q: Will all text reach the client?
+  A: YES - final message sent without throttle ensures completeness
+  
+  Q: Can it run out of memory?
+  A: NO - buffer is small (<40KB per 10k tokens)
+  
+  Q: What if I disable throttle (0ms)?
+  A: All chunks sent immediately, 2x network traffic, snappier feel
+  
+  Q: How do I monitor it?
+  A: Watch WebSocket messages for "state: delta" events
+  
+  Q: Can I adjust per-client?
+  A: YES - see Option C in implementation guide
+
+🚀 QUICK START
+
+  1. Edit: src/gateway/server-chat.ts (line 300)
+  2. Add env var support (see OPTION B above)
+  3. Test: CHAT_DELTA_THROTTLE_MS=25 npm start
+  4. Monitor: WebSocket connection for delta frequency
+  5. Deploy: Use env var to control in production
+
+📁 DOCUMENTATION
+
+  For complete details, see:
+  - DELTA_STREAMING_FINDINGS.md (executive summary)
+  - DELTA_STREAMING_ANALYSIS.md (technical deep dive)
+  - DELTA_FLOW_DIAGRAM.txt (visual diagrams)
+  - DELTA_THROTTLE_IMPLEMENTATION_GUIDE.md (implementation options)
+
+═══════════════════════════════════════════════════════════════════════════════
+Generated: 2026-04-07 | Project: Arona-CLW | File: src/gateway/server-chat.ts:300
