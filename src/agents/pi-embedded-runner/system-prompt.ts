@@ -57,6 +57,8 @@ export function buildEmbeddedSystemPrompt(params: {
   companionMoodContext?: string;
   /** Weather context string (from weather core feature). */
   weatherContext?: string;
+  /** Task context string (from task manager). */
+  taskContext?: string;
   /** Smart routing query tier for prompt detail control. */
   queryTier?: QueryTier;
 }): string {
@@ -90,6 +92,7 @@ export function buildEmbeddedSystemPrompt(params: {
     memoryCitationsMode: params.memoryCitationsMode,
     companionMoodContext: params.companionMoodContext,
     weatherContext: params.weatherContext,
+    taskContext: params.taskContext,
     queryTier: params.queryTier,
   });
 }

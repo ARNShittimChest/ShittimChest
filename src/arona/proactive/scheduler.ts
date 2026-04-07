@@ -16,6 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getWeatherData } from "../weather/weather-store.js";
 import { buildWeatherShortSummary } from "../weather/weather-mood.js";
+import { getPendingTasks, getTasksDueToday, getOverdueTasks } from "../tasks/task-store.js";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -46,8 +47,11 @@ const TIME_WINDOWS: TimeWindow[] = [
     startHour: 5.5, // 5:30
     endHour: 7.5, // 7:30
     includeWeather: true,
-    buildPrompt: (weather) =>
-      `[System] Bây giờ là buổi sáng sớm.${weather} Hãy gửi lời chào buổi sáng thật dễ thương và khích lệ Sensei bằng giọng của Tiểu thư Arona. Viết ngắn gọn 1-2 câu thôi.`,
+    buildPrompt: (weather) => {
+      const dateHint = getDateHint();
+      const taskHint = getTaskBriefingHint();
+      return `[System] Bây giờ là buổi sáng sớm. ${dateHint}${weather}${taskHint} Hãy gửi lời chào buổi sáng thật dễ thương và khích lệ Sensei bằng giọng của Tiểu thư Arona. Nếu có tasks quan trọng thì nhắc nhẹ. Nếu thời tiết đặc biệt thì bình luận. Viết tự nhiên 2-3 câu.`;
+    },
   },
   {
     key: "lunch",
@@ -62,8 +66,10 @@ const TIME_WINDOWS: TimeWindow[] = [
     startHour: 20.0, // 20:00
     endHour: 22.5, // 22:30
     includeWeather: false,
-    buildPrompt: () =>
-      `[System] Bây giờ là buổi tối. Hãy hỏi thăm Sensei đã ăn tối chưa và nhắc nhở nghỉ ngơi bằng giọng của Arona. Viết ngắn gọn 1-2 câu thôi.`,
+    buildPrompt: () => {
+      const taskHint = getTaskBriefingHint();
+      return `[System] Bây giờ là buổi tối.${taskHint} Hãy hỏi thăm Sensei đã ăn tối chưa và nhắc nhở nghỉ ngơi bằng giọng của Arona. Nếu có tasks chưa xong thì nhắc nhẹ nhàng. Viết tự nhiên 1-2 câu thôi.`;
+    },
   },
   {
     key: "late-night",
@@ -84,6 +90,54 @@ function getWeatherHint(includeWeather: boolean): string {
   const summary = buildWeatherShortSummary(weather);
   const locationHint = weather.locationName ? ` tại ${weather.locationName}` : "";
   return ` Thời tiết hiện tại${locationHint}: ${summary}.`;
+}
+
+// ── Daily Briefing Helpers ──────────────────────────────────────
+
+const WEEKDAY_VI = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+
+function getDateHint(): string {
+  const now = new Date();
+  const day = WEEKDAY_VI[now.getDay()];
+  const dd = now.getDate().toString().padStart(2, "0");
+  const mm = (now.getMonth() + 1).toString().padStart(2, "0");
+  const yyyy = now.getFullYear();
+  return `Hôm nay là ${day}, ${dd}/${mm}/${yyyy}.`;
+}
+
+function getTaskBriefingHint(): string {
+  try {
+    const overdue = getOverdueTasks();
+    const dueToday = getTasksDueToday();
+    const pending = getPendingTasks();
+
+    if (pending.length === 0) return "";
+
+    const parts: string[] = [];
+    if (overdue.length > 0) {
+      parts.push(`${overdue.length} task quá hạn`);
+    }
+    if (dueToday.length > 0) {
+      parts.push(`${dueToday.length} task cần làm hôm nay`);
+    }
+    const otherCount = pending.length - overdue.length - dueToday.length;
+    if (otherCount > 0) {
+      parts.push(`${otherCount} task sắp tới`);
+    }
+
+    // Include up to 3 most important task titles
+    const topTasks = [...overdue, ...dueToday, ...pending.filter((t) => !t.dueDate)]
+      .slice(0, 3)
+      .map((t) => t.title);
+
+    let hint = ` Sensei có ${parts.join(", ")}.`;
+    if (topTasks.length > 0) {
+      hint += ` Đáng chú ý: ${topTasks.join("; ")}.`;
+    }
+    return hint;
+  } catch {
+    return "";
+  }
 }
 
 // ── Scheduling Helpers ───────────────────────────────────────────

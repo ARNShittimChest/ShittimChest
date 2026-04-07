@@ -778,6 +778,18 @@ export async function runEmbeddedAttempt(
       }
     }
 
+    // ── Task Context (non-blocking) ────────────────────────────────
+    let taskContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { buildTaskPromptContext } = await import("../../../arona/tasks/index.js");
+        const ctx = buildTaskPromptContext();
+        if (ctx) taskContext = ctx;
+      } catch {
+        // Task engine is non-critical — do not break agent run
+      }
+    }
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
@@ -809,6 +821,7 @@ export async function runEmbeddedAttempt(
       memoryCitationsMode: params.config?.memory?.citations,
       companionMoodContext,
       weatherContext,
+      taskContext,
       queryTier: params.queryTier,
     });
     const systemPromptReport = buildSystemPromptReport({

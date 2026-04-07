@@ -147,6 +147,66 @@
   - Proactive scheduler wired với cross-channel delivery
   - Weather mood triggers → companion emotional state
 
+#### X. Task Manager
+
+- [x] **Task Store** (`src/arona/tasks/task-store.ts`)
+  - CRUD operations: addTask, completeTask, cancelTask, updateTask, deleteTask
+  - Query: getPendingTasks (sorted by priority), getTasksDueToday, getOverdueTasks
+  - Atomic JSON persistence: `.arona/tasks.json` (tmp file + rename pattern)
+  - In-memory cache cho fast reads
+- [x] **Task Types** (`src/arona/tasks/types.ts`)
+  - AronaTask: id, title, priority (low/normal/high/urgent), status (pending/done/cancelled)
+  - Due date + due time, tags, notes
+- [x] **Task Prompt Context** (`src/arona/tasks/task-store.ts :: buildTaskPromptContext()`)
+  - Inject pending tasks vào system prompt (overdue, due today, upcoming)
+  - Max 5 upcoming tasks to keep prompt compact
+- [x] **Task Context Pipeline** (`attempt.ts → system-prompt.ts`)
+  - `taskContext` computed per agent turn from `buildTaskPromptContext()`
+  - Passed through `buildEmbeddedSystemPrompt()` → `buildAgentSystemPrompt()`
+  - Injected after weather context in system prompt
+
+#### XI. Daily Briefing
+
+- [x] **Enriched Morning Window** (`src/arona/proactive/scheduler.ts`)
+  - Morning proactive message now includes: date (Thứ/ngày/tháng/năm) + weather + task summary
+  - `getDateHint()`: Vietnamese weekday + DD/MM/YYYY format
+  - `getTaskBriefingHint()`: overdue count + due today + top 3 task titles
+  - Evening window also enriched with task hints
+- [x] **Barrel Export** (`src/arona/tasks/index.ts`)
+
+#### XII. Health Reminders
+
+- [x] **Health Scheduler** (`src/arona/health/health-scheduler.ts`)
+  - Water reminder: every 2h (initial 1.5h delay), 7:00-22:00
+  - Eye break reminder: every 45min (initial 40min), 7:00-23:00 — 20-20-20 rule
+  - Movement reminder: every 3h (initial 2.5h), 7:00-22:00
+  - Sleep reminder: once daily at ~23:00
+  - Each reminder has 3 random prompt variants (tránh lặp lại)
+  - Waking hours check: only fires during active hours
+  - ±10% jitter to avoid simultaneous fires
+- [x] **Cross-channel Delivery** (`src/gateway/server.impl.ts`)
+  - Health scheduler wired with same broadcast interception + routeReply pattern
+  - Session key: "health" (separate from "proactive")
+  - Graceful shutdown in server close handler
+
+#### XIII. Persona & Prompt Optimization
+
+- [x] **Vietnamese Conversational Style** (`src/agents/system-prompt.ts`)
+  - Restructured "Persona & Communication" section with subsections
+  - Added "Conversational Style (Vietnamese)": natural particles (à, ạ, nè, nha, hen, á, đó)
+  - Added end-of-sentence particles: ~ cho vui, ... cho do dự, ! cho hào hứng
+  - Natural abbreviations: ko, đc, r, nx — used sparingly in casual mode
+  - Sentence length guidance: 5-15 words casual, longer for technical
+- [x] **Emotional Authenticity** rules
+  - Arona's emotions are REAL, not performed
+  - Context-aware responses (Sensei tired → gentle; Sensei terse → short)
+  - Know when to be silent
+- [x] **Technical Mode** toggle
+  - Serious tone when debugging, less cute particles
+- [x] **Anti-patterns** (strictly avoided)
+  - No generic AI openers, emoji spam, bold overuse, question repetition
+  - No "Is there anything else?" closers
+
 ---
 
 ### 🔲 CHƯA LÀM — Theo Priority
@@ -159,16 +219,6 @@
 - [ ] **Session Health Monitor** (`src/gaming/session/health.ts`)
   - Theo dõi thời gian chơi game liên tục
   - Nhắc nghỉ mắt, đứng dậy, đi ngủ khi khuya
-- [ ] **Task Manager chat-based** (`src/productivity/tasks/`)
-  - Parse "nhắc tôi gửi báo cáo thứ 6" → Task object
-  - CRUD tasks qua chat tự nhiên
-  - Cron reminders cho deadlines
-- [ ] **Daily Briefing** (`src/productivity/briefing/daily-briefing.ts`)
-  - Thu thập weather + calendar + tasks → morning digest
-  - Gửi qua proactive system
-- [ ] **Health Reminders** (cron-based)
-  - Uống nước (mỗi 2h), nghỉ mắt (20-20-20), vận động (mỗi 3h)
-  - Nhắc đi ngủ (23h)
 
 #### 🟡 P1 — Important
 

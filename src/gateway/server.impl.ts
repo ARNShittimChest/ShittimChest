@@ -105,6 +105,11 @@ import { loadOrInitLocation } from "../arona/location-store.js";
 import { startWeatherScheduler } from "../arona/weather/weather-scheduler.js";
 import type { WeatherSchedulerHandle } from "../arona/weather/weather-scheduler.js";
 import { startMoodTicker, type MoodTickerHandle } from "../arona/mood-ticker.js";
+import {
+  startHealthScheduler,
+  type HealthSchedulerHandle,
+} from "../arona/health/health-scheduler.js";
+import { initTaskStore } from "../arona/tasks/index.js";
 import { applyTrigger, decayMood } from "../companion/emotional-state.js";
 import { loadOrCreateMoodState, saveMoodState } from "../companion/mood-persistence.js";
 import { isRoutableChannel, routeReply } from "../auto-reply/reply/route-reply.js";
@@ -888,6 +893,7 @@ export async function startGatewayServer(
   let proactiveSchedulerStop: (() => void) | null = null;
   let weatherSchedulerHandle: WeatherSchedulerHandle | null = null;
   let moodTickerHandle: MoodTickerHandle | null = null;
+  let healthSchedulerHandle: HealthSchedulerHandle | null = null;
   if (!minimalTestGateway) {
     // Load persisted location from disk
     try {
@@ -1056,6 +1062,115 @@ export async function startGatewayServer(
         );
       },
     });
+
+    // Initialize task store (loads existing tasks from disk)
+    try {
+      initTaskStore(defaultWorkspaceDir);
+      log.info("[Tasks] Task store initialized");
+    } catch (err) {
+      log.warn(`[Tasks] Failed to initialize task store: ${String(err)}`);
+    }
+
+    // Start health reminder scheduler (water, eyes, movement, sleep)
+    // Uses the same proactive trigger pattern for cross-channel delivery
+    healthSchedulerHandle = startHealthScheduler(async (event) => {
+      try {
+        const handler = coreGatewayHandlers["chat.send"];
+        if (handler) {
+          log.info(`[Health] Firing reminder="${event.windowKey}"`);
+          const healthRunId = `health-${Date.now()}`;
+          const healthParams = {
+            sessionKey: "health",
+            message: event.prompt,
+            idempotencyKey: healthRunId,
+          };
+
+          // Wrap broadcast to intercept the final chat response text
+          let capturedFinalText: string | null = null;
+          const healthBroadcast: typeof broadcast = (evt, payload, opts) => {
+            if (evt === "chat" && payload && typeof payload === "object") {
+              const p = payload as Record<string, unknown>;
+              if (p.state === "final" && p.runId === healthRunId && p.message) {
+                const msg = p.message as Record<string, unknown>;
+                const content = msg.content as Array<{ type: string; text?: string }> | undefined;
+                if (Array.isArray(content)) {
+                  const textPart = content.find((c) => c.type === "text" && c.text);
+                  if (textPart?.text) {
+                    capturedFinalText = textPart.text;
+                  }
+                }
+              }
+            }
+            broadcast(evt, payload, opts);
+          };
+
+          const healthContext = {
+            ...gCtxOffline,
+            broadcast: healthBroadcast,
+          };
+
+          await handler({
+            req: {
+              type: "req" as const,
+              id: healthRunId,
+              method: "chat.send",
+              params: healthParams,
+            },
+            params: healthParams,
+            context: healthContext,
+            client: {
+              connect: { role: "operator", agent: resolveDefaultAgentId(cfgAtStart) },
+            } as any,
+            isWebchatConnect: () => false,
+            respond: () => {},
+          });
+
+          // Wait for completion
+          const maxWaitMs = 60_000;
+          const pollIntervalMs = 2_000;
+          const startWait = Date.now();
+          while (Date.now() - startWait < maxWaitMs) {
+            if (!chatRunState.buffers.has(healthRunId) && capturedFinalText !== null) break;
+            if (!chatAbortControllers.has(healthRunId) && Date.now() - startWait > 5_000) break;
+            await new Promise((r) => setTimeout(r, pollIntervalMs));
+          }
+
+          // Cross-channel delivery
+          if (capturedFinalText) {
+            try {
+              const cfg = loadConfig();
+              const storePath = resolveStorePath(undefined, {
+                agentId: resolveDefaultAgentId(cfg),
+              });
+              const sessions = loadSessionStore(storePath);
+              for (const [sessionKey, entry] of Object.entries(sessions)) {
+                const channel = entry.lastChannel;
+                const to = entry.lastTo;
+                if (!channel || !to || !isRoutableChannel(channel)) continue;
+                try {
+                  await routeReply({
+                    payload: { text: capturedFinalText },
+                    channel,
+                    to,
+                    sessionKey,
+                    accountId: entry.lastAccountId,
+                    threadId: entry.lastThreadId,
+                    cfg,
+                  });
+                } catch {
+                  // Best-effort cross-channel
+                }
+              }
+            } catch {
+              // Non-critical
+            }
+          }
+        }
+      } catch (err) {
+        log.error(`[Health] Failed reminder="${event.windowKey}": ${String(err)}`);
+      }
+    });
+    log.info("[Health] Health reminder scheduler started");
   }
 
   // Run gateway_start plugin hook (fire-and-forget)
@@ -1179,6 +1294,9 @@ export async function startGatewayServer(
       }
       if (moodTickerHandle) {
         moodTickerHandle.stop();
+      }
+      if (healthSchedulerHandle) {
+        healthSchedulerHandle.stop();
       }
       skillsChangeUnsub();
       authRateLimiter?.dispose();
