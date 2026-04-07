@@ -10,7 +10,7 @@ import type { ShittimChestConfig } from "../config/config.js";
 const log = createSubsystemLogger("memory-reflect");
 
 /** Number of recent chat_log entries to pull per reflection run */
-const REFLECT_BATCH_SIZE = 50;
+const REFLECT_BATCH_SIZE = 80;
 /** Marker category stored in LanceDB to track last reflection timestamp */
 const REFLECT_MARKER_SOURCE = "__reflect_marker__";
 
@@ -66,7 +66,7 @@ export async function runMemoryReflection(cfg: ShittimChestConfig, agentId: stri
     // We use a broad semantic search on "user preferences habits conversation" to pull
     // recent conversation chunks as a best-effort batch without a full table scan.
     const queryVec = await embeddingProvider
-      .embedQuery("user preferences habits personality conversation")
+      .embedQuery("user preferences habits personality conversation decisions projects")
       .catch(() => null);
 
     if (!queryVec || queryVec.length === 0) {
@@ -83,22 +83,61 @@ export async function runMemoryReflection(cfg: ShittimChestConfig, agentId: stri
       return;
     }
 
+    // Also pull existing entity_summary entries to avoid re-extracting known facts
+    const existingSummaries = await lanceDbProvider.search(queryVec, 10, {
+      category: "entity_summary",
+    });
+    const knownFacts =
+      existingSummaries.length > 0
+        ? existingSummaries
+            .map((r) => r.entry.text.replace(/^Memory Reflection Summary:\n?/i, "").trim())
+            .join("\n")
+        : "";
+
     // Build text for LLM summarization
     const chatText = recentLogs.map((r) => `[${r.entry.role}]: ${r.entry.text}`).join("\n");
 
-    const prompt = `You are an AI memory summarization agent. Read the following recent conversation transcript and extract:
-1. Key facts about the user (preferences, habits, personality traits, interests, dislikes)
-2. Any important decisions or ongoing projects mentioned
-3. Any commitments or reminders that were made
+    const knownFactsSection =
+      knownFacts.length > 0
+        ? `\n\n## Already Known Facts (do NOT repeat these, only extract NEW information):\n${knownFacts}`
+        : "";
 
-Format your response as a concise bulleted list of facts. Each fact should start with the entity it describes, e.g.:
-- Sensei prefers TypeScript over Java
-- Sensei wakes up at 6am daily
-- Project X needs a deadline review
+    const prompt = `You are an AI memory consolidation agent for "Arona", a personal AI companion. Your job is to analyze recent conversations with the user ("Sensei") and extract knowledge that will help Arona remember and serve Sensei better across sessions.
 
-If there is nothing meaningful to summarize, respond with exactly: NONE
+## Extract these types of information:
 
-Conversation:
+### 1. Key Facts About Sensei
+- Personal preferences (food, music, aesthetic, tools)
+- Daily routines and schedules
+- Personality traits and values
+- Communication patterns
+
+### 2. Ongoing Context
+- Active projects or tasks mentioned
+- Decisions made and their reasoning
+- Goals or plans discussed
+- Problems being worked on
+
+### 3. Relationship Context
+- Topics that made Sensei happy, annoyed, or emotional
+- Inside jokes or recurring references
+- How Sensei prefers to interact (casual/formal, brief/detailed)
+
+### 4. Cross-Session Continuity
+- Conversations that were interrupted or unfinished
+- Follow-up items or promises made
+- "Last time we talked about X" type context
+
+## Format Rules:
+- Use concise bullet points
+- Start each fact with a category marker: [fact/project/preference/habit/context]
+- Be specific: "Sensei prefers dark mode" not "Sensei has UI preferences"
+- Include temporal context when relevant: "As of [date], Sensei is working on..."
+- If something contradicts a known fact, note the update explicitly
+- If nothing meaningful to extract, respond with exactly: NONE
+${knownFactsSection}
+
+## Recent Conversation (${recentLogs.length} messages):
 ${chatText}`;
 
     log.debug(`Sending ${recentLogs.length} chat_log entries to LLM for reflection...`);

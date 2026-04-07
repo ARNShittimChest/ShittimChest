@@ -8,14 +8,43 @@ import type { MemoryIndexManager } from "../memory/manager.js";
 
 const log = createSubsystemLogger("sensei-profiler");
 
+// ── Profile Category Types ─────────────────────────────────────
+
+export type ProfileCategory =
+  | "personality" // core traits, temperament, values
+  | "preferences" // likes, dislikes, aesthetic, food, music
+  | "communication" // language style, emoji usage, tone patterns
+  | "habits" // daily routines, schedules, work patterns
+  | "interests" // hobbies, topics they enjoy discussing
+  | "relationships" // how they relate to others, social style
+  | "emotional" // emotional patterns, triggers, coping
+  | "technical"; // tech preferences, coding style, tools
+
+const ALL_CATEGORIES: ProfileCategory[] = [
+  "personality",
+  "preferences",
+  "communication",
+  "habits",
+  "interests",
+  "relationships",
+  "emotional",
+  "technical",
+];
+
 /**
  * Triggers a background job to analyze recent user messages and extract profile information.
+ * Enhanced: structured categories, deduplication-aware, conversation context tracking.
+ *
  * This runs with a low priority to avoid blocking the main AI thread.
  */
 export class SenseiProfiler {
-  private messageBuffer: string[] = [];
+  private messageBuffer: Array<{ text: string; timestamp: number }> = [];
   private readonly batchSize: number;
   private readonly enabled: boolean;
+  /** Track total messages seen for adaptive profiling. */
+  private totalMessagesSeen = 0;
+  /** Recent profile insights (last 10) for dedup context. */
+  private recentInsights: string[] = [];
 
   constructor(
     private readonly cfg: ShittimChestConfig,
@@ -23,7 +52,7 @@ export class SenseiProfiler {
     private readonly memoryManager: MemoryIndexManager,
   ) {
     this.enabled = this.cfg.memory?.lancedb?.profileSensei?.enabled ?? true;
-    this.batchSize = this.cfg.memory?.lancedb?.profileSensei?.batchSize ?? 10;
+    this.batchSize = this.cfg.memory?.lancedb?.profileSensei?.batchSize ?? 8;
   }
 
   /**
@@ -33,7 +62,9 @@ export class SenseiProfiler {
   addMessage(text: string) {
     if (!this.enabled) return;
 
-    this.messageBuffer.push(text);
+    this.totalMessagesSeen++;
+    this.messageBuffer.push({ text, timestamp: Date.now() });
+
     if (this.messageBuffer.length >= this.batchSize) {
       const batchToAnalyze = [...this.messageBuffer];
       this.messageBuffer = []; // Clear immediately
@@ -47,7 +78,68 @@ export class SenseiProfiler {
     }
   }
 
-  private async analyzeBatch(messages: string[]) {
+  /**
+   * Get a concise summary of the latest known Sensei profile traits.
+   * Queries LanceDB for the most recent sensei_profile entries and returns
+   * a formatted string suitable for system prompt injection.
+   *
+   * Returns null if no profile data exists or LanceDB is unavailable.
+   */
+  async getProfileSummary(maxEntries = 5): Promise<string | null> {
+    const lanceDb = this.memoryManager.getLanceDbProvider();
+    const embeddingProvider = this.memoryManager.getEmbeddingProvider();
+    if (!lanceDb || !embeddingProvider) return null;
+
+    try {
+      const queryVec = await embeddingProvider
+        .embedQuery("Sensei personality traits preferences habits communication style interests")
+        .catch(() => null);
+      if (!queryVec || queryVec.length === 0) return null;
+
+      const results = await lanceDb.search(queryVec, maxEntries * 2, {
+        category: "sensei_profile",
+        minScore: 0.4,
+      });
+      if (results.length === 0) return null;
+
+      // Sort by importance × recency (more recent = higher priority)
+      const now = Date.now();
+      results.sort((a, b) => {
+        const aAge = Math.max(1, (now - a.entry.createdAt) / (1000 * 3600 * 24)); // days
+        const bAge = Math.max(1, (now - b.entry.createdAt) / (1000 * 3600 * 24));
+        const aScore = (a.entry.importance * a.score) / Math.log2(1 + aAge);
+        const bScore = (b.entry.importance * b.score) / Math.log2(1 + bAge);
+        return bScore - aScore;
+      });
+
+      // Extract text, deduplicate, and format
+      const seen = new Set<string>();
+      const traits: string[] = [];
+      for (const r of results.slice(0, maxEntries)) {
+        // Strip the "Sensei Profile Insight: " prefix
+        const text = r.entry.text
+          .replace(/^Sensei Profile Insight:\s*/i, "")
+          .replace(/^Profile \[.*?\]:\s*/i, "")
+          .trim();
+        // Simple dedup by first 60 chars
+        const key = text.slice(0, 60).toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        traits.push(text);
+      }
+
+      if (traits.length === 0) return null;
+
+      return ["[Sensei Profile — learned from conversations]", ...traits.map((t) => `• ${t}`)].join(
+        "\n",
+      );
+    } catch (err) {
+      log.debug(`Profile summary fetch failed: ${String(err)}`);
+      return null;
+    }
+  }
+
+  private async analyzeBatch(messages: Array<{ text: string; timestamp: number }>) {
     if (!this.enabled || messages.length === 0) return;
 
     const modelRef = resolveDefaultModelForAgent({
@@ -73,22 +165,33 @@ export class SenseiProfiler {
       return;
     }
 
-    const prompt = `
-You are a background profiling agent. Your job is to analyze the user's latest chat messages and extract persistent profile information about them.
-We refer to the user as "Sensei".
+    // Build dedup context from recent insights
+    const dedupContext =
+      this.recentInsights.length > 0
+        ? `\n\nAlready known (do NOT repeat these):\n${this.recentInsights.map((i) => `- ${i.slice(0, 100)}`).join("\n")}`
+        : "";
 
-Extract any facts relating to:
-1. Sensei's personal preferences (likes, dislikes)
-2. Sensei's communication style (e.g., uses short sentences, uses emoji)
-3. Sensei's habits, schedules, or routines
-4. Any other persistent traits or personal facts.
+    const categoryList = ALL_CATEGORIES.map((c) => `  - ${c}`).join("\n");
 
-If you don't find anything worth noting, respond with exactly: NONE
+    const prompt = `You are a background profiling agent for "Arona", an AI companion. Analyze the user's ("Sensei's") recent messages and extract NEW persistent profile insights.
 
-Otherwise, provide a concise summary of the traits found.
-Messages:
-${messages.map((m) => `- ${m}`).join("\n")}
-        `;
+## Categories to extract:
+${categoryList}
+
+## Rules:
+- Only extract facts that are PERSISTENT traits, not momentary states
+- Each fact must start with a category tag: [category] fact
+- Be specific and concrete, not generic
+- Prefer Vietnamese context clues (e.g., if they use "ạ", they're polite; if they code-switch, note that)
+- Capture communication STYLE patterns (sentence length, emoji usage, formality level, language mixing)
+- Track emotional patterns (what makes them happy/frustrated/excited)
+- Note technical preferences if visible (languages, tools, frameworks, approaches)
+- Maximum 5 facts per batch — quality over quantity
+- If nothing NEW or meaningful, respond with exactly: NONE
+${dedupContext}
+
+## Messages (${messages.length} recent):
+${messages.map((m) => `[${new Date(m.timestamp).toLocaleTimeString()}] ${m.text}`).join("\n")}`;
 
     try {
       const response = await completeSimple(
@@ -104,7 +207,7 @@ ${messages.map((m) => `- ${m}`).join("\n")}
         },
         {
           apiKey,
-          temperature: 0.2,
+          temperature: 0.15, // Slightly lower for more factual extraction
         },
       );
 
@@ -117,13 +220,11 @@ ${messages.map((m) => `- ${m}`).join("\n")}
       if (
         extractedText &&
         extractedText !== "NONE" &&
-        !extractedText.toLowerCase().includes("no information")
+        !extractedText.toLowerCase().includes("no information") &&
+        !extractedText.toLowerCase().includes("nothing new")
       ) {
         log.debug(`Extracted Sensei profile data: ${extractedText}`);
 
-        // Use memoryManager's built-in record operation to correctly embed and store.
-        // We expose a special method or just rely on LanceDB provider manually exposing a store method.
-        // MemoryIndexManager already has a way to embed and index via handleContent.
         const lanceDb = this.memoryManager.getLanceDbProvider();
         if (!lanceDb) {
           log.debug("SenseiProfiler: lanceDb not available to store profile insight.");
@@ -131,17 +232,40 @@ ${messages.map((m) => `- ${m}`).join("\n")}
         }
         const provider = this.memoryManager.getEmbeddingProvider();
 
-        const textToEmbed = `Sensei Profile Insight: ${extractedText}`;
-        const vector = provider ? await provider.embedQuery(textToEmbed) : [];
+        // Parse individual facts if they have category tags
+        const facts = extractedText
+          .split("\n")
+          .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+          .filter((line) => line.length > 5);
 
-        await lanceDb.store({
-          role: "system",
-          category: "sensei_profile",
-          importance: 2.0, // High importance
-          source_file: "profiler",
-          text: textToEmbed,
-          vector,
-        });
+        if (facts.length === 0) return;
+
+        // Store each fact separately for better retrieval granularity
+        for (const fact of facts) {
+          const categoryMatch = fact.match(/^\[(\w+)\]\s*/);
+          const category = categoryMatch?.[1]?.toLowerCase() ?? "other";
+          const cleanFact = categoryMatch ? fact.slice(categoryMatch[0].length) : fact;
+
+          const textToEmbed = `Profile [${category}]: ${cleanFact}`;
+          const vector = provider ? await provider.embedQuery(textToEmbed).catch(() => []) : [];
+
+          await lanceDb.store({
+            role: "system",
+            category: "sensei_profile",
+            importance: 2.0,
+            source_file: `profiler/${category}`,
+            text: textToEmbed,
+            vector,
+          });
+
+          // Track for dedup in next batch
+          this.recentInsights.push(cleanFact);
+        }
+
+        // Keep only last 15 insights for dedup context
+        if (this.recentInsights.length > 15) {
+          this.recentInsights = this.recentInsights.slice(-15);
+        }
       }
     } catch (err) {
       log.warn(`Sensei profiling failed during model execution: ${String(err)}`);

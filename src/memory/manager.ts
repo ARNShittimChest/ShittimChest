@@ -269,15 +269,14 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     this.ensureReflectJob();
   }
 
-  /** Schedule the memory reflection job. Uses a simple 24h interval for MVP. */
+  /** Schedule the memory reflection job. Runs every 12h for better cross-session continuity. */
   private ensureReflectJob(): void {
-    // Run once 24h after startup, then repeat every 24h
-    const MS_24H = 24 * 60 * 60 * 1000;
+    const MS_12H = 12 * 60 * 60 * 1000;
     this.reflectTimer = setInterval(() => {
       runMemoryReflection(this.cfg, this.agentId).catch((err) => {
         log.warn(`Memory reflection failed: ${String(err)}`);
       });
-    }, MS_24H);
+    }, MS_12H);
     // Unref so it doesn't keep Node alive
     this.reflectTimer.unref();
   }

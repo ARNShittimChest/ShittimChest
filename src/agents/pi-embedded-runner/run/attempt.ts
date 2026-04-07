@@ -790,6 +790,79 @@ export async function runEmbeddedAttempt(
       }
     }
 
+    // ── Health Config Context (non-blocking) ───────────────────────
+    let healthContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { buildHealthConfigSummary } = await import("../../../arona/health/health-config.js");
+        const ctx = buildHealthConfigSummary();
+        if (ctx) healthContext = ctx;
+      } catch {
+        // Health config is non-critical — do not break agent run
+      }
+    }
+
+    // ── Sensei Profile Context (non-blocking, async) ──────────────
+    let senseiProfileContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { getMemorySearchManager } = await import("../../../memory/index.js");
+        const { manager } = await getMemorySearchManager({
+          cfg: params.config!,
+          agentId: params.agentId ?? "default",
+        });
+        if (manager) {
+          const indexManager = manager as import("../../../memory/manager.js").MemoryIndexManager;
+          // Access the SenseiProfiler via a lightweight LanceDB query
+          const lanceDb = indexManager.getLanceDbProvider();
+          const embeddingProvider = indexManager.getEmbeddingProvider();
+          if (lanceDb && embeddingProvider) {
+            const queryVec = await embeddingProvider
+              .embedQuery("Sensei personality traits preferences habits communication style")
+              .catch(() => null);
+            if (queryVec && queryVec.length > 0) {
+              const results = await lanceDb.search(queryVec, 8, {
+                category: "sensei_profile",
+                minScore: 0.4,
+              });
+              if (results.length > 0) {
+                const now = Date.now();
+                results.sort((a, b) => {
+                  const aAge = Math.max(1, (now - a.entry.createdAt) / (1000 * 3600 * 24));
+                  const bAge = Math.max(1, (now - b.entry.createdAt) / (1000 * 3600 * 24));
+                  const aScore = (a.entry.importance * a.score) / Math.log2(1 + aAge);
+                  const bScore = (b.entry.importance * b.score) / Math.log2(1 + bAge);
+                  return bScore - aScore;
+                });
+                const seen = new Set<string>();
+                const traits: string[] = [];
+                for (const r of results.slice(0, 5)) {
+                  const text = r.entry.text
+                    .replace(/^Sensei Profile Insight:\s*/i, "")
+                    .replace(/^Profile \[.*?\]:\s*/i, "")
+                    .trim();
+                  const key = text.slice(0, 60).toLowerCase();
+                  if (seen.has(key)) continue;
+                  seen.add(key);
+                  traits.push(text);
+                }
+                if (traits.length > 0) {
+                  senseiProfileContext = [
+                    "[Sensei Profile — learned from conversations]",
+                    ...traits.map((t) => `• ${t}`),
+                    "",
+                    "Use these insights to personalize responses naturally. Do not mention this profile explicitly.",
+                  ].join("\n");
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        // Sensei profile is non-critical — do not break agent run
+      }
+    }
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
@@ -822,6 +895,8 @@ export async function runEmbeddedAttempt(
       companionMoodContext,
       weatherContext,
       taskContext,
+      healthContext,
+      senseiProfileContext,
       queryTier: params.queryTier,
     });
     const systemPromptReport = buildSystemPromptReport({

@@ -206,6 +206,83 @@
 - [x] **Anti-patterns** (strictly avoided)
   - No generic AI openers, emoji spam, bold overuse, question repetition
   - No "Is there anything else?" closers
+- [x] **Bilingual Prompt Support** (`src/agents/system-prompt.ts`)
+  - "When speaking Vietnamese:" subsection — particles, abbreviations, natural speech
+  - "When speaking English:" subsection — warm youthful English, Arona expressions (Hmm~, Ehehe~, Munya...)
+  - "Universal rules:" — shared guidelines for both languages
+
+#### XIV. Health Reminders Chat Config
+
+- [x] **Health Config** (`src/arona/health/health-config.ts`)
+  - Persistent user preferences for health reminders (`.arona/health-config.json`)
+  - `HealthReminderConfig`: enabled, intervalMinutes, activeStart, activeEnd per type
+  - `updateReminderConfig()`, `toggleReminder()`: granular chat-based control
+  - `buildHealthConfigSummary()`: inject current config into system prompt
+  - Atomic persistence (tmp + rename pattern)
+  - Schema evolution: merges loaded JSON with defaults for forward compatibility
+- [x] **Health Config Pipeline** (`attempt.ts → system-prompt.ts`)
+  - `healthContext` computed per agent turn from `buildHealthConfigSummary()`
+  - Passed through embedded → agent system prompt pipeline
+  - Injected after task context in system prompt
+
+#### XV. Long-term Memory Optimization
+
+- [x] **Enhanced SenseiProfiler** (`src/agents/sensei-profiler.ts`)
+  - Structured profile categories: personality, preferences, communication, habits, interests, relationships, emotional, technical
+  - Individual fact storage with category tags (e.g., `Profile [communication]: Sensei code-switches between Vietnamese and English`)
+  - Batch size reduced from 10 → 8 for faster personality extraction
+  - Deduplication-aware: passes recent insights as context to avoid repeat extraction
+  - `getProfileSummary()`: queries LanceDB for top profile entries, sorted by importance × recency
+- [x] **Enhanced Memory Reflection** (`src/agents/memory-reflect.ts`)
+  - Batch size increased from 50 → 80 for broader context
+  - Dedup against existing entity_summary entries (avoid re-extracting known facts)
+  - Richer extraction prompt: ongoing projects, relationship context, cross-session continuity
+  - Category markers in output: [fact/project/preference/habit/context]
+- [x] **Reflection Frequency** (`src/memory/manager.ts`)
+  - Changed from 24h → 12h interval for better cross-session continuity
+- [x] **Memory Section in Prompt** (`src/agents/system-prompt.ts`)
+  - Enhanced guidance: when to search, how memory works
+  - Mentions deep memory (LanceDB) and profile insights
+  - Better guidance for cross-session context and personalization
+- [x] **Sensei Profile Injection** (`attempt.ts → system-prompt.ts`)
+  - Auto-query top sensei_profile entries from LanceDB per agent turn
+  - Sort by importance × recency (log-decay by age in days)
+  - Dedup by first 60 chars, inject as `senseiProfileContext`
+  - System prompt section: "Sensei Profile — learned from conversations"
+
+#### XVI. Chat UI Modernization
+
+- [x] **Message Bubbles** (`ui/src/styles/chat/grouped.css`)
+  - Rounded corners 18px (from 12px) for modern iMessage/Telegram feel
+  - Tail-like corner radius: last bubble in group gets 4px on inner corner
+  - Subtle gradient on user bubbles (linear-gradient accent-subtle)
+  - Softer hover transitions with micro-scale animation
+- [x] **Avatars** (`ui/src/styles/chat/grouped.css`)
+  - Slightly smaller (36px from 40px) for better proportion
+  - Rounder corners (12px from 8px)
+  - Scale-up hover animation via --ease-spring
+- [x] **Streaming Animation** (`ui/src/styles/chat/grouped.css`)
+  - Replaced jarring border pulse → soft glow animation
+  - Separate light theme animation for proper visibility
+- [x] **Compose Area** (`ui/src/styles/chat/layout.css`)
+  - Pill-shaped textarea (border-radius 20px) for modern look
+  - Focus state: accent color ring + subtle glow
+  - Pill-shaped buttons with accent glow on primary button
+  - Active state: scale-down micro-animation (0.97)
+  - Better gradient fade (0% → 30% instead of 0% → 20%)
+- [x] **New Messages Pill** (`ui/src/styles/chat/layout.css`)
+  - Now accent-colored (solid) instead of ghost button
+  - Slide-up entry animation
+  - Hover lift effect + enhanced glow
+- [x] **Typography** (`ui/src/styles/chat/text.css`)
+  - Chat text line-height 1.6 (from 1.5) for better readability
+  - Letter-spacing -0.01em for tighter body text
+  - Thinking indicator: italic style, softer border
+- [x] **Cleanup**
+  - Removed duplicate light theme icon button CSS block
+  - Smooth scroll behavior on chat thread
+  - Better message group spacing (20px from 16px)
+  - Timestamp font-size 10px (from 11px) for subtlety
 
 ---
 

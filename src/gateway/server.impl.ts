@@ -109,6 +109,7 @@ import {
   startHealthScheduler,
   type HealthSchedulerHandle,
 } from "../arona/health/health-scheduler.js";
+import { initHealthConfig } from "../arona/health/health-config.js";
 import { initTaskStore } from "../arona/tasks/index.js";
 import { applyTrigger, decayMood } from "../companion/emotional-state.js";
 import { loadOrCreateMoodState, saveMoodState } from "../companion/mood-persistence.js";
@@ -1069,6 +1070,14 @@ export async function startGatewayServer(
       log.info("[Tasks] Task store initialized");
     } catch (err) {
       log.warn(`[Tasks] Failed to initialize task store: ${String(err)}`);
+    }
+
+    // Initialize health config (loads user preferences from disk)
+    try {
+      initHealthConfig(defaultWorkspaceDir);
+      log.info("[Health] Health config initialized");
+    } catch (err) {
+      log.warn(`[Health] Failed to initialize health config: ${String(err)}`);
     }
 
     // Start health reminder scheduler (water, eyes, movement, sleep)
