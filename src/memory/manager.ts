@@ -19,11 +19,13 @@ import {
   type OpenAiEmbeddingClient,
   type VoyageEmbeddingClient,
 } from "./embeddings.js";
+import { FileMemoryFallback } from "./file-memory-fallback.js";
 import { isFileMissingError, statRegularFile } from "./fs-utils.js";
 import { bm25RankToScore, buildFtsQuery, mergeHybridResults } from "./hybrid.js";
 import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
 import { LanceDbProvider } from "./lancedb-provider.js";
 import { MemoryManagerEmbeddingOps } from "./manager-embedding-ops.js";
+import { SqliteDeepMemoryProvider } from "./sqlite-deep-memory.js";
 import { searchKeyword, searchVector } from "./manager-search.js";
 import { extractKeywords } from "./query-expansion.js";
 import type {
@@ -113,6 +115,8 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   private lanceDbReady: Promise<void> | null = null;
   private senseiProfiler: SenseiProfiler | null = null;
   private reflectTimer: NodeJS.Timeout | null = null;
+  // File-based fallback when LanceDB native binary is unavailable
+  private fileMemoryFallback: FileMemoryFallback | null = null;
 
   static async get(params: {
     cfg: ShittimChestConfig;
@@ -231,15 +235,16 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
 
   /**
    * Initialize LanceDB provider and SenseiProfiler asynchronously.
-   * LanceDB is ALWAYS ON by default — only skipped when explicitly disabled via
-   * `memory.lancedb.logFullConversation: false`.
+   * Initialize deep memory provider and SenseiProfiler asynchronously.
+   * Tries LanceDB first; falls back to SQLite + sqlite-vec if LanceDB native
+   * binary is unavailable (e.g. darwin-x64).
    * This is fire-and-forget — failures are logged but never bubble up.
    */
   private initLanceDb(): void {
     const lancedbCfg = this.cfg.memory?.lancedb;
     // Only skip if user has explicitly set logFullConversation to false
     if (lancedbCfg?.logFullConversation === false) {
-      log.debug("LanceDB deep memory disabled via config (logFullConversation: false)");
+      log.debug("Deep memory disabled via config (logFullConversation: false)");
       return;
     }
 
@@ -248,15 +253,31 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     const vectorDim = this.vector.dims ?? 1536;
     this.lanceDb = new LanceDbProvider(dbPath, vectorDim);
 
-    // Kick off async init (connect + create table) in background
+    // Kick off async init: try LanceDB → fallback to SQLite deep memory
     this.lanceDbReady = (async () => {
       try {
-        // Trigger a benign operation to ensure table is created before first write
         await this.lanceDb!.count();
         log.debug("LanceDB initialized for deep memory");
       } catch (err) {
-        log.warn(`LanceDB init failed: ${String(err)}`);
+        const errStr = String(err);
         this.lanceDb = null;
+
+        // Fallback: use SQLite + sqlite-vec (works on all platforms)
+        try {
+          const sqliteProvider = new SqliteDeepMemoryProvider(dbPath, vectorDim);
+          await sqliteProvider.count(); // verify it works
+          // SqliteDeepMemoryProvider has the same API as LanceDbProvider
+          this.lanceDb = sqliteProvider as unknown as LanceDbProvider;
+          log.info(
+            `LanceDB native binary unavailable (${errStr.includes("Cannot find module") ? "missing platform binary" : "init error"}). ` +
+              "Using SQLite + sqlite-vec for deep memory instead.",
+          );
+        } catch (sqliteErr) {
+          log.warn(
+            `Deep memory unavailable (LanceDB: ${errStr}, SQLite: ${String(sqliteErr)}). Using file-based fallback.`,
+          );
+          this.fileMemoryFallback = new FileMemoryFallback(this.workspaceDir);
+        }
       }
     })();
 
@@ -291,23 +312,42 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     return this.provider;
   }
 
+  /** Return the file-based memory fallback, or null if LanceDB is working. */
+  getFileMemoryFallback(): FileMemoryFallback | null {
+    return this.fileMemoryFallback;
+  }
+
   /**
    * Record a single chat turn into LanceDB (fire-and-forget).
-   * Safe to call on every message; silently skips if LanceDB is not enabled.
+   * Falls back to file-based memory (memory/memory-DD-MM-YYYY.md) when LanceDB is unavailable.
    */
   recordChatTurn(role: "user" | "assistant" | "system", text: string): void {
-    if (!this.lanceDb || !text.trim()) return;
+    if (!text.trim()) return;
 
     // Add user messages to SenseiProfiler buffer (batched background analysis)
     if (role === "user" && this.senseiProfiler) {
       this.senseiProfiler.addMessage(text);
     }
 
+    // Use file-based fallback when LanceDB is not available
+    if (!this.lanceDb && this.fileMemoryFallback) {
+      this.fileMemoryFallback.recordChatTurn(role, text);
+      return;
+    }
+
+    if (!this.lanceDb) return;
+
     void (async () => {
       try {
         // Wait for LanceDB to be ready before first write
         if (this.lanceDbReady) await this.lanceDbReady;
-        if (!this.lanceDb) return;
+        // After awaiting, LanceDB might have failed — use file fallback
+        if (!this.lanceDb) {
+          if (this.fileMemoryFallback) {
+            this.fileMemoryFallback.recordChatTurn(role, text);
+          }
+          return;
+        }
 
         const embeddingProvider = this.provider;
         const vector = embeddingProvider
@@ -325,6 +365,10 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
         });
       } catch (err) {
         log.debug(`LanceDB chat turn recording failed: ${String(err)}`);
+        // Last resort: try file fallback
+        if (this.fileMemoryFallback) {
+          this.fileMemoryFallback.recordChatTurn(role, text);
+        }
       }
     })();
   }

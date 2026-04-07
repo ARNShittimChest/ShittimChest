@@ -227,7 +227,28 @@ ${messages.map((m) => `[${new Date(m.timestamp).toLocaleTimeString()}] ${m.text}
 
         const lanceDb = this.memoryManager.getLanceDbProvider();
         if (!lanceDb) {
-          log.debug("SenseiProfiler: lanceDb not available to store profile insight.");
+          // Fallback: write to file-based memory when LanceDB is unavailable
+          const fileFallback = this.memoryManager.getFileMemoryFallback();
+          if (fileFallback) {
+            const facts = extractedText
+              .split("\n")
+              .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+              .filter((line) => line.length > 5);
+            for (const fact of facts) {
+              const categoryMatch = fact.match(/^\[(\w+)\]\s*/);
+              const category = categoryMatch?.[1]?.toLowerCase() ?? "other";
+              const cleanFact = categoryMatch ? fact.slice(categoryMatch[0].length) : fact;
+              await fileFallback.storeProfileInsight(category, cleanFact);
+              this.recentInsights.push(cleanFact);
+            }
+            if (this.recentInsights.length > 15) {
+              this.recentInsights = this.recentInsights.slice(-15);
+            }
+          } else {
+            log.debug(
+              "SenseiProfiler: neither lanceDb nor file fallback available to store profile insight.",
+            );
+          }
           return;
         }
         const provider = this.memoryManager.getEmbeddingProvider();
