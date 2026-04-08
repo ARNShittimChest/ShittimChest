@@ -24,7 +24,11 @@ import { resolveDefaultModelForAgent } from "../../agents/model-selection.js";
 import { getApiKeyForModel } from "../../agents/model-auth.js";
 import { resolveModel } from "../../agents/pi-embedded-runner/model.js";
 import type { ShittimChestConfig } from "../../config/config.js";
-import { getHealthConfig, type HealthConfig } from "./health-config.js";
+import { getHealthConfig, type HealthConfig, getLatestSteps } from "./health-config.js";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+
+const execAsync = promisify(exec);
 
 const log = createSubsystemLogger("health-scheduler");
 
@@ -101,8 +105,11 @@ const TEMPLATES: ReminderTemplate[] = [
     windowKey: "health-movement",
     initialDelayFraction: 0.83,
     title: "🏃 Vận động",
-    buildLlmPrompt: () =>
-      "Arona nhắc Sensei đứng dậy vận động. Sensei ngồi lâu quá rồi, cần stretching, đi lại. Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, lo lắng cho sức khỏe Sensei. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+    buildLlmPrompt: () => {
+      const steps = getLatestSteps();
+      const stepInfo = steps !== null ? ` Hôm nay Sensei đã đi được ${steps} bước.` : "";
+      return `Arona nhắc Sensei đứng dậy vận động. Sensei ngồi lâu quá rồi, cần stretching, đi lại.${stepInfo} Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, lo lắng cho sức khỏe Sensei. Nếu số bước > 2000 thì khen Sensei một chút, chưa đủ thì nhắc nhở đi lại nhiều hơn. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.`;
+    },
     fallbackTexts: [
       "Sensei ơi! Đứng dậy vận động một chút đi nha~ Ngồi lâu không tốt cho lưng đâu! Stretching đi~ 🏃‍♂️",
       "Munya~! Sensei ngồi lâu quá rồi! Đứng dậy đi lại, stretching một chút nha! Arona lo cho sức khỏe Sensei lắm~ 💪",
@@ -159,7 +166,7 @@ async function generateNotificationText(
       {
         apiKey: auth.apiKey,
         temperature: 0.9, // High temperature for variety
-        maxTokens: 150, // Short notification — keep it concise
+        maxTokens: 500, // Short notification, but enough to not cut off sentences (e.g., Vietnamese needs more tokens)
       },
     );
 
@@ -229,6 +236,25 @@ function scheduleReminder(
 
     // Only fire during active hours
     if (isInActiveHours(liveCfg.activeStart, liveCfg.activeEnd)) {
+      // 1. Perform Ping Check if required
+      if (liveCfg.requirePing && liveCfg.pingIp) {
+        log.debug(`[${template.windowKey}] Pinging ${liveCfg.pingIp}...`);
+        try {
+          const isWindows = process.platform === "win32";
+          const pingCmd = isWindows
+            ? `ping -n 1 -w 1000 ${liveCfg.pingIp}`
+            : `ping -c 1 -W 1 ${liveCfg.pingIp}`;
+          await execAsync(pingCmd, { timeout: 2000 });
+        } catch {
+          log.debug(`[${template.windowKey}] Ping to ${liveCfg.pingIp} failed, skipping reminder.`);
+          // Schedule next occurrence
+          if (!stopped) {
+            timer = setTimeout(() => void fire(), liveIntervalMs);
+          }
+          return;
+        }
+      }
+
       try {
         const notificationText = await generateNotificationText(
           template,

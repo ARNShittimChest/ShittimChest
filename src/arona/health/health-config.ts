@@ -23,6 +23,10 @@ export interface HealthReminderConfig {
   /** Active hours range (24h format). */
   activeStart: number;
   activeEnd: number;
+  /** Whether to ping a specific IP before sending. If ping fails, the reminder is skipped. */
+  requirePing?: boolean;
+  /** The IPv4 or hostname to ping. */
+  pingIp?: string;
 }
 
 export interface HealthConfig {
@@ -50,24 +54,32 @@ export const DEFAULT_HEALTH_CONFIG: HealthConfig = {
     intervalMinutes: 120,
     activeStart: 7,
     activeEnd: 22,
+    requirePing: false,
+    pingIp: "",
   },
   eyes: {
     enabled: true,
     intervalMinutes: 45,
     activeStart: 7,
     activeEnd: 23,
+    requirePing: false,
+    pingIp: "",
   },
   movement: {
     enabled: true,
     intervalMinutes: 180,
     activeStart: 7,
     activeEnd: 22,
+    requirePing: false,
+    pingIp: "",
   },
   sleep: {
     enabled: true,
     intervalMinutes: 1440, // once per day
     activeStart: 22,
     activeEnd: 23,
+    requirePing: false,
+    pingIp: "",
   },
 };
 
@@ -75,6 +87,14 @@ export const DEFAULT_HEALTH_CONFIG: HealthConfig = {
 
 let config: HealthConfig | null = null;
 let configPath: string | null = null;
+let latestSteps: number | null = null;
+
+export function updateSteps(steps: number) {
+  latestSteps = steps;
+}
+export function getLatestSteps() {
+  return latestSteps;
+}
 
 /**
  * Ring buffer of recently sent reminders (in-memory only, not persisted).
@@ -207,7 +227,11 @@ export function buildHealthConfigSummary(): string {
 
   const describe = (name: string, c: HealthReminderConfig): string => {
     if (!c.enabled) return `- ${name}: OFF`;
-    return `- ${name}: every ${c.intervalMinutes}min (${c.activeStart}:00-${c.activeEnd}:00)`;
+    let desc = `- ${name}: every ${c.intervalMinutes}min (${c.activeStart}:00-${c.activeEnd}:00)`;
+    if (c.requirePing && c.pingIp) {
+      desc += ` (Pings ${c.pingIp} before firing)`;
+    }
+    return desc;
   };
 
   lines.push(describe("Water", cfg.water));
@@ -239,6 +263,16 @@ export function buildHealthConfigSummary(): string {
   lines.push(
     "Sensei can adjust these by telling Arona, e.g. 'nhắc uống nước mỗi 1.5 tiếng' or 'turn off eye break reminders'.",
   );
+
+  if (latestSteps !== null) {
+    // Inject step count info into prompt so Arona knows Sensei's activity
+    lines.push("");
+    lines.push(`[Current HealthKit Data]`);
+    lines.push(`Sensei has walked ${latestSteps} steps today.`);
+    lines.push(
+      `If Sensei has walked over 2000 steps recently, you can praise them in the Movement reminder, otherwise encourage them more.`,
+    );
+  }
 
   return lines.join("\n");
 }

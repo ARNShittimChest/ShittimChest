@@ -262,6 +262,9 @@ export type AppViewState = {
   logsLimit: number;
   logsMaxBytes: number;
   logsAtBottom: boolean;
+  healthRemindersLoading: boolean;
+  healthRemindersResult: import("./types.js").HealthRemindersGetResult | null;
+  healthRemindersError: string | null;
   updateAvailable: import("./types.js").UpdateAvailable | null;
   client: GatewayBrowserClient | null;
   refreshSessionsAfterChat: Set<string>;

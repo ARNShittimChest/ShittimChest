@@ -638,3 +638,24 @@ export type LogEntry = {
   message?: string | null;
   meta?: Record<string, unknown> | null;
 };
+
+export interface HealthReminderConfig {
+  enabled: boolean;
+  intervalMinutes: number;
+  activeStart: number;
+  activeEnd: number;
+  requirePing?: boolean;
+  pingIp?: string;
+}
+
+export interface HealthConfig {
+  water: HealthReminderConfig;
+  eyes: HealthReminderConfig;
+  movement: HealthReminderConfig;
+  sleep: HealthReminderConfig;
+}
+
+export interface HealthRemindersGetResult {
+  config: HealthConfig;
+  steps: number | null;
+}

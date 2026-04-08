@@ -374,6 +374,10 @@ export class ShittimChestApp extends LitElement {
   @state() logsMaxBytes = 250_000;
   @state() logsAtBottom = true;
 
+  @state() healthRemindersLoading = false;
+  @state() healthRemindersResult: import("./types.js").HealthRemindersGetResult | null = null;
+  @state() healthRemindersError: string | null = null;
+
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
   private chatScrollTimeout: number | null = null;

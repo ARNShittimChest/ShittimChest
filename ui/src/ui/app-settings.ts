@@ -251,6 +251,10 @@ export async function refreshActiveTab(host: SettingsHost) {
     await loadLogs(host as unknown as ShittimChestApp, { reset: true });
     scheduleLogsScroll(host as unknown as Parameters<typeof scheduleLogsScroll>[0], true);
   }
+  if (host.tab === "health") {
+    const { loadHealthConfig } = await import("./controllers/health.ts");
+    await loadHealthConfig(host as unknown as ShittimChestApp);
+  }
 }
 
 export function inferBasePath() {

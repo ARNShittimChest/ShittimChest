@@ -14,6 +14,7 @@
  *   POST /arona/push/test       — enqueue test push (requires gateway token header)
  *   GET  /arona/push/tokens     — list registration count (requires gateway token header)
  *   POST /arona/push/location   — update GPS coordinates (requires gateway token header)
+ *   POST /arona/push/health     — update health data like steps (requires gateway token header)
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -34,6 +35,7 @@ import { reverseGeocode } from "../geocoding.js";
 import { getWeatherData } from "../weather/weather-store.js";
 import { forceRefreshWeather } from "../weather/weather-store.js";
 import { buildWeatherShortSummary } from "../weather/weather-mood.js";
+import { updateSteps } from "../health/health-config.js";
 
 const PUSH_BASE = "/arona/push";
 
@@ -283,6 +285,29 @@ export async function handleAronaPushRequest(
       sendJson(res, 200, { ok: true, locationChanged });
     } else {
       sendJson(res, 400, { ok: false, error: "missing lat/lon" });
+    }
+    return true;
+  }
+
+  // ── POST /arona/push/health ─────────────────────────────────────────────
+  if (subPath === "health" && req.method === "POST") {
+    if (!hasGatewayToken(req)) {
+      sendJson(res, 401, { ok: false, error: "Unauthorized" });
+      return true;
+    }
+    const raw = await readBody(req);
+    let body: { steps?: number } = {};
+    try {
+      body = JSON.parse(raw) as typeof body;
+    } catch {
+      sendJson(res, 400, { ok: false, error: "invalid JSON" });
+      return true;
+    }
+    if (typeof body.steps === "number") {
+      updateSteps(body.steps);
+      sendJson(res, 200, { ok: true });
+    } else {
+      sendJson(res, 400, { ok: false, error: "missing steps" });
     }
     return true;
   }
