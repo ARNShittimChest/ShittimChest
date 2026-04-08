@@ -1,0 +1,326 @@
+================================================================================
+SHITTIMCHEST iOS - QUICK START GUIDE FOR UI CHANGES
+================================================================================
+
+PROJECT: /Volumes/OCungRoi/PRJ/Arona-CLW/apps/ios
+iOS TARGET: 18.0+
+SWIFT VERSION: 6.0 (strict concurrency)
+STATUS: Super-Alpha (internal use)
+
+================================================================================
+1. KEY FACTS AT A GLANCE
+================================================================================
+
+✓ Primary Architecture: Overlay Canvas (RootCanvas.swift)
+  - Main WebView (remote UI) with floating buttons and status indicators
+  - Not TabView-based (that's a fallback in RootTabs.swift)
+
+✓ State Management: @Observable (NodeAppModel)
+  - Single source of truth for connection, voice, camera, location, etc.
+  - ~2500 lines, defined in Model/NodeAppModel.swift
+  - @MainActor enforced (main thread only)
+
+✓ Networking: WebSocket (ShittimChestKit)
+  - Two sessions: nodeGateway (device capabilities) + operatorGateway (chat/talk)
+  - Bonjour/mDNS discovery for local gateway
+  - TLS fingerprint verification on first connect
+  - APNs for background wake/notifications
+
+✓ Settings: @AppStorage + Keychain
+  - UserDefaults for simple toggles
+  - Keychain for tokens/passwords
+  - GatewaySettingsStore handles persistence
+
+✓ Color Scheme: Dark mode, seamColor accents
+  - .ultraThinMaterial glass morphism
+  - seamColor = agent-specific accent (green/blue/purple typically)
+  - Status: green=connected, yellow=connecting, red=error, gray=offline
+
+✓ Voice & Talk: Microphone contention
+  - VoiceWakeManager handles wake word detection
+  - TalkModeManager handles voice conversation
+  - Both use microphone; Talk suppresses Wake
+  - TalkOrbOverlay shows animated radial gradient in center
+
+================================================================================
+2. NAVIGATION & UI FLOW
+================================================================================
+
+RootCanvas (Main Canvas - 22KB)
+├─ ScreenTab()                     [WKWebView - remote agent UI]
+├─ Overlay Buttons (top-right)     [VStack of OverlayButton]
+│  ├─ Chat Button                  → Opens ChatSheet modal
+│  ├─ Talk Button                  → Toggles talkMode (in-place)
+│  └─ Settings Button              → Opens SettingsTab sheet
+├─ StatusPill (top-left)           [Connection + voice status indicator]
+├─ VoiceWakeToast (top-left)       [Toast showing voice commands]
+└─ TalkOrbOverlay (center)         [Animated orb during Talk mode]
+
+Sheet Modals:
+- SettingsTab (settings UI)
+- ChatSheet (chat interface)
+- GatewayQuickSetupSheet (onboarding helper)
+
+Full-Screen Cover:
+- OnboardingWizardView (first-time setup)
+
+================================================================================
+3. WHERE TO ADD HEALTH/WELLNESS UI
+================================================================================
+
+OPTION A: Add a new section in SettingsTab
+  Location: Settings/SettingsTab.swift (line ~250+)
+  Pattern: Use DisclosureGroup("Health & Wellness") { ... }
+  Example:
+    DisclosureGroup("Health & Wellness") {
+        LabeledContent("Battery", value: "92%")
+        LabeledContent("Network", value: "WiFi 5GHz")
+        LabeledContent("Location", value: "Always")
+    }
+
+OPTION B: Create a dedicated HealthDashboard view
+  Location: Create Health/HealthDashboardView.swift
+  Add to RootCanvas as a new sheet case
+  Access via StatusPill or settings button
+
+RECOMMENDED: Option A (lightweight, follows existing pattern)
+
+================================================================================
+4. SETTINGS KEYS TO USE (for storing health data)
+================================================================================
+
+@AppStorage("health.lastBatteryCheck")     Int (timestamp)
+@AppStorage("health.batteryLevel")         Int (0-100)
+@AppStorage("health.networkQuality")       String ("excellent"/"good"/"poor")
+@AppStorage("health.voiceWakeSessions")    Int (counter)
+@AppStorage("health.talkModeDuration")     Int (seconds total)
+@AppStorage("health.locationUpdates")      Int (counter)
+
+For secure/complex data, use GatewaySettingsStore pattern
+
+================================================================================
+5. STATE MANAGEMENT (NodeAppModel extensions)
+================================================================================
+
+To add health data to the app model:
+
+STEP 1: Add properties to NodeAppModel
+  var batteryLevel: Int = 100
+  var networkQuality: String = "unknown"
+  var voiceWakeSessions: Int = 0
+
+STEP 2: Update via methods
+  func updateDeviceHealth() async {
+      let status = try await self.deviceStatusService.status()
+      self.batteryLevel = status.batteryLevel
+      // update networkQuality, etc.
+  }
+
+STEP 3: Call from main loop or on-demand
+  In RootCanvas.onAppear or via a polling task
+
+================================================================================
+6. COLOR & DESIGN PATTERNS TO FOLLOW
+================================================================================
+
+Material Background:
+  .ultraThinMaterial              [glass morphism - primary]
+  .thinMaterial                   [cards/containers - secondary]
+  .shadow(color: .black.opacity(0.25), radius: 12, y: 6)  [std depth]
+
+Accent Color:
+  self.appModel.seamColor         [use this for health indicator highlights]
+
+Status Colors:
+  .green      → Healthy/Connected
+  .yellow     → Warning/Connecting
+  .red        → Error/Alert
+  .gray       → Offline/Inactive
+  .orange     → Caution/Maintenance
+
+Text:
+  .font(.subheadline.weight(.semibold))    [labels]
+  .font(.footnote)                         [secondary info]
+  .foregroundStyle(.secondary)             [muted text]
+
+Spacing:
+  .padding(.vertical, 8)
+  .padding(.horizontal, 12)
+  Standard SwiftUI defaults
+
+Animation:
+  .spring(response: 0.25, dampingFraction: 0.85)  [responsive]
+  .easeOut(duration: 0.25)                         [dismissal]
+  .easeInOut(duration: 0.9)                        [pulsing]
+
+================================================================================
+7. PERMISSIONS TO CHECK
+================================================================================
+
+Health/Device Status Services Already Permitted:
+  - Camera (NSCameraUsageDescription)
+  - Location (NSLocationWhenInUseUsageDescription)
+  - Microphone (NSMicrophoneUsageDescription)
+  - Contacts, Calendar, Reminders (all declared)
+
+If adding new capabilities:
+  1. Add to Info.plist (camera, microphone, location, etc.)
+  2. Update ShittimChest.entitlements if needed
+  3. Request authorization before use (async)
+
+================================================================================
+8. API COMMUNICATION PATTERNS
+================================================================================
+
+To fetch health data from gateway:
+
+Pattern 1: Direct method call (RPC)
+  try await self.nodeGateway.send(method: "device.status", params: {})
+
+Pattern 2: Event emission (streaming)
+  await self.sendEvent(event: "health.update", payloadJSON: jsonData)
+
+Pattern 3: Service integration (preferred for device capabilities)
+  let status = try await self.deviceStatusService.status()
+  // status contains battery, network, thermal, memory, etc.
+
+All networking is async/await with Swift 6 structured concurrency
+Error handling: try/catch or try? with fallbacks
+
+================================================================================
+9. TESTING YOUR CHANGES
+================================================================================
+
+1. Run in Xcode:
+   open ShittimChest.xcodeproj
+   Select target: ShittimChest
+   Build & Run on iPhone
+
+2. Settings for testing:
+   Settings → Gateway → [connect to test gateway]
+   Settings → Device Features → [enable features]
+
+3. Debugging:
+   - Check Xcode console for logs (ai.shittimchest.ios subsystem)
+   - Enable "canvas.debugStatusEnabled" to see debug overlay
+   - Use Discovery Debug Logs if connection issues
+
+================================================================================
+10. KEY FILES TO READ FIRST (IN ORDER)
+================================================================================
+
+1. RootCanvas.swift (22KB)
+   - Main UI structure, overlay buttons, navigation
+   - Shows how to open sheets, manage state
+
+2. Settings/SettingsTab.swift (49KB)
+   - Complete settings UI example
+   - Shows DisclosureGroup, Toggle, LabeledContent patterns
+   - Copy this pattern for health section
+
+3. Model/NodeAppModel.swift (2500+ lines)
+   - Core state management
+   - How to add new state properties
+   - Methods for updating device services
+
+4. Voice/TalkOrbOverlay.swift
+   - Example of material design + animations
+   - Radial gradient, opacity blending
+
+5. Status/StatusPill.swift
+   - Status indicator component
+   - Animation patterns (pulsing, opacity)
+
+================================================================================
+11. COMMON PATTERNS TO COPY & PASTE
+================================================================================
+
+PATTERN 1: Toggle with Description
+  @AppStorage("health.enabled") var healthEnabled: Bool = false
+  
+  Toggle("Health Monitoring", isOn: self.$healthEnabled)
+  Text("Tracks device battery, network, and performance.")
+      .font(.footnote)
+      .foregroundStyle(.secondary)
+
+PATTERN 2: Status Display (LabeledContent)
+  LabeledContent("Battery", value: "92%")
+  LabeledContent("Network", value: "5GHz WiFi")
+  LabeledContent("Location", value: "Always")
+
+PATTERN 3: Gauge/Progress (iOS 16+)
+  Gauge(value: Double(batteryLevel) / 100.0) {
+      Text("Battery")
+  }
+  .gaugeStyle(.linear)
+
+PATTERN 4: Card with Material Background
+  VStack(alignment: .leading, spacing: 12) {
+      Text("Health Status")
+          .font(.headline)
+      Text(healthStatusText)
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+  }
+  .padding(12)
+  .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+  .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
+
+PATTERN 5: State Update in Task
+  .onAppear {
+      Task { @MainActor in
+          await self.appModel.updateDeviceHealth()
+      }
+  }
+
+================================================================================
+12. IMPORTANT: DON'T DO THIS
+================================================================================
+
+❌ Use NavigationStack in RootCanvas (breaks canvas UX)
+❌ Store health data in AppModel without @Observable property
+❌ Block main thread in UI updates (always use async/await)
+❌ Use Light color scheme (.preferredColorScheme(.light))
+❌ Forget @MainActor on async callbacks
+❌ Add new settings without storing them in @AppStorage or Keychain
+❌ Use arbitrary font sizes (stick to .caption/.footnote/.subheadline)
+❌ Forget to respect .accessibilityReduceMotion
+
+================================================================================
+13. BUILD & DEPLOYMENT
+================================================================================
+
+Build Command:
+  cd /Volumes/OCungRoi/PRJ/Arona-CLW/apps/ios
+  xcodegen generate
+  open ShittimChest.xcodeproj
+
+Signing:
+  Use apps/ios/LocalSigning.xcconfig.example if needed
+  Or rely on team provisioning
+
+Deployment:
+  Currently manual Xcode only (no TestFlight)
+  Use Xcode's "Run on connected device"
+
+================================================================================
+14. ARCHITECTURE SUMMARY IN ONE SENTENCE
+================================================================================
+
+"Single @Observable app model (NodeAppModel) powers a canvas-based UI
+(RootCanvas) with WebSocket connections to a remote gateway, dark material
+design, seamColor accents, and full device integration (camera, location,
+contacts, calendar, voice, talk, notifications)."
+
+================================================================================
+END OF QUICK START
+================================================================================
+
+Full detailed analysis available at:
+/tmp/iOS_ARCHITECTURE_ANALYSIS.md
+
+Questions? Check:
+1. Apps/ios/README.md (setup, limitations, known issues)
+2. Apps/ios/project.yml (build configuration)
+3. Apps/shared/ShittimChestKit/ (shared framework with WebSocket, device commands)
+

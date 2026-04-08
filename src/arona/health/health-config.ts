@@ -83,17 +83,62 @@ export const DEFAULT_HEALTH_CONFIG: HealthConfig = {
   },
 };
 
+// ── HealthKit data (pushed from iOS) ────────────────────────────
+
+export interface HealthKitData {
+  steps: number | null;
+  heartRate: number | null;
+  restingHeartRate: number | null;
+  sleepHours: number | null;
+  sleepQuality: string | null; // "good" | "fair" | "poor"
+  lastWorkoutType: string | null;
+  lastWorkoutMinutes: number | null;
+  lastWorkoutEndISO: string | null;
+  activeEnergyKcal: number | null;
+  updatedAt: number; // epoch ms
+}
+
+const DEFAULT_HEALTHKIT_DATA: HealthKitData = {
+  steps: null,
+  heartRate: null,
+  restingHeartRate: null,
+  sleepHours: null,
+  sleepQuality: null,
+  lastWorkoutType: null,
+  lastWorkoutMinutes: null,
+  lastWorkoutEndISO: null,
+  activeEnergyKcal: null,
+  updatedAt: 0,
+};
+
 // ── In-memory state ─────────────────────────────────────────────
 
 let config: HealthConfig | null = null;
 let configPath: string | null = null;
-let latestSteps: number | null = null;
+let healthKitData: HealthKitData = { ...DEFAULT_HEALTHKIT_DATA };
 
+/** @deprecated Use updateHealthKitData({ steps }) instead */
 export function updateSteps(steps: number) {
-  latestSteps = steps;
+  healthKitData.steps = steps;
+  healthKitData.updatedAt = Date.now();
 }
 export function getLatestSteps() {
-  return latestSteps;
+  return healthKitData.steps;
+}
+
+/** Update HealthKit data from iOS push. Merges non-null fields. */
+export function updateHealthKitData(data: Partial<HealthKitData>): void {
+  for (const key of Object.keys(data) as (keyof HealthKitData)[]) {
+    if (data[key] !== undefined && data[key] !== null) {
+      (healthKitData as any)[key] = data[key];
+    }
+  }
+  healthKitData.updatedAt = Date.now();
+}
+
+/** Get all HealthKit data. */
+export function getHealthKitData(): HealthKitData {
+  return { ...healthKitData };
 }
 
 /**
@@ -264,14 +309,64 @@ export function buildHealthConfigSummary(): string {
     "Sensei can adjust these by telling Arona, e.g. 'nhắc uống nước mỗi 1.5 tiếng' or 'turn off eye break reminders'.",
   );
 
-  if (latestSteps !== null) {
-    // Inject step count info into prompt so Arona knows Sensei's activity
+  if (
+    healthKitData.steps !== null ||
+    healthKitData.heartRate !== null ||
+    healthKitData.sleepHours !== null
+  ) {
     lines.push("");
     lines.push(`[Current HealthKit Data]`);
-    lines.push(`Sensei has walked ${latestSteps} steps today.`);
-    lines.push(
-      `If Sensei has walked over 2000 steps recently, you can praise them in the Movement reminder, otherwise encourage them more.`,
-    );
+
+    if (healthKitData.steps !== null) {
+      lines.push(`Steps today: ${healthKitData.steps}`);
+      if (healthKitData.steps > 2000) {
+        lines.push(`Sensei has been active! Praise them in Movement reminders.`);
+      } else {
+        lines.push(`Sensei hasn't walked much. Encourage more movement in reminders.`);
+      }
+    }
+
+    if (healthKitData.heartRate !== null) {
+      lines.push(`Latest heart rate: ${healthKitData.heartRate} BPM`);
+    }
+    if (healthKitData.restingHeartRate !== null) {
+      lines.push(`Resting heart rate: ${healthKitData.restingHeartRate} BPM`);
+    }
+    if (healthKitData.activeEnergyKcal !== null) {
+      lines.push(`Active energy burned today: ${healthKitData.activeEnergyKcal.toFixed(0)} kcal`);
+    }
+
+    if (healthKitData.sleepHours !== null) {
+      lines.push(
+        `Last night sleep: ${healthKitData.sleepHours.toFixed(1)} hours (${healthKitData.sleepQuality ?? "unknown"} quality)`,
+      );
+      if (healthKitData.sleepHours < 6) {
+        lines.push(`Sensei slept poorly — encourage rest, suggest earlier sleep tonight.`);
+      } else if (healthKitData.sleepHours >= 7.5) {
+        lines.push(`Sensei slept well! Mention this positively if relevant.`);
+      }
+    }
+
+    if (healthKitData.lastWorkoutType) {
+      const workoutInfo = `Last workout: ${healthKitData.lastWorkoutType}`;
+      const durationInfo = healthKitData.lastWorkoutMinutes
+        ? ` (${healthKitData.lastWorkoutMinutes.toFixed(0)} min)`
+        : "";
+      const endInfo = healthKitData.lastWorkoutEndISO
+        ? `, ended at ${healthKitData.lastWorkoutEndISO}`
+        : "";
+      lines.push(`${workoutInfo}${durationInfo}${endInfo}`);
+
+      // Check if workout was recent (< 2 hours)
+      if (healthKitData.lastWorkoutEndISO) {
+        const endAge = Date.now() - new Date(healthKitData.lastWorkoutEndISO).getTime();
+        if (endAge < 2 * 60 * 60 * 1000) {
+          lines.push(
+            `Sensei just finished working out — no need to push Movement reminders right now, praise them instead!`,
+          );
+        }
+      }
+    }
   }
 
   return lines.join("\n");

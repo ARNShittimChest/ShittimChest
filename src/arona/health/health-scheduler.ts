@@ -24,7 +24,12 @@ import { resolveDefaultModelForAgent } from "../../agents/model-selection.js";
 import { getApiKeyForModel } from "../../agents/model-auth.js";
 import { resolveModel } from "../../agents/pi-embedded-runner/model.js";
 import type { ShittimChestConfig } from "../../config/config.js";
-import { getHealthConfig, type HealthConfig, getLatestSteps } from "./health-config.js";
+import {
+  getHealthConfig,
+  type HealthConfig,
+  getLatestSteps,
+  getHealthKitData,
+} from "./health-config.js";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 
@@ -106,9 +111,13 @@ const TEMPLATES: ReminderTemplate[] = [
     initialDelayFraction: 0.83,
     title: "🏃 Vận động",
     buildLlmPrompt: () => {
-      const steps = getLatestSteps();
-      const stepInfo = steps !== null ? ` Hôm nay Sensei đã đi được ${steps} bước.` : "";
-      return `Arona nhắc Sensei đứng dậy vận động. Sensei ngồi lâu quá rồi, cần stretching, đi lại.${stepInfo} Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, lo lắng cho sức khỏe Sensei. Nếu số bước > 2000 thì khen Sensei một chút, chưa đủ thì nhắc nhở đi lại nhiều hơn. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.`;
+      const hk = getHealthKitData();
+      const stepInfo = hk.steps !== null ? ` Hôm nay Sensei đã đi được ${hk.steps} bước.` : "";
+      const energyInfo = hk.activeEnergyKcal
+        ? ` Đã đốt ${hk.activeEnergyKcal.toFixed(0)} kcal hôm nay.`
+        : "";
+      const hrInfo = hk.heartRate ? ` Nhịp tim hiện tại: ${hk.heartRate} BPM.` : "";
+      return `Arona nhắc Sensei đứng dậy vận động. Sensei ngồi lâu quá rồi, cần stretching, đi lại.${stepInfo}${energyInfo}${hrInfo} Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, lo lắng cho sức khỏe Sensei. Nếu số bước > 2000 thì khen Sensei một chút, chưa đủ thì nhắc nhở đi lại nhiều hơn. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.`;
     },
     fallbackTexts: [
       "Sensei ơi! Đứng dậy vận động một chút đi nha~ Ngồi lâu không tốt cho lưng đâu! Stretching đi~ 🏃‍♂️",
@@ -122,8 +131,14 @@ const TEMPLATES: ReminderTemplate[] = [
     windowKey: "health-sleep",
     initialDelayFraction: 0, // calculated dynamically
     title: "😴 Nhắc đi ngủ",
-    buildLlmPrompt: () =>
-      "Đã khuya rồi. Arona nhắc Sensei chuẩn bị đi ngủ, ngày mai còn cần năng lượng. Viết 1-2 câu dịu dàng, lo lắng, buồn ngủ kiểu Arona. Arona cũng buồn ngủ. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+    buildLlmPrompt: () => {
+      const hk = getHealthKitData();
+      const sleepInfo = hk.sleepHours
+        ? ` Đêm qua Sensei ngủ ${hk.sleepHours.toFixed(1)} tiếng (${hk.sleepQuality ?? "unknown"}).`
+        : "";
+      const stepsInfo = hk.steps !== null ? ` Hôm nay Sensei đã đi ${hk.steps} bước.` : "";
+      return `Đã khuya rồi. Arona nhắc Sensei chuẩn bị đi ngủ, ngày mai còn cần năng lượng.${sleepInfo}${stepsInfo} Nếu đêm qua ngủ ít thì nhắc nhẹ hôm nay phải ngủ sớm hơn. Viết 1-2 câu dịu dàng, lo lắng, buồn ngủ kiểu Arona. Arona cũng buồn ngủ. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.`;
+    },
     fallbackTexts: [
       "Sensei ơi... đã khuya rồi nè... Chuẩn bị đi ngủ đi nha, ngày mai còn cần năng lượng mà~ Arona cũng buồn ngủ lắm rồi... Munya... 🌙💤",
     ],
@@ -233,9 +248,34 @@ function scheduleReminder(
     }
 
     const liveIntervalMs = liveCfg.intervalMinutes * 60_000;
+    let nextIntervalMs = liveIntervalMs;
 
     // Only fire during active hours
     if (isInActiveHours(liveCfg.activeStart, liveCfg.activeEnd)) {
+      // Smart skip: auto-adjust based on HealthKit data
+      const hk = getHealthKitData();
+
+      // Skip movement reminder if Sensei just finished a workout (< 1 hour ago)
+      if (template.configKey === "movement" && hk.lastWorkoutEndISO) {
+        const workoutEndAge = Date.now() - new Date(hk.lastWorkoutEndISO).getTime();
+        if (workoutEndAge < 60 * 60 * 1000 && workoutEndAge > 0) {
+          log.debug(
+            `[${template.windowKey}] Skipping — Sensei finished ${hk.lastWorkoutType ?? "workout"} ${Math.round(workoutEndAge / 60_000)} min ago`,
+          );
+          if (!stopped) {
+            timer = setTimeout(() => void fire(), liveIntervalMs);
+          }
+          return;
+        }
+      }
+
+      // Adjust water reminder interval: increase frequency if Sensei is active
+      if (template.configKey === "water" && hk.activeEnergyKcal && hk.activeEnergyKcal > 300) {
+        nextIntervalMs = Math.max(liveIntervalMs * 0.7, 30 * 60_000); // At least 30min
+        log.debug(
+          `[${template.windowKey}] Active day (${hk.activeEnergyKcal.toFixed(0)} kcal) — water interval adjusted to ${Math.round(nextIntervalMs / 60_000)} min`,
+        );
+      }
       // 1. Perform Ping Check if required
       if (liveCfg.requirePing && liveCfg.pingIp) {
         log.debug(`[${template.windowKey}] Pinging ${liveCfg.pingIp}...`);
@@ -271,9 +311,9 @@ function scheduleReminder(
       }
     }
 
-    // Schedule next occurrence with live interval
+    // Schedule next occurrence with adjusted interval
     if (!stopped) {
-      timer = setTimeout(() => void fire(), liveIntervalMs);
+      timer = setTimeout(() => void fire(), nextIntervalMs);
     }
   }
 

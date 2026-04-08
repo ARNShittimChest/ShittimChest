@@ -1,0 +1,496 @@
+================================================================================
+SHITTIMCHEST iOS - VISUAL ARCHITECTURE DIAGRAM
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           APP ENTRY POINT                                   │
+│                        ShittimChestApp (@main)                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────────┐      ┌──────────────────────────────────────┐    │
+│  │   NodeAppModel       │      │  GatewayConnectionController        │    │
+│  │  (@Observable,       │      │  - Discovery (Bonjour/mDNS)       │    │
+│  │  @MainActor)         │      │  - Connection state machine       │    │
+│  │                      │      │  - Health monitoring              │    │
+│  │ Properties:          │      └──────────────────────────────────────┘    │
+│  │ • Connection state   │                                                   │
+│  │ • Voice/Talk state   │      ┌──────────────────────────────────────┐    │
+│  │ • UI state           │      │  ShittimChestAppDelegate          │    │
+│  │ • Device services    │      │  - APNs registration             │    │
+│  │ • Agent info         │      │  - Background wake               │    │
+│  │ • Seamcolor accent   │      │  - Notification handling         │    │
+│  └──────────────────────┘      └──────────────────────────────────────┘    │
+│                                                                              │
+│  Device Services Injected Into NodeAppModel:                                │
+│  ├─ ScreenController         (WebView rendering)                            │
+│  ├─ CameraController         (photo/video)                                  │
+│  ├─ ScreenRecordService      (recording)                                    │
+│  ├─ LocationService          (GPS)                                          │
+│  ├─ ContactsService          (contacts DB)                                  │
+│  ├─ CalendarService          (calendar)                                     │
+│  ├─ RemindersService         (reminders)                                    │
+│  ├─ MotionService            (pedometer/activity)                           │
+│  ├─ PhotoLibraryService      (photo library)                                │
+│  ├─ VoiceWakeManager         (wake word detection)                          │
+│  ├─ TalkModeManager          (voice conversation)                           │
+│  └─ WatchMessagingService    (watch connectivity)                           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MAIN UI CANVAS                                    │
+│                        RootCanvas (22 KB)                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │                      ZStack (Main Container)                          │  │
+│  ├───────────────────────────────────────────────────────────────────────┤  │
+│  │                                                                       │  │
+│  │  1. ScreenTab()                                                     │  │
+│  │     └─ WKWebView (Remote agent UI from gateway)                    │  │
+│  │                                                                     │  │
+│  │  2. Overlay Buttons (VStack, top-right)                           │  │
+│  │     ├─ OverlayButton("Chat")     → Tap = ChatSheet modal          │  │
+│  │     ├─ OverlayButton("Talk")     → Tap = Toggle talk mode         │  │
+│  │     └─ OverlayButton("Settings") → Tap = SettingsTab sheet        │  │
+│  │                                                                     │  │
+│  │  3. StatusPill (alignment: .topLeading)                           │  │
+│  │     ├─ Connection indicator dot (green/yellow/red/gray)           │  │
+│  │     ├─ Connection text ("Connected", "Connecting…", etc)          │  │
+│  │     ├─ Voice wake indicator (mic icon)                            │  │
+│  │     └─ Activity indicator (if any active operation)               │  │
+│  │                                                                     │  │
+│  │  4. VoiceWakeToast (alignment: .topLeading, below pill)          │  │
+│  │     └─ Toast showing last voice command triggered                 │  │
+│  │                                                                     │  │
+│  │  5. TalkOrbOverlay (alignment: .center) [when talk mode active]  │  │
+│  │     ├─ Animated circular gradient orb (seamColor)                 │  │
+│  │     ├─ Pulsing ripple rings                                       │  │
+│  │     ├─ Microphone level indicator (bar)                           │  │
+│  │     ├─ Status text (e.g., "Listening...")                         │  │
+│  │     └─ Agent name label                                           │  │
+│  │                                                                     │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  Sheet Modals (presentedSheet: Identifiable enum):                          │
+│  ├─ .settings     → SettingsTab (full settings UI)                         │
+│  ├─ .chat         → ChatSheet (chat interface with agent)                  │
+│  └─ .quickSetup   → GatewayQuickSetupSheet (onboarding helper)             │
+│                                                                              │
+│  Full-Screen Cover:                                                         │
+│  └─ .onboarding   → OnboardingWizardView (first-time setup)                │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           SETTINGS UI STRUCTURE
+================================================================================
+
+SettingsTab (49 KB)
+├─ Form
+│  │
+│  ├─ Section: Gateway
+│  │  ├─ DisclosureGroup (isExpanded: $gatewayExpanded)
+│  │  │  ├─ Setup Code Input
+│  │  │  ├─ Connect Button
+│  │  │  ├─ Gateway Discovery List
+│  │  │  ├─ Gateway Status Display
+│  │  │  ├─ Disconnect Button
+│  │  │  ├─ DisclosureGroup: Advanced
+│  │  │  │  ├─ Manual Gateway Toggle
+│  │  │  │  ├─ Host/Port/TLS Input
+│  │  │  │  └─ Manual Connect Button
+│  │  │  └─ Discovery Debug Logs
+│  │  │
+│  │  └─ Bot/Agent Picker (if connected)
+│  │
+│  ├─ Section: Device
+│  │  ├─ DisclosureGroup: Features
+│  │  │  ├─ Voice Wake Toggle + Help
+│  │  │  ├─ Talk Mode Toggle + Help
+│  │  │  ├─ Background Listening Toggle
+│  │  │  ├─ Wake Words Picker Link
+│  │  │  ├─ Camera Allow Toggle
+│  │  │  ├─ Location Access Picker
+│  │  │  │  ├─ Off
+│  │  │  │  ├─ While Using
+│  │  │  │  └─ Always
+│  │  │  ├─ Node Display Name Input
+│  │  │  └─ Sleep Prevention Toggle
+│  │  │
+│  │  └─ Instance ID Display (read-only)
+│  │
+│  └─ Section: Advanced/Debug (hidden by default)
+│     ├─ Discovery Debug Logs Toggle
+│     ├─ Canvas Debug Status Toggle
+│     ├─ Auth Token Input
+│     ├─ Password Input
+│     ├─ Reset Onboarding Button
+│     └─ Debug Status Display
+
+================================================================================
+                          NETWORKING ARCHITECTURE
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      WEBSOCKET CONNECTION FLOW                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  STEP 1: DISCOVERY                                                          │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ GatewayDiscoveryModel (Bonjour/mDNS)                                │  │
+│  │  - Scans local network for _shittimchest-gw._tcp                   │  │
+│  │  - Returns: [ DiscoveredGateway { name, stableID, host, port } ]   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                               ↓                                             │
+│  STEP 2: TLS FINGERPRINT VERIFICATION                                      │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ First connection: User manually verifies fingerprint                │  │
+│  │  - TCPProbe.swift reads TLS certificate from gateway               │  │
+│  │  - Display SHA256 fingerprint to user                              │  │
+│  │  - User confirms "Yes, I trust this gateway"                       │  │
+│  │  - Store fingerprint in GatewayTLSStore (Keychain)                 │  │
+│  │                                                                      │  │
+│  │ Subsequent connections:                                             │  │
+│  │  - Load stored fingerprint from GatewayTLSStore                    │  │
+│  │  - Verify incoming certificate matches                             │  │
+│  │  - Refuse connection if fingerprint mismatch (TOFU+pinning)        │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                               ↓                                             │
+│  STEP 3: WEBSOCKET CONNECT                                                 │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ GatewayNodeSession.connect()                                        │  │
+│  │  - URL: wss://[host]:[port]/  (TLS required)                       │  │
+│  │  - Auth headers: X-Auth-Token, X-Auth-Password                     │  │
+│  │  - Payload: DeviceIdentity { id, instanceId, nodeType }            │  │
+│  │                                                                      │  │
+│  │ TWO CONCURRENT SESSIONS:                                            │  │
+│  │  1. nodeGateway     - Device capabilities (camera, location, etc)  │  │
+│  │  2. operatorGateway - Chat, Talk, Configuration                    │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                               ↓                                             │
+│  STEP 4: RPC MESSAGE FLOW                                                  │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                                                                      │  │
+│  │  Method Call Pattern (node.invoke):                                 │  │
+│  │  ┌─────────────────┐                                                │  │
+│  │  │ Client          │                                                │  │
+│  │  │ (iOS app)       │                                                │  │
+│  │  └────────┬────────┘                                                │  │
+│  │           │ await send(method: "node.invoke")                       │  │
+│  │           │ params: {id, instruction, params}                       │  │
+│  │           ↓                                                          │  │
+│  │  ┌────────────────────┐                                             │  │
+│  │  │ WebSocket Channel  │                                             │  │
+│  │  │ (GatewayChannel)   │                                             │  │
+│  │  └────────┬───────────┘                                             │  │
+│  │           │ TLS, encrypted, JSONL                                   │  │
+│  │           ↓                                                          │  │
+│  │  ┌────────────────────┐                                             │  │
+│  │  │ ShittimChest       │                                             │  │
+│  │  │ Gateway            │                                             │  │
+│  │  │ (Server)           │                                             │  │
+│  │  └────────┬───────────┘                                             │  │
+│  │           │ Process instruction (e.g., camera.snap)                 │  │
+│  │           │ Return result                                            │  │
+│  │           ↓                                                          │  │
+│  │  ┌────────────────────┐                                             │  │
+│  │  │ Callback Handler   │                                             │  │
+│  │  │ handleInvokeResp() │                                             │  │
+│  │  └────────────────────┘                                             │  │
+│  │                                                                      │  │
+│  │  Event Streaming Pattern (node.event):                              │  │
+│  │  - VoiceTranscript: voice wake detected                             │  │
+│  │  - LocationUpdate: significant location change                      │  │
+│  │  - Custom: whatever the gateway needs to know                       │  │
+│  │                                                                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                               ↓                                             │
+│  STEP 5: PUSH NOTIFICATIONS (APNs)                                         │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ At launch: registerForRemoteNotifications()                         │  │
+│  │  → iOS gives APNs device token                                      │  │
+│  │  → Send to gateway via node.invoke("push.apns.register")            │  │
+│  │                                                                      │  │
+│  │ Gateway sends silent push (background wake):                        │  │
+│  │  → didReceiveRemoteNotification() callback                          │  │
+│  │  → appModel.handleSilentPushWake(userInfo)                          │  │
+│  │  → Reconnect if needed, sync state, post watch notifications        │  │
+│  │                                                                      │  │
+│  │ Gateway sends user notification (watch prompt mirroring):           │  │
+│  │  → userNotificationCenter(didReceive:) callback                     │  │
+│  │  → Parse watch prompt metadata from userInfo                        │  │
+│  │  → User taps action → handleMirroredWatchPromptAction()             │  │
+│  │                                                                      │  │
+│  │ Background app refresh (BGTaskScheduler):                           │
+│  │  → System triggers every 15+ minutes                                │  │
+│  │  → appModel.handleBackgroundRefreshWake()                           │  │
+│  │                                                                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                          COLOR & DESIGN SYSTEM
+================================================================================
+
+DARK MODE ALWAYS
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ .preferredColorScheme(.dark)    ← Applied globally in RootCanvas           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+MATERIAL BACKGROUNDS
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│ Glass Morphism Layers:                                                      │
+│                                                                              │
+│ .ultraThinMaterial                                                          │
+│  ├─ StatusPill background (top-left indicator)                             │
+│  ├─ OverlayButton backgrounds (chat, talk, settings buttons)               │
+│  ├─ Primary UI container                                                    │
+│  └─ Thickness: Ultra thin, high transparency blend                         │
+│                                                                              │
+│ .thinMaterial                                                               │
+│  ├─ Settings sections, cards                                               │
+│  ├─ Modal backgrounds                                                       │
+│  └─ Thickness: Slightly thicker, more solid than ultra                     │
+│                                                                              │
+│ Overlay Gradients:                                                          │
+│  └─ LinearGradient with white.opacity(0.18-0.26) + blendMode(.overlay)    │
+│     Creates subtle light refraction effect                                  │
+│                                                                              │
+│ Shadows (depth & elevation):                                                │
+│  ├─ Standard:   .shadow(color: .black.opacity(0.25), radius: 12, y: 6)    │
+│  ├─ Emphasis:   .shadow(color: .black.opacity(0.50), radius: 22, y: 10)   │
+│  └─ Subtle:     .shadow(color: .black.opacity(0.18), radius: 8, y: 4)     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ACCENT COLOR (DYNAMIC PER AGENT)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│ appModel.seamColor  (Color derived from seamColorHex)                       │
+│ appModel.seamColorHex (String "FF00FF" or similar)                          │
+│                                                                              │
+│ Used in:                                                                     │
+│  • TalkOrbOverlay - primary gradient color                                  │
+│  • Talk Mode Button - tint when active                                      │
+│  • Accent highlights throughout UI                                          │
+│  • Settings accent colors                                                   │
+│                                                                              │
+│ Common agents:                                                               │
+│  • Agent 1: Green (#00FF00)                                                 │
+│  • Agent 2: Blue (#0080FF)                                                  │
+│  • Agent 3: Purple (#FF00FF)                                                │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+STATUS COLORS (SEMANTIC)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│ Connection Status:                                                           │
+│  .green       → Connected (stable)                                          │
+│  .yellow      → Connecting (transient, pulsing animation)                   │
+│  .red         → Error (pairing needed, auth failed, etc)                    │
+│  .gray        → Disconnected/Offline                                        │
+│  .orange      → Caution/Maintenance mode                                    │
+│                                                                              │
+│ Activity Indicators:                                                         │
+│  .red         → Recording active                                            │
+│  .green       → Success/completed                                           │
+│  .orange      → Warning (approval needed, repair running)                   │
+│  .gray        → Neutral/informational                                       │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TYPOGRAPHY
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│ .title              Large headings (19pt, semibold)                          │
+│ .headline           Section titles (17pt, semibold)                         │
+│ .subheadline        Secondary headings (15pt, semibold for buttons)         │
+│ .body               Standard text (17pt, regular)                           │
+│ .footnote           Helper text (13pt, regular or semibold)                │
+│ .caption            Tiny labels (12pt, regular)                            │
+│                                                                              │
+│ Design System:                                                               │
+│ .system(.caption, design: .rounded)    Orb labels, friendly UI             │
+│ .monospaced                            Debug output, technical data         │
+│                                                                              │
+│ Weights:                                                                    │
+│ .semibold           Headers, interactive elements, emphasis                │
+│ .regular            Body text, descriptions                                │
+│ .medium             Subtle emphasis                                        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANIMATION PATTERNS
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│ Spring (snappy, interactive feel):                                          │
+│  .spring(response: 0.25, dampingFraction: 0.85)                             │
+│   └─ Used for StatusPill pulsing, voice toast entrance                     │
+│                                                                              │
+│ Ease Out (dismissals):                                                      │
+│  .easeOut(duration: 0.25)                                                   │
+│   └─ Used for toast exit, modal disappear                                   │
+│                                                                              │
+│ Ease In/Out (smooth loops):                                                 │
+│  .easeInOut(duration: 0.9)                                                  │
+│   └─ Used for pulsing dots, connecting animations                           │
+│                                                                              │
+│ Repeating Animations:                                                       │
+│  .easeInOut(duration: 0.9).repeatForever(autoreverses: true)               │
+│   └─ Connection pulsing (autoreverse: back and forth)                       │
+│                                                                              │
+│  .easeOut(duration: 1.3).repeatForever(autoreverses: false)                │
+│   └─ Orb ripples (no autoreverse: outward only)                             │
+│                                                                              │
+│ Accessibility:                                                               │
+│  @Environment(\.accessibilityReduceMotion) respects system setting          │
+│   └─ Disable all animations if user prefers reduced motion                 │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                    DEVICE SERVICES INTEGRATION
+================================================================================
+
+All Services Follow Sendable Protocol Pattern:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Camera Service             ├─ snap(params) → base64 image                 │
+│  └─ CameraController        └─ clip(params) → base64 video                 │
+│                                                                              │
+│  Location Service           ├─ currentLocation(params, accuracy, timeout)   │
+│  └─ LocationService         ├─ startLocationUpdates() → AsyncStream         │
+│                             └─ monitorSignificantLocationChanges()          │
+│                                                                              │
+│  Contacts Service           ├─ search(params) → [Contact]                   │
+│  └─ ContactsService         └─ add(params) → payload                        │
+│                                                                              │
+│  Calendar Service           ├─ events(params) → [Event]                     │
+│  └─ CalendarService         └─ add(params) → payload                        │
+│                                                                              │
+│  Reminders Service          ├─ list(params) → [Reminder]                    │
+│  └─ RemindersService        └─ add(params) → payload                        │
+│                                                                              │
+│  Motion Service             ├─ activities(params) → [Activity]              │
+│  └─ MotionService           └─ pedometer(params) → steps                    │
+│                                                                              │
+│  Device Status Service      └─ status() → battery, network, thermal, etc.   │
+│  └─ DeviceStatusService                                                     │
+│                                                                              │
+│  Photos Service             └─ latest(params) → recent photos/videos        │
+│  └─ PhotoLibraryService                                                     │
+│                                                                              │
+│  Screen Recording           └─ record(screenIndex, duration, fps) → path    │
+│  └─ ScreenRecordService                                                     │
+│                                                                              │
+│  Watch Messaging            ├─ sendNotification(id, params)                 │
+│  └─ WatchMessagingService   └─ setReplyHandler(closure)                     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+All services injected into NodeAppModel via init parameters
+All services callable from AppDelegate, UI, or background tasks
+All async/await with proper error handling
+
+================================================================================
+                    INITIALIZATION & APP LIFECYCLE
+================================================================================
+
+LAUNCH SEQUENCE
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│ 1. main @ShittimChestApp                                                    │
+│    └─ Install uncaught exception handler                                    │
+│    └─ Initialize NodeAppModel (injects all services)                        │
+│    └─ Initialize GatewayConnectionController (starts Bonjour)               │
+│                                                                              │
+│ 2. didFinishLaunchingWithOptions                                            │
+│    └─ Register background refresh task (BGTaskScheduler)                    │
+│    └─ Set UNUserNotificationCenter delegate                                 │
+│    └─ Call registerForRemoteNotifications() → APNs token request            │
+│                                                                              │
+│ 3. application(didRegisterForRemoteNotificationsWithDeviceToken:)           │
+│    └─ appModel.updateAPNsDeviceToken(token)                                │
+│    └─ Send to gateway via node.invoke("push.apns.register")                │
+│                                                                              │
+│ 4. RootCanvas appears                                                       │
+│    ├─ Evaluate onboarding presentation route                               │
+│    │  └─ If first-time: show OnboardingWizardView (full-screen)            │
+│    │  └─ If no gateway config: show SettingsTab (sheet)                     │
+│    │  └─ Otherwise: show canvas                                             │
+│    │                                                                        │
+│    ├─ Prevent idle sleep if "screen.preventSleep" is true                   │
+│    │  └─ UIApplication.shared.isIdleTimerDisabled = true                    │
+│    │                                                                        │
+│    └─ Update canvas debug status if enabled                                │
+│                                                                              │
+│ 5. Scene phase changes                                                      │
+│    ├─ .active   → Resume discovery, attempt reconnect                       │
+│    ├─ .inactive → Pause discovery                                           │
+│    └─ .background → Schedule background refresh task, suppress reconnect    │
+│                                                                              │
+│ 6. User navigates or closes app                                             │
+│    └─ Graceful disconnection (but websocket can reconnect on foreground)    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                          QUICK REFERENCE MAP
+================================================================================
+
+FIND WHAT YOU NEED:
+
+App Entry & Main Screen
+  → ShittimChestApp.swift (app @main + AppDelegate)
+  → RootCanvas.swift (main UI layout)
+
+Settings & Configuration
+  → Settings/SettingsTab.swift (full settings form)
+  → Settings/VoiceWakeWordsSettingsView.swift (wake words config)
+
+Gateway Connection
+  → Gateway/GatewayConnectionController.swift (discovery, connection)
+  → Gateway/GatewaySettingsStore.swift (persistent storage)
+  → Gateway/GatewayHealthMonitor.swift (health checks, auto-reconnect)
+
+State Management
+  → Model/NodeAppModel.swift (core app state @Observable)
+  → Model/NodeAppModel+Canvas.swift (canvas extensions)
+  → Model/NodeAppModel+WatchNotifyNormalization.swift (watch notifications)
+
+Voice Features
+  → Voice/VoiceWakeManager.swift (wake word detection)
+  → Voice/TalkModeManager.swift (voice conversation)
+  → Voice/TalkOrbOverlay.swift (animated UI)
+  → Voice/VoiceTab.swift (voice status view)
+
+Screen & Canvas
+  → Screen/ScreenWebView.swift (WKWebView wrapper)
+  → Screen/ScreenController.swift (state & navigation)
+  → Screen/ScreenTab.swift (container view)
+
+Notifications
+  → ShittimChestApp.swift (AppDelegate methods for APNs)
+  → Services/NotificationService.swift (APNs handling)
+
+Device Services
+  → Services/NodeServiceProtocols.swift (service interfaces)
+  → [Each capability folder]/ (Camera, Location, Contacts, etc.)
+
+UI Components
+  → Status/StatusPill.swift (connection indicator)
+  → Status/StatusActivityBuilder.swift (activity state)
+  → Voice/TalkOrbOverlay.swift (animated orb)
+  → Status/VoiceWakeToast.swift (voice feedback toast)
+
+Onboarding
+  → Onboarding/OnboardingWizardView.swift (setup wizard)
+  → Onboarding/OnboardingStateStore.swift (onboarding state)
+  → Gateway/GatewayQuickSetupSheet.swift (quick setup modal)
+
+================================================================================

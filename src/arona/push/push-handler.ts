@@ -35,7 +35,7 @@ import { reverseGeocode } from "../geocoding.js";
 import { getWeatherData } from "../weather/weather-store.js";
 import { forceRefreshWeather } from "../weather/weather-store.js";
 import { buildWeatherShortSummary } from "../weather/weather-mood.js";
-import { updateSteps } from "../health/health-config.js";
+import { updateSteps, updateHealthKitData } from "../health/health-config.js";
 
 const PUSH_BASE = "/arona/push";
 
@@ -296,19 +296,34 @@ export async function handleAronaPushRequest(
       return true;
     }
     const raw = await readBody(req);
-    let body: { steps?: number } = {};
+    let body: {
+      steps?: number;
+      heartRate?: number;
+      restingHeartRate?: number;
+      sleepHours?: number;
+      sleepQuality?: string;
+      lastWorkoutType?: string;
+      lastWorkoutMinutes?: number;
+      lastWorkoutEndISO?: string;
+      activeEnergyKcal?: number;
+    } = {};
     try {
       body = JSON.parse(raw) as typeof body;
     } catch {
       sendJson(res, 400, { ok: false, error: "invalid JSON" });
       return true;
     }
-    if (typeof body.steps === "number") {
+
+    // Backward compat: simple steps-only push
+    if (typeof body.steps === "number" && Object.keys(body).length === 1) {
       updateSteps(body.steps);
       sendJson(res, 200, { ok: true });
-    } else {
-      sendJson(res, 400, { ok: false, error: "missing steps" });
+      return true;
     }
+
+    // Full HealthKit data push
+    updateHealthKitData(body);
+    sendJson(res, 200, { ok: true });
     return true;
   }
 

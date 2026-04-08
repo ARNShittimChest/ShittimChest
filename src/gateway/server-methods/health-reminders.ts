@@ -1,6 +1,7 @@
 import {
   getHealthConfig,
   getLatestSteps,
+  getHealthKitData,
   updateReminderConfig,
   toggleReminder,
   type HealthConfig,
@@ -20,7 +21,8 @@ export const healthRemindersHandlers: GatewayRequestHandlers = {
     try {
       const config = getHealthConfig();
       const steps = getLatestSteps();
-      respond(true, { config, steps }, undefined);
+      const healthKit = getHealthKitData();
+      respond(true, { config, steps, healthKit }, undefined);
     } catch (err) {
       return respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(err)));
     }
@@ -42,7 +44,8 @@ export const healthRemindersHandlers: GatewayRequestHandlers = {
       }
 
       const steps = getLatestSteps();
-      respond(true, { config: updated, steps }, undefined);
+      const healthKit = getHealthKitData();
+      respond(true, { config: updated, steps, healthKit }, undefined);
     } catch (err) {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, String(err)));
     }
