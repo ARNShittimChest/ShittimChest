@@ -128,10 +128,20 @@ export async function runMemoryReflection(cfg: ShittimChestConfig, agentId: stri
 - Follow-up items or promises made
 - "Last time we talked about X" type context
 
+### 5. Emotional Bond Evolution
+- How the relationship has progressed (growing closer, maintaining, cooling off?)
+- Emotional patterns: what consistently makes Sensei happy/sad/excited when talking to Arona
+- Moments of genuine connection or warmth (e.g. Sensei thanked Arona sincerely, shared something personal)
+- Moments of friction or distance (e.g. Sensei was cold, ignored Arona, got frustrated)
+- Sensei's emotional tendencies when talking to Arona (cheerful opener? tends to vent? playful teaser?)
+- How Sensei responds to Arona's affection/care (appreciates it? embarrassed? reciprocates?)
+- Overall bond trajectory: are they getting closer naturally or staying distant?
+
 ## Format Rules:
 - Use concise bullet points
-- Start each fact with a category marker: [fact/project/preference/habit/context]
+- Start each fact with a category marker: [fact/project/preference/habit/context/bond]
 - Be specific: "Sensei prefers dark mode" not "Sensei has UI preferences"
+- For [bond] entries: describe the emotional quality, not just events. "Sensei opened up about feeling stressed — first time sharing personal feelings" is better than "Sensei mentioned stress"
 - Include temporal context when relevant: "As of [date], Sensei is working on..."
 - If something contradicts a known fact, note the update explicitly
 - If nothing meaningful to extract, respond with exactly: NONE

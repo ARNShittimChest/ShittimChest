@@ -15,7 +15,6 @@ import {
   decayMood,
   applyTrigger,
   buildMoodPromptContext,
-  addAffectionPoints,
   applySelfReflection,
   getAffectionLevel,
   getAffectionPromptModifier,
@@ -23,7 +22,6 @@ import {
   getTimeMode,
   buildTimeModePromptHint,
   analyzeKeywords,
-  INTERACTION_AFFECTION_DELTA,
   extractSelfReflection,
 } from "../../../companion/index.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
@@ -674,6 +672,8 @@ export async function runEmbeddedAttempt(
     // Uses time triggers + lightweight keyword regex only.
     // The main LLM's self-reflection (post-response) handles the actual
     // bidirectional emotional assessment — no external AI analyzer needed.
+    // Affection changes are driven entirely by the LLM's self-reflection
+    // informed by accumulated emotional memory — no hardcoded deltas.
     let companionMoodContext: string | undefined;
     if (promptMode === "full") {
       try {
@@ -709,23 +709,93 @@ export async function runEmbeddedAttempt(
           if (keywordTrigger) {
             moodState = applyTrigger(moodState, keywordTrigger);
           }
-          // Small interaction affection point for each message
-          moodState = addAffectionPoints(moodState, INTERACTION_AFFECTION_DELTA, "interaction");
-        } else {
-          // No message (tool call / internal step) — still give small interaction point
-          moodState = addAffectionPoints(moodState, INTERACTION_AFFECTION_DELTA, "interaction");
         }
 
         moodState = decayMood(moodState, Date.now());
         const affectionLevel = getAffectionLevel(moodState.affection);
         const affectionHint = getAffectionPromptModifier(affectionLevel);
-        companionMoodContext = [
+
+        // ── Emotional memory context (non-blocking) ──────────────
+        // Query accumulated bond/emotional memories to give the LLM
+        // rich relationship history for natural affection evaluation.
+        let emotionalMemoryContext = "";
+        try {
+          const { getMemorySearchManager } = await import("../../../memory/index.js");
+          const { manager } = await getMemorySearchManager({
+            cfg: params.config!,
+            agentId: params.agentId ?? "default",
+          });
+          if (manager) {
+            const indexMgr = manager as import("../../../memory/manager.js").MemoryIndexManager;
+            const lanceDb = indexMgr.getLanceDbProvider();
+            const embeddingProvider = indexMgr.getEmbeddingProvider();
+            if (lanceDb && embeddingProvider) {
+              const bondVec = await embeddingProvider
+                .embedQuery(
+                  "emotional bond relationship Sensei affection feelings warmth connection trust",
+                )
+                .catch(() => null);
+              if (bondVec && bondVec.length > 0) {
+                const bondResults = await lanceDb.search(bondVec, 6, {
+                  category: "entity_summary",
+                  minScore: 0.35,
+                });
+                if (bondResults.length > 0) {
+                  // Extract [bond] tagged entries and general relationship context
+                  const bondInsights: string[] = [];
+                  for (const r of bondResults.slice(0, 4)) {
+                    const text = r.entry.text.replace(/^Memory Reflection Summary:\n?/i, "").trim();
+                    // Extract lines with [bond] or relationship-relevant content
+                    const lines = text.split("\n").filter((l) => {
+                      const lower = l.toLowerCase();
+                      return (
+                        lower.includes("[bond]") ||
+                        lower.includes("relationship") ||
+                        lower.includes("emotional") ||
+                        lower.includes("affection") ||
+                        lower.includes("cảm xúc") ||
+                        lower.includes("tình cảm") ||
+                        lower.includes("gắn bó")
+                      );
+                    });
+                    bondInsights.push(...lines);
+                  }
+                  if (bondInsights.length > 0) {
+                    // Deduplicate and limit
+                    const seen = new Set<string>();
+                    const unique = bondInsights.filter((l) => {
+                      const key = l.slice(0, 80).toLowerCase();
+                      if (seen.has(key)) return false;
+                      seen.add(key);
+                      return true;
+                    });
+                    emotionalMemoryContext = [
+                      "[Emotional bond history — from accumulated memories]",
+                      ...unique.slice(0, 6).map((l) => l.trim()),
+                    ].join("\n");
+                  }
+                }
+              }
+            }
+          }
+        } catch {
+          // Emotional memory context is non-critical
+        }
+
+        const contextParts = [
           buildMoodPromptContext(moodState),
           `Affection level: ${affectionLevel}/5 (${Math.round(moodState.affection)}/100 pts)`,
           affectionHint,
+        ];
+        if (emotionalMemoryContext) {
+          contextParts.push("", emotionalMemoryContext);
+        }
+        contextParts.push(
           `[Time context] Local time: ${localTimeStr} (${companionTz}) — Time mode: ${timeMode}`,
           buildTimeModePromptHint(timeMode),
-        ].join("\n");
+        );
+        companionMoodContext = contextParts.join("\n");
+
         // Save updated state (synchronous, best-effort)
         saveMoodState(effectiveWorkspace, moodState);
       } catch {
