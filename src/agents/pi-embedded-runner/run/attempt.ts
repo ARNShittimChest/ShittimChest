@@ -16,17 +16,15 @@ import {
   applyTrigger,
   buildMoodPromptContext,
   addAffectionPoints,
+  applySelfReflection,
   getAffectionLevel,
   getAffectionPromptModifier,
   getLocalHour,
   getTimeMode,
   buildTimeModePromptHint,
   analyzeKeywords,
-  analyzeAffectionDelta,
   INTERACTION_AFFECTION_DELTA,
-  resolveAnalysisConfig,
-  analyzeAffectionWithAI,
-  aiResultToMoodTrigger,
+  extractSelfReflection,
 } from "../../../companion/index.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import type { ShittimChestConfig } from "../../../config/config.js";
@@ -672,6 +670,10 @@ export async function runEmbeddedAttempt(
     const ownerDisplay = resolveOwnerDisplaySetting(params.config);
 
     // ── Companion Mood Context (non-blocking) ──────────────────────
+    // Pre-response: Build mood context for system prompt injection.
+    // Uses time triggers + lightweight keyword regex only.
+    // The main LLM's self-reflection (post-response) handles the actual
+    // bidirectional emotional assessment — no external AI analyzer needed.
     let companionMoodContext: string | undefined;
     if (promptMode === "full") {
       try {
@@ -696,45 +698,19 @@ export async function runEmbeddedAttempt(
           moodState = applyTrigger(moodState, timeTrigger);
         }
 
-        // ── Keyword/AI triggers + affection delta from message ─────
+        // ── Lightweight keyword triggers (pre-response baseline) ──
+        // These give a rough initial read of the user's message.
+        // The real bidirectional assessment comes from the LLM's
+        // self-reflection block AFTER it generates its response.
         const lastUserText = params.prompt?.trim() ?? "";
 
         if (lastUserText) {
-          // Try AI-based analysis first (if configured)
-          const aiConfig = resolveAnalysisConfig({
-            affectionAnalysis: params.config?.companion?.affectionAnalysis,
-            providers: params.config?.models?.providers,
-          });
-
-          let usedAI = false;
-          if (aiConfig) {
-            const aiResult = await analyzeAffectionWithAI(lastUserText, aiConfig);
-            if (aiResult) {
-              usedAI = true;
-              moodState = applyTrigger(moodState, aiResultToMoodTrigger(aiResult));
-              const netDelta = aiResult.affectionDelta + INTERACTION_AFFECTION_DELTA;
-              if (netDelta !== 0) {
-                moodState = addAffectionPoints(moodState, netDelta, `ai:${aiResult.reason}`);
-              }
-            }
+          const keywordTrigger = analyzeKeywords(lastUserText);
+          if (keywordTrigger) {
+            moodState = applyTrigger(moodState, keywordTrigger);
           }
-
-          // Regex fallback if AI not configured or failed
-          if (!usedAI) {
-            const keywordTrigger = analyzeKeywords(lastUserText);
-            if (keywordTrigger) {
-              moodState = applyTrigger(moodState, keywordTrigger);
-            }
-            const keywordAffectionDelta = analyzeAffectionDelta(lastUserText);
-            const netAffectionDelta = keywordAffectionDelta + INTERACTION_AFFECTION_DELTA;
-            if (netAffectionDelta !== 0) {
-              const reason =
-                netAffectionDelta > 0
-                  ? `+${netAffectionDelta} (chat)`
-                  : `${netAffectionDelta} (chat)`;
-              moodState = addAffectionPoints(moodState, netAffectionDelta, reason);
-            }
-          }
+          // Small interaction affection point for each message
+          moodState = addAffectionPoints(moodState, INTERACTION_AFFECTION_DELTA, "interaction");
         } else {
           // No message (tool call / internal step) — still give small interaction point
           moodState = addAffectionPoints(moodState, INTERACTION_AFFECTION_DELTA, "interaction");
@@ -1728,6 +1704,24 @@ export async function runEmbeddedAttempt(
           .catch((err) => {
             log.warn(`llm_output hook failed: ${String(err)}`);
           });
+      }
+
+      // ── Post-response: Extract self-reflection and apply to mood state ──
+      // The main LLM appends <arona_feelings>...</arona_feelings> at the end of
+      // each reply. We parse this bidirectional emotional assessment and apply it
+      // to the mood state, then save. This replaces the old external analyzer.
+      if (promptMode === "full" && effectiveWorkspace && assistantTexts.length > 0) {
+        try {
+          const fullResponseText = assistantTexts.join("");
+          const { reflection } = extractSelfReflection(fullResponseText);
+          if (reflection) {
+            let moodState = loadOrCreateMoodState(effectiveWorkspace);
+            moodState = applySelfReflection(moodState, reflection);
+            saveMoodState(effectiveWorkspace, moodState);
+          }
+        } catch {
+          // Self-reflection is non-critical — do not break agent run
+        }
       }
 
       return {

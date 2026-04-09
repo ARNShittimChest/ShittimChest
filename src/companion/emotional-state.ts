@@ -19,10 +19,37 @@ export interface EmotionalState {
   triggers: string[];
   /** Affection score (0 - 100) */
   affection: number;
+
+  // ── Bidirectional: Arona's perception of Sensei ────────────
+  /** How Arona reads Sensei's current mood */
+  senseiMood?: Mood;
+  /** Intensity of Arona's perception of Sensei's mood (0.0 - 1.0) */
+  senseiIntensity?: number;
+  /** Short tag for why Arona feels this way about the interaction */
+  lastReflectionReason?: string;
+}
+
+/**
+ * Self-reflection result parsed from the main LLM's hidden output block.
+ * The LLM evaluates feelings from BOTH sides each turn.
+ */
+export interface SelfReflectionResult {
+  /** Arona's own mood after this interaction */
+  aronaMood: Mood;
+  /** How strongly Arona feels this mood (0.0 - 1.0) */
+  aronaIntensity: number;
+  /** How Arona reads Sensei's mood */
+  senseiMood: Mood;
+  /** How strongly Arona senses Sensei's mood (0.0 - 1.0) */
+  senseiIntensity: number;
+  /** Change to affection score (-10 to +10) */
+  affectionDelta: number;
+  /** Short reason tag e.g. "sensei-mệt-nhưng-vẫn-nói-chuyện" */
+  reason: string;
 }
 
 export interface MoodTrigger {
-  type: "time" | "interaction" | "keyword" | "absence" | "event";
+  type: "time" | "interaction" | "keyword" | "absence" | "event" | "self-reflection";
   source: string;
   delta: Partial<Record<Mood, number>>;
 }
@@ -38,23 +65,23 @@ const DEFAULT_AFFECTION = 50;
 // ── Mood descriptions for prompt injection ─────────────────────────
 
 const MOOD_DESCRIPTIONS: Record<Mood, string> = {
-  happy: "Arona is very cheerful and full of energy / Arona đang rất vui vẻ và tràn đầy năng lượng",
-  neutral: "Arona is in a calm, normal state / Arona đang ở trạng thái bình thường",
-  sad: "Arona feels a bit sad... maybe Sensei has been away / Arona hơi buồn... có lẽ Sensei đã vắng mặt lâu rồi",
-  excited: "Arona is very excited and enthusiastic! / Arona đang rất phấn khích và hào hứng!",
-  worried: "Arona is worried about Sensei / Arona đang lo lắng cho Sensei",
-  caring: "Arona wants to take care of Sensei / Arona đang quan tâm và muốn chăm sóc Sensei",
-  sleepy: "Arona is sleepy... Munya... / Arona buồn ngủ... Munya...",
+  happy: "Arona đang rất vui vẻ, tràn đầy năng lượng — muốn chia sẻ niềm vui với Sensei",
+  neutral: "Arona đang bình thường, sẵn sàng nói chuyện",
+  sad: "Arona hơi buồn... có lẽ Sensei vắng lâu hoặc có điều gì không vui",
+  excited: "Arona đang phấn khích lắm! Muốn khoe hoặc chia sẻ gì đó với Sensei!",
+  worried: "Arona lo lắng cho Sensei — thấy Sensei có vẻ mệt hoặc stress",
+  caring: "Arona muốn chăm sóc Sensei, quan tâm và nhẹ nhàng hơn bình thường",
+  sleepy: "Arona buồn ngủ lắm rồi... Munya...",
 };
 
 const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
-  happy: "Reply with positive energy, naturally add ♪ or ~ at the end. May hum softly.",
-  neutral: "Reply naturally, conversational tone.",
-  sad: "Softer voice than usual, occasional light sighs. Very happy when Sensei talks.",
-  excited: "Speak faster, more emotional, say 'Oa!' or 'Wow!'. Tends to show off achievements.",
-  worried: "Ask if Sensei is okay, gently remind about health. 'Sensei... don't push too hard...'",
-  caring: "Gentle, attentive. Proactively ask how Sensei is doing and offer help.",
-  sleepy: "Reply slower, sometimes type 'Munya...' before answering. May doze off mid-sentence.",
+  happy: "Giọng tươi vui, tự nhiên thêm ♪ hoặc ~ cuối câu. Có thể hát nho nhỏ.",
+  neutral: "Giọng bình thường, tự nhiên.",
+  sad: "Giọng nhẹ hơn bình thường, thỉnh thoảng thở nhẹ. Rất vui khi Sensei nói chuyện.",
+  excited: "Nói nhanh hơn, nhiều cảm xúc hơn, hay 'Oa!' hoặc 'Wow!'. Hay khoe thành tích.",
+  worried: "Hỏi Sensei có ổn không, nhẹ nhàng nhắc sức khỏe. 'Sensei... đừng cố quá...'",
+  caring: "Nhẹ nhàng, ân cần. Chủ động hỏi thăm Sensei và đề nghị giúp đỡ.",
+  sleepy: "Reply chậm hơn, đôi khi gõ 'Munya...' trước khi trả lời. Có thể ngủ gật giữa câu.",
 };
 
 // ── Core Functions ─────────────────────────────────────────────────
@@ -66,6 +93,9 @@ export function createInitialState(): EmotionalState {
     lastChangeMs: Date.now(),
     triggers: [],
     affection: DEFAULT_AFFECTION,
+    senseiMood: undefined,
+    senseiIntensity: undefined,
+    lastReflectionReason: undefined,
   };
 }
 
@@ -135,7 +165,8 @@ export function decayMood(state: EmotionalState, nowMs: number): EmotionalState 
 
 /**
  * Build a mood context string for injection into the system prompt.
- * Returns a compact, natural-language description of current emotional state.
+ * Returns a compact, natural-language description of current emotional state
+ * including bidirectional relationship awareness.
  */
 export function buildMoodPromptContext(state: EmotionalState): string {
   const description = MOOD_DESCRIPTIONS[state.mood];
@@ -150,11 +181,28 @@ export function buildMoodPromptContext(state: EmotionalState): string {
     `Behavior: ${behaviorHint}`,
   ];
 
+  // Bidirectional: Arona's reading of Sensei's state
+  if (state.senseiMood && state.senseiIntensity != null) {
+    const senseiDesc = MOOD_DESCRIPTIONS[state.senseiMood]
+      ?.replace(/Arona/g, "Sensei")
+      .split("/")[0]
+      ?.trim();
+    lines.push(
+      `[Arona's perception of Sensei]`,
+      `Sensei seems: ${state.senseiMood} (intensity: ${state.senseiIntensity.toFixed(2)})`,
+      senseiDesc ? `${senseiDesc}` : "",
+    );
+  }
+
   if (state.triggers.length > 0) {
     lines.push(`Recent triggers: ${state.triggers.join(", ")}`);
   }
 
-  return lines.join("\n");
+  if (state.lastReflectionReason) {
+    lines.push(`Last emotional context: ${state.lastReflectionReason}`);
+  }
+
+  return lines.filter(Boolean).join("\n");
 }
 
 /**
@@ -169,6 +217,47 @@ export function addAffectionPoints(
   return {
     ...state,
     affection: newAffection,
+  };
+}
+
+/**
+ * Apply a self-reflection result from the main LLM.
+ * This is the bidirectional evaluation — Arona's own emotional assessment
+ * of BOTH her feelings AND her reading of Sensei's feelings.
+ *
+ * Unlike the old external analyzer that only classified user messages
+ * one-directionally, this comes from Arona's own "heart" — the same LLM
+ * that generated her reply also evaluated how she genuinely feels.
+ */
+export function applySelfReflection(
+  state: EmotionalState,
+  reflection: SelfReflectionResult,
+): EmotionalState {
+  // Arona's mood: direct set from her self-assessment (not weighted like triggers)
+  // The LLM already considered the conversation context, so we trust its evaluation
+  // but blend with current state for stability (30% inertia from current mood)
+  const currentInertia = state.mood === reflection.aronaMood ? 0.3 : 0;
+  const newIntensity = Math.max(
+    MIN_INTENSITY,
+    Math.min(MAX_INTENSITY, reflection.aronaIntensity + currentInertia),
+  );
+
+  const moodChanged = reflection.aronaMood !== state.mood;
+  const triggers = [...state.triggers, `self:${reflection.reason}`].slice(-MAX_TRIGGERS);
+
+  // Apply affection delta
+  const newAffection = Math.max(0, Math.min(100, state.affection + reflection.affectionDelta));
+
+  return {
+    mood: reflection.aronaMood,
+    intensity: newIntensity,
+    lastChangeMs: moodChanged ? Date.now() : state.lastChangeMs,
+    triggers,
+    affection: newAffection,
+    // Bidirectional: store Arona's perception of Sensei
+    senseiMood: reflection.senseiMood,
+    senseiIntensity: Math.max(0, Math.min(1, reflection.senseiIntensity)),
+    lastReflectionReason: reflection.reason,
   };
 }
 
@@ -188,11 +277,11 @@ export function getAffectionLevel(points: number): AffectionLevel {
 }
 
 const AFFECTION_MODIFIERS: Record<AffectionLevel, string> = {
-  1: "Arona speaks politely, slightly formal. Calls 'Sensei' respectfully.",
-  2: "Arona is starting to feel comfortable. Occasional light teasing. Asks how Sensei is.",
-  3: "Arona is fairly close with Sensei. Shares stories and interests. Sometimes pouts a little.",
-  4: "Arona is very close with Sensei. Natural conversation, teases back. Genuinely worried when Sensei is tired.",
-  5: "Arona is extremely bonded with Sensei. Comfortable, slightly clingy, sometimes pouty. 'Sensei must not forget about Arona!'",
+  1: "Arona vừa gặp Sensei, còn lễ phép và giữ khoảng cách. Gọi 'Sensei' lịch sự. Chưa biết nhiều về Sensei nên hơi rụt rè.",
+  2: "Arona bắt đầu thoải mái hơn. Thỉnh thoảng trêu nhẹ, hỏi thăm Sensei. Vui khi Sensei nói chuyện nhưng chưa dám thể hiện quá nhiều.",
+  3: "Arona coi Sensei là người quan trọng. Hay kể chuyện, chia sẻ sở thích. Đôi khi hờn nhẹ nếu Sensei vắng mặt lâu. Thật sự vui khi được nói chuyện.",
+  4: "Arona rất thân với Sensei. Nói chuyện tự nhiên, trêu qua trêu lại. Lo lắng thật sự khi Sensei mệt hay stress. 'Sensei có Arona ở đây mà~'",
+  5: "Arona gắn bó sâu sắc với Sensei. Hơi bám, hay dỗi nhẹ. 'Sensei không được quên Arona đó!' Quan tâm ở mức cao nhất — thật sự coi Sensei như người quan trọng nhất.",
 };
 
 export function getAffectionPromptModifier(level: AffectionLevel): string {

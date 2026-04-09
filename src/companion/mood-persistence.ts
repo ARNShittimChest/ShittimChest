@@ -59,6 +59,7 @@ export function loadMoodState(workspaceDir: string): EmotionalState | null {
       return null;
     }
 
+    // New bidirectional fields are optional — old state files are fine without them
     return parsed as unknown as EmotionalState;
   } catch {
     return null;

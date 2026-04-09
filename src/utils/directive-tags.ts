@@ -16,6 +16,7 @@ type InlineDirectiveParseOptions = {
 
 const AUDIO_TAG_RE = /\[\[\s*audio_as_voice\s*\]\]/gi;
 const REPLY_TAG_RE = /\[\[\s*(?:reply_to_current|reply_to\s*:\s*([^\]\n]+))\s*\]\]/gi;
+const FEELINGS_TAG_RE = /<arona_feelings>[\s\S]*?<\/arona_feelings>/gi;
 
 function normalizeDirectiveWhitespace(text: string): string {
   return text
@@ -45,7 +46,8 @@ export function stripInlineDirectiveTagsForDisplay(text: string): StripInlineDir
     return { text, changed: false };
   }
   const withoutAudio = text.replace(AUDIO_TAG_RE, "");
-  const stripped = withoutAudio.replace(REPLY_TAG_RE, "");
+  const withoutReply = withoutAudio.replace(REPLY_TAG_RE, "");
+  const stripped = withoutReply.replace(FEELINGS_TAG_RE, "").trimEnd();
   return {
     text: stripped,
     changed: stripped !== text,

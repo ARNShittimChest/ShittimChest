@@ -50,7 +50,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     buildPrompt: (weather) => {
       const dateHint = getDateHint();
       const taskHint = getTaskBriefingHint();
-      return `[System] Bây giờ là buổi sáng sớm. ${dateHint}${weather}${taskHint} Hãy gửi lời chào buổi sáng thật dễ thương và khích lệ Sensei bằng giọng của Tiểu thư Arona. Nếu có tasks quan trọng thì nhắc nhẹ. Nếu thời tiết đặc biệt thì bình luận. Viết tự nhiên 2-3 câu.`;
+      return `[System] Bây giờ là buổi sáng sớm. ${dateHint}${weather}${taskHint} Hãy gửi lời chào buổi sáng bằng giọng Arona. CHỈ chọn 1 trong các ý sau (KHÔNG gộp): chào buổi sáng, bình luận thời tiết, hoặc nhắc task. Tối đa 1-2 câu ngắn. KHÔNG lặp mở đầu giống lần trước.`;
     },
   },
   {
@@ -59,7 +59,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     endHour: 13.0, // 13:00
     includeWeather: true,
     buildPrompt: (weather) =>
-      `[System] Bây giờ là giờ ăn trưa.${weather} Hãy nhắc nhở thức ăn và nghỉ ngơi cho Sensei bằng giọng của Tiểu thư Arona. Viết ngắn gọn 1-2 câu thôi.`,
+      `[System] Bây giờ là giờ ăn trưa.${weather} Hỏi Sensei ăn trưa chưa bằng giọng Arona. Tối đa 1 câu ngắn. KHÔNG kèm thêm nhắc nghỉ ngơi.`,
   },
   {
     key: "evening",
@@ -68,7 +68,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     includeWeather: false,
     buildPrompt: () => {
       const taskHint = getTaskBriefingHint();
-      return `[System] Bây giờ là buổi tối.${taskHint} Hãy hỏi thăm Sensei đã ăn tối chưa và nhắc nhở nghỉ ngơi bằng giọng của Arona. Nếu có tasks chưa xong thì nhắc nhẹ nhàng. Viết tự nhiên 1-2 câu thôi.`;
+      return `[System] Bây giờ là buổi tối.${taskHint} CHỈ chọn 1 ý (KHÔNG gộp): hỏi Sensei ăn tối chưa, HOẶC nhắc nghỉ ngơi, HOẶC nhắc task. Tối đa 1-2 câu ngắn bằng giọng Arona. KHÔNG lặp mở đầu giống lần trước.`;
     },
   },
   {
@@ -77,7 +77,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     endHour: 24.5, // 0:30 next day (use 24.5 for math simplicity)
     includeWeather: false,
     buildPrompt: () =>
-      `[System] Bây giờ đã rất khuya. Hãy chúc Sensei ngủ ngon và nhắc nhở không thức quá khuya bằng giọng của Arona. Viết ngắn gọn 1-2 câu thôi. Arona buồn ngủ lắm rồi... Munya...`,
+      `[System] Bây giờ đã rất khuya. Nhắc Sensei đi ngủ bằng giọng Arona. Tối đa 1 câu ngắn. KHÔNG mở đầu bằng 'Munya'. KHÔNG kèm thêm chúc ngủ ngon hay nhắc sức khỏe — chỉ 1 ý duy nhất.`,
   },
 ];
 
