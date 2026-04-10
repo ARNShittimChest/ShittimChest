@@ -63,6 +63,8 @@ export function buildEmbeddedSystemPrompt(params: {
   healthContext?: string;
   /** Sensei profile summary (from personality learning system). */
   senseiProfileContext?: string;
+  /** Personalized behavior guide (from dreaming prompt optimization). */
+  personalizedContext?: string;
   /** Smart routing query tier for prompt detail control. */
   queryTier?: QueryTier;
 }): string {
@@ -99,6 +101,7 @@ export function buildEmbeddedSystemPrompt(params: {
     taskContext: params.taskContext,
     healthContext: params.healthContext,
     senseiProfileContext: params.senseiProfileContext,
+    personalizedContext: params.personalizedContext,
     queryTier: params.queryTier,
   });
 }

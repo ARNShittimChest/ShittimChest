@@ -105,6 +105,7 @@ import { loadOrInitLocation } from "../arona/location-store.js";
 import { startWeatherScheduler } from "../arona/weather/weather-scheduler.js";
 import type { WeatherSchedulerHandle } from "../arona/weather/weather-scheduler.js";
 import { startMoodTicker, type MoodTickerHandle } from "../arona/mood-ticker.js";
+import { startDreamingScheduler, type DreamingSchedulerHandle } from "../arona/dreaming/index.js";
 import {
   startHealthScheduler,
   type HealthSchedulerHandle,
@@ -894,6 +895,7 @@ export async function startGatewayServer(
   let proactiveSchedulerStop: (() => void) | null = null;
   let weatherSchedulerHandle: WeatherSchedulerHandle | null = null;
   let moodTickerHandle: MoodTickerHandle | null = null;
+  let dreamingSchedulerHandle: DreamingSchedulerHandle | null = null;
   let healthSchedulerHandle: HealthSchedulerHandle | null = null;
   if (!minimalTestGateway) {
     // Load persisted location from disk
@@ -1060,6 +1062,22 @@ export async function startGatewayServer(
         const triggerNames = triggers.map((t) => t.source).join(", ");
         log.info(
           `[MoodTicker] Updated: ${state.mood} (${state.intensity.toFixed(2)}) — triggers: ${triggerNames}`,
+        );
+      },
+    });
+
+    // Register nightly dreaming scheduler (memory consolidation + prompt personalization)
+    dreamingSchedulerHandle = startDreamingScheduler({
+      cfg: cfgAtStart,
+      onMoodUpdate: (state) => {
+        log.info(`[Dreaming] Mood updated: ${state.mood} (${state.intensity.toFixed(2)})`);
+      },
+      onDreamComplete: (report) => {
+        log.info(
+          `[Dreaming] Cycle complete in ${(report.durationMs / 1000).toFixed(1)}s:` +
+            ` memory=${report.phases.memory.ok ? "OK" : "FAIL"}` +
+            ` profile=${report.phases.profile.ok ? "OK" : "FAIL"}` +
+            ` optimize=${report.phases.optimize.ok ? "OK" : "FAIL"}`,
         );
       },
     });
@@ -1288,6 +1306,9 @@ export async function startGatewayServer(
       }
       if (moodTickerHandle) {
         moodTickerHandle.stop();
+      }
+      if (dreamingSchedulerHandle) {
+        dreamingSchedulerHandle.stop();
       }
       if (healthSchedulerHandle) {
         healthSchedulerHandle.stop();

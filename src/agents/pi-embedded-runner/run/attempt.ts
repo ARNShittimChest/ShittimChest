@@ -909,6 +909,20 @@ export async function runEmbeddedAttempt(
       }
     }
 
+    // ── Personalized Prompt Context (from nightly dreaming) ──────
+    let personalizedContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { loadPersonalizedPrompt } = await import("../../../arona/dreaming/index.js");
+        const pp = loadPersonalizedPrompt(effectiveWorkspace);
+        if (pp?.compiledFragment?.trim()) {
+          personalizedContext = pp.compiledFragment.trim();
+        }
+      } catch {
+        // Personalized prompt is non-critical — do not break agent run
+      }
+    }
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
@@ -943,6 +957,7 @@ export async function runEmbeddedAttempt(
       taskContext,
       healthContext,
       senseiProfileContext,
+      personalizedContext,
       queryTier: params.queryTier,
     });
     const systemPromptReport = buildSystemPromptReport({

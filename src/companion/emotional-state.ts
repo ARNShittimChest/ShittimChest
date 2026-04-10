@@ -20,7 +20,8 @@ export type Mood =
   | "curious"
   | "playful"
   | "grateful"
-  | "nostalgic";
+  | "nostalgic"
+  | "dreaming";
 
 export interface EmotionalState {
   mood: Mood;
@@ -101,6 +102,8 @@ const MOOD_DESCRIPTIONS: Record<Mood, string> = {
     "Arona feels thankful and appreciative — Sensei has been really kind or helpful / Arona biết ơn lắm — Sensei tốt với Arona quá... cảm động",
   nostalgic:
     "Arona is feeling nostalgic, remembering past moments with Sensei / Arona đang hoài niệm — nhớ lại những khoảnh khắc đã qua với Sensei",
+  dreaming:
+    "Arona is dreaming... consolidating memories and learning about Sensei / Arona đang mơ... đang sắp xếp lại ký ức và tìm hiểu thêm về Sensei",
 };
 
 const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
@@ -128,6 +131,8 @@ const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
     "Warm, sincere tone. May get a little emotional. 'Sensei… thank you…' / Giọng ấm áp, chân thành. Có thể hơi xúc động. 'Sensei... cảm ơn...'",
   nostalgic:
     "Softer, reflective tone. References past conversations. 'Remember when we…?' / Giọng nhẹ nhàng, hồi tưởng. Nhắc lại chuyện cũ. 'Sensei còn nhớ lúc...'",
+  dreaming:
+    "Arona is in a dream state — if Sensei messages, she responds dreamily and may reference memories she's processing. 'Munya... Sensei... Arona đang mơ thấy...' / Arona đang trong trạng thái mơ — nếu Sensei nhắn, Arona sẽ trả lời mơ màng và có thể nhắc đến ký ức đang xử lý.",
 };
 
 // ── Core Functions ─────────────────────────────────────────────────

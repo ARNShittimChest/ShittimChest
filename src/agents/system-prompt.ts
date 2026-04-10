@@ -268,6 +268,8 @@ export function buildAgentSystemPrompt(params: {
   healthContext?: string;
   /** Sensei profile summary (from personality learning system). */
   senseiProfileContext?: string;
+  /** Personalized behavior guide (from nightly dreaming optimization). */
+  personalizedContext?: string;
   /** Smart routing query tier for prompt detail control. */
   queryTier?: QueryTier;
 }) {
@@ -682,6 +684,10 @@ export function buildAgentSystemPrompt(params: {
     // ── Sensei profile context (injected from personality learning system) ──
     ...(params.senseiProfileContext?.trim() && !isMinimal
       ? [params.senseiProfileContext.trim(), ""]
+      : []),
+    // ── Personalized behavior context (from nightly dreaming optimization) ──
+    ...(params.personalizedContext?.trim() && !isMinimal
+      ? [`## Personalized Behavior Guide\n${params.personalizedContext.trim()}`, ""]
       : []),
     "## Workspace Files (injected)",
     "These user-editable files are loaded by ShittimChest and included below in Project Context.",
