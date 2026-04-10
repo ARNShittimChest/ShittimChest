@@ -1,0 +1,313 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/primary.swiftdeps"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Font.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Font.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Font.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Font~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Font.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Font.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/CGContext+DisplayNode.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGContext+DisplayNode.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGContext+DisplayNode.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGContext+DisplayNode~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGContext+DisplayNode.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGContext+DisplayNode.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayAccent.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayAccent.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayAccent.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayAccent~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayAccent.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayAccent.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayFraction.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayFraction.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayFraction.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayFraction~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayFraction.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayFraction.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayGlyph.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyph.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyph.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyph~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyph.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyph.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayGlyphRun.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyphRun.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyphRun.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyphRun~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyphRun.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayGlyphRun.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayLargeOperator.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLargeOperator.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLargeOperator.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLargeOperator~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLargeOperator.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLargeOperator.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayLine.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLine.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLine.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLine~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLine.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayLine.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayList.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayList.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayList.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayList~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayList.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayList.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayNode.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayNode.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayNode.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayNode~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayNode.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayNode.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayProvider.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayProvider.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayProvider.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayProvider~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayProvider.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayProvider.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayRadical.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayRadical.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayRadical.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayRadical~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayRadical.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayRadical.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayShiftedNode.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayShiftedNode.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayShiftedNode.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayShiftedNode~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayShiftedNode.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayShiftedNode.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/DisplayTextRun.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayTextRun.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayTextRun.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayTextRun~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayTextRun.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DisplayTextRun.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/GraphicsContext+DisplayNode.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/GraphicsContext+DisplayNode.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/GraphicsContext+DisplayNode.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/GraphicsContext+DisplayNode~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/GraphicsContext+DisplayNode.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/GraphicsContext+DisplayNode.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Display/Typesetter.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Typesetter.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Typesetter.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Typesetter~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Typesetter.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Typesetter.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Font/FontMetrics.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontMetrics.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontMetrics.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontMetrics~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontMetrics.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontMetrics.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Font/FontRegistry.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontRegistry.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontRegistry.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontRegistry~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontRegistry.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontRegistry.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Font/FontTable.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontTable.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontTable.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontTable~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontTable.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/FontTable.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Font/PlatformFont.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/PlatformFont.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/PlatformFont.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/PlatformFont~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/PlatformFont.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/PlatformFont.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Helpers/CGColor+HexString.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGColor+HexString.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGColor+HexString.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGColor+HexString~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGColor+HexString.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/CGColor+HexString.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Helpers/KeyBox.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/KeyBox.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/KeyBox.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/KeyBox~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/KeyBox.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/KeyBox.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Helpers/ReadWriteLockIsolated.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ReadWriteLockIsolated.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ReadWriteLockIsolated.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ReadWriteLockIsolated~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ReadWriteLockIsolated.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ReadWriteLockIsolated.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Helpers/Unicode.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Unicode.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Unicode.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Unicode~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Unicode.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Unicode.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/AtomFactory.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomFactory.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomFactory.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomFactory~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomFactory.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomFactory.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/AtomList.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomList.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomList.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomList~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomList.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/AtomList.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Accent.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Accent.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Accent.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Accent~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Accent.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Accent.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Color.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Color.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Color.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Color~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Color.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Color.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/ColorBox.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ColorBox.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ColorBox.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ColorBox~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ColorBox.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/ColorBox.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Fraction.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Fraction.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Fraction.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Fraction~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Fraction.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Fraction.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Inner.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Inner.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Inner.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Inner~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Inner.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Inner.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/LargeOperator.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/LargeOperator.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/LargeOperator.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/LargeOperator~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/LargeOperator.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/LargeOperator.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Overline.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Overline.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Overline.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Overline~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Overline.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Overline.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Radical.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Radical.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Radical.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Radical~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Radical.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Radical.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Space.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Space.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Space.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Space~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Space.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Space.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Style.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Style.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Style.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Style~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Style.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Style.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Table.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Table.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Table.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Table~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Table.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Table.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/TextColor.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TextColor.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TextColor.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TextColor~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TextColor.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TextColor.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Atoms/Underline.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Underline.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Underline.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Underline~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Underline.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Underline.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Internal/Syntax/Parser.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Parser.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Parser.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Parser~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Parser.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Parser.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/Math.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Math.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Math.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Math~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Math.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/Math.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/RenderingMode.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/RenderingMode.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/RenderingMode.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/RenderingMode~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/RenderingMode.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/RenderingMode.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/checkouts/swiftui-math/Sources/SwiftUIMath/TypesettingStyle.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TypesettingStyle.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TypesettingStyle.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TypesettingStyle~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TypesettingStyle.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/TypesettingStyle.dia"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/DerivedSources/resource_bundle_accessor.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/resource_bundle_accessor.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/resource_bundle_accessor.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/resource_bundle_accessor~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/resource_bundle_accessor.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/SwiftUIMath.build/resource_bundle_accessor.dia"
+  }
+}

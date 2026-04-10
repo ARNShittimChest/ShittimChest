@@ -145,6 +145,12 @@ final class NodeAppModel {
     var cameraFlashNonce: Int = 0
     var screenRecordActive: Bool = false
 
+    // ── Companion Mood ──────────────────────────────────────────
+    /// Arona's current emotional state, fetched from gateway.
+    var companionMoodState: ShittimChestEmotionalState?
+    @ObservationIgnored private var companionMoodService: CompanionMoodService?
+    @ObservationIgnored private var companionMoodPollTask: Task<Void, Never>?
+
     init(
         screen: ScreenController = ScreenController(),
         camera: any CameraServicing = CameraController(),
@@ -1694,6 +1700,7 @@ extension NodeAppModel {
         self.voiceWakeSyncTask?.cancel()
         self.voiceWakeSyncTask = nil
         self.gatewayHealthMonitor.stop()
+        self.stopCompanionMoodPolling()
         Task {
             await self.operatorGateway.disconnect()
             await self.nodeGateway.disconnect()
@@ -2182,6 +2189,7 @@ extension NodeAppModel {
     func onNodeGatewayConnected() async {
         await self.registerAPNsTokenIfNeeded()
         await self.flushQueuedWatchRepliesIfConnected()
+        await self.startCompanionMoodPolling()
     }
 
     private func handleWatchQuickReply(_ event: WatchQuickReplyEvent) async {
@@ -2730,6 +2738,57 @@ extension NodeAppModel {
 extension NodeAppModel {
     func _bridgeConsumeMirroredWatchReply(_ event: WatchQuickReplyEvent) async {
         await self.handleWatchQuickReply(event)
+    }
+}
+
+// MARK: - Companion Mood Polling
+
+private extension NodeAppModel {
+    /// Start polling companion mood from the gateway.
+    /// Creates the service lazily on first call. Polls every 60 seconds.
+    func startCompanionMoodPolling() async {
+        // Create service if needed
+        if self.companionMoodService == nil {
+            self.companionMoodService = CompanionMoodService(gateway: self.nodeGateway)
+        }
+
+        guard let service = self.companionMoodService else { return }
+
+        // Cancel any existing poll task
+        self.companionMoodPollTask?.cancel()
+
+        // Single polling loop that fetches and bridges to @Observable
+        self.companionMoodPollTask = Task { [weak self] in
+            // Immediate first fetch
+            if let state = await service.fetchMood() {
+                await MainActor.run { self?.companionMoodState = state }
+            }
+
+            // Then poll every 60 seconds
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                guard !Task.isCancelled else { break }
+                if let state = await service.fetchMood() {
+                    await MainActor.run { self?.companionMoodState = state }
+                }
+            }
+        }
+    }
+
+    /// Stop companion mood polling.
+    func stopCompanionMoodPolling() {
+        self.companionMoodPollTask?.cancel()
+        self.companionMoodPollTask = nil
+    }
+
+    /// Force-refresh mood state (e.g., after sending a chat message).
+    func refreshCompanionMood() {
+        Task { [weak self] in
+            guard let service = self?.companionMoodService else { return }
+            if let state = await service.fetchMood() {
+                await MainActor.run { self?.companionMoodState = state }
+            }
+        }
     }
 }
 

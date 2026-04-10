@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.build/primary.swiftdeps"
+  },
+  "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.derived/runner.swift": {
+    "dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.build/runner.d",
+    "object": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Volumes/OCungRoi/PRJ/Arona-CLW/apps/shared/ShittimChestKit/.build/index-build/x86_64-apple-macosx/debug/ShittimChestKitPackageTests.build/runner.dia"
+  }
+}

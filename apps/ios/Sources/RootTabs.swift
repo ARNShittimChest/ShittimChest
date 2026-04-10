@@ -1,3 +1,4 @@
+import ShittimChestKit
 import SwiftUI
 
 struct RootTabs: View {
@@ -23,6 +24,15 @@ struct RootTabs: View {
             SettingsTab()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(2)
+        }
+        .overlay(alignment: .topTrailing) {
+            if let moodState = self.appModel.companionMoodState {
+                CompanionMoodPill(state: moodState)
+                    .padding(.trailing, 10)
+                    .safeAreaPadding(.top, 10)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    .animation(self.reduceMotion ? .none : .spring(response: 0.3), value: moodState.mood)
+            }
         }
         .overlay(alignment: .topLeading) {
             StatusPill(

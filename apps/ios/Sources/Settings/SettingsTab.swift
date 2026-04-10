@@ -249,6 +249,15 @@ struct SettingsTab: View {
                     }
                 }
 
+                // ── Companion Mood ──────────────────────────
+                if let moodState = self.appModel.companionMoodState {
+                    Section("Arona's Mood") {
+                        CompanionMoodCard(state: moodState)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                            .listRowBackground(Color.clear)
+                    }
+                }
+
                 Section("Device") {
                     DisclosureGroup("Features") {
                         self.featureToggle(
