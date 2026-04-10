@@ -541,6 +541,14 @@ function buildChatCommands(): ChatCommandDefinition[] {
       category: "session",
     }),
     defineChatCommand({
+      key: "arona-reset",
+      nativeName: "arona-reset",
+      description: "Full reset: erase all memories, mood, and sessions. Requires 3x confirmation.",
+      textAlias: "/arona-reset",
+      acceptsArgs: true,
+      category: "session",
+    }),
+    defineChatCommand({
       key: "new",
       nativeName: "new",
       description: "Start a new session.",

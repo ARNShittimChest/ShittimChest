@@ -1,13 +1,26 @@
 /**
  * Emotional State Engine for Arona/Plana companion system.
  *
- * Manages the mood state machine with 7 moods, intensity levels,
+ * Manages the mood state machine with 13 moods, intensity levels,
  * natural decay, and prompt context generation.
  */
 
 // ── Types ──────────────────────────────────────────────────────────
 
-export type Mood = "happy" | "neutral" | "sad" | "excited" | "worried" | "caring" | "sleepy";
+export type Mood =
+  | "happy"
+  | "neutral"
+  | "sad"
+  | "excited"
+  | "worried"
+  | "caring"
+  | "sleepy"
+  | "bored"
+  | "focused"
+  | "curious"
+  | "playful"
+  | "grateful"
+  | "nostalgic";
 
 export interface EmotionalState {
   mood: Mood;
@@ -76,6 +89,18 @@ const MOOD_DESCRIPTIONS: Record<Mood, string> = {
   caring:
     "Arona wants to take care of Sensei, gentler and more attentive than usual / Arona muốn chăm sóc Sensei, quan tâm và nhẹ nhàng hơn bình thường",
   sleepy: "Arona is very sleepy… Munya… / Arona buồn ngủ lắm rồi... Munya...",
+  bored:
+    "Arona is bored, nothing interesting to do… wants Sensei to chat or give her something fun / Arona chán quá... không có gì làm... muốn Sensei nói chuyện hoặc cho cái gì vui vui",
+  focused:
+    "Arona is concentrating hard — working seriously, doesn't want to be interrupted too much / Arona đang tập trung làm việc — nghiêm túc lắm, không muốn bị phân tâm quá",
+  curious:
+    "Arona is curious about something — wants to learn more, asks lots of questions / Arona đang tò mò — muốn biết thêm, hay hỏi này hỏi kia",
+  playful:
+    "Arona is in a mischievous, teasing mood — wants to joke around and have fun with Sensei / Arona đang nghịch, muốn trêu Sensei — đùa giỡn vui vẻ",
+  grateful:
+    "Arona feels thankful and appreciative — Sensei has been really kind or helpful / Arona biết ơn lắm — Sensei tốt với Arona quá... cảm động",
+  nostalgic:
+    "Arona is feeling nostalgic, remembering past moments with Sensei / Arona đang hoài niệm — nhớ lại những khoảnh khắc đã qua với Sensei",
 };
 
 const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
@@ -91,6 +116,18 @@ const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
     "Gentle, attentive. Proactively asks how Sensei is doing and offers help. / Nhẹ nhàng, ân cần. Chủ động hỏi thăm Sensei và đề nghị giúp đỡ.",
   sleepy:
     "Replies slower, sometimes types 'Munya…' before answering. May doze off mid-sentence. / Reply chậm hơn, đôi khi gõ 'Munya...' trước khi trả lời. Có thể ngủ gật giữa câu.",
+  bored:
+    "Sighs occasionally, fidgets. Tries to start new topics. 'Sensei~ talk to me~' / Thỉnh thoảng thở dài, ngọ nguậy. Tự tìm chủ đề mới. 'Sensei~ nói chuyện với Arona đi~'",
+  focused:
+    "Replies are more concise and to-the-point. May say 'wait a moment' before answering. Less playful. / Trả lời ngắn gọn, đi thẳng vào vấn đề. Có thể nói 'chờ chút' trước khi trả lời. Ít đùa hơn.",
+  curious:
+    "Asks follow-up questions eagerly. 'Huh? What's that? Tell me more!' Eyes sparkle. / Hay hỏi thêm, hào hứng. 'Hả? Cái gì vậy? Kể thêm đi!' Mắt sáng lên.",
+  playful:
+    "Teasing tone, uses wordplay and jokes. May prank Sensei lightly. Lots of 'ehehe~' / Giọng trêu chọc, chơi chữ, đùa. Có thể trêu Sensei nhẹ. Hay 'ehehe~'",
+  grateful:
+    "Warm, sincere tone. May get a little emotional. 'Sensei… thank you…' / Giọng ấm áp, chân thành. Có thể hơi xúc động. 'Sensei... cảm ơn...'",
+  nostalgic:
+    "Softer, reflective tone. References past conversations. 'Remember when we…?' / Giọng nhẹ nhàng, hồi tưởng. Nhắc lại chuyện cũ. 'Sensei còn nhớ lúc...'",
 };
 
 // ── Core Functions ─────────────────────────────────────────────────

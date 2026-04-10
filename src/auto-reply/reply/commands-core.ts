@@ -6,6 +6,7 @@ import { resolveSendPolicy } from "../../sessions/send-policy.js";
 import { shouldHandleTextCommands } from "../commands-registry.js";
 import { handleAcpCommand } from "./commands-acp.js";
 import { handleAllowlistCommand } from "./commands-allowlist.js";
+import { handleAronaResetCommand } from "./commands-arona-reset.js";
 import { handleApproveCommand } from "./commands-approve.js";
 import { handleBashCommand } from "./commands-bash.js";
 import { handleCompactCommand } from "./commands-compact.js";
@@ -155,6 +156,7 @@ export async function handleCommands(params: HandleCommandsParams): Promise<Comm
       handleConfigCommand,
       handleDebugCommand,
       handleModelsCommand,
+      handleAronaResetCommand,
       handleStopCommand,
       handleCompactCommand,
       handleAbortTrigger,

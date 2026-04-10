@@ -20,7 +20,7 @@ interface WeatherMoodRule {
 
 const WEATHER_MOOD_MAP: Record<WeatherCategory, WeatherMoodRule> = {
   clear: {
-    delta: { happy: 0.2, excited: 0.1 },
+    delta: { happy: 0.2, excited: 0.1, playful: 0.1 },
     source: "weather-clear",
   },
   "partly-cloudy": {
@@ -28,23 +28,23 @@ const WEATHER_MOOD_MAP: Record<WeatherCategory, WeatherMoodRule> = {
     source: "weather-partly-cloudy",
   },
   cloudy: {
-    delta: { neutral: 0.1 },
+    delta: { neutral: 0.1, nostalgic: 0.1 },
     source: "weather-cloudy",
   },
   fog: {
-    delta: { caring: 0.2, worried: 0.1 },
+    delta: { caring: 0.2, nostalgic: 0.15, worried: 0.1 },
     source: "weather-fog",
   },
   drizzle: {
-    delta: { caring: 0.3 },
+    delta: { caring: 0.3, nostalgic: 0.1 },
     source: "weather-drizzle",
   },
   rain: {
-    delta: { caring: 0.4, sad: 0.1 },
+    delta: { caring: 0.4, nostalgic: 0.15, sad: 0.1 },
     source: "weather-rain",
   },
   snow: {
-    delta: { excited: 0.4, happy: 0.3 },
+    delta: { excited: 0.4, happy: 0.3, playful: 0.2 },
     source: "weather-snow",
   },
   storm: {
@@ -52,7 +52,7 @@ const WEATHER_MOOD_MAP: Record<WeatherCategory, WeatherMoodRule> = {
     source: "weather-storm",
   },
   "extreme-hot": {
-    delta: { worried: 0.3, caring: 0.2 },
+    delta: { worried: 0.3, caring: 0.2, bored: 0.1 },
     source: "weather-hot",
   },
   "extreme-cold": {
@@ -60,7 +60,7 @@ const WEATHER_MOOD_MAP: Record<WeatherCategory, WeatherMoodRule> = {
     source: "weather-cold",
   },
   pleasant: {
-    delta: { happy: 0.3, excited: 0.1 },
+    delta: { happy: 0.3, playful: 0.15, excited: 0.1 },
     source: "weather-nice",
   },
 };

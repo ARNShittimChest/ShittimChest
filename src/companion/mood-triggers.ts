@@ -81,32 +81,32 @@ export function analyzeTimeOfDay(hour: number, timezone?: string): MoodTrigger {
     morning: {
       type: "time",
       source: "morning",
-      delta: { happy: 0.5, excited: 0.1 },
+      delta: { happy: 0.5, excited: 0.1, curious: 0.1 },
     },
     "mid-morning": {
       type: "time",
       source: "mid-morning",
-      delta: { happy: 0.3, excited: 0.2 },
+      delta: { focused: 0.4, happy: 0.2 },
     },
     lunch: {
       type: "time",
       source: "lunch",
-      delta: { happy: 0.2, sleepy: 0.15 },
+      delta: { happy: 0.2, sleepy: 0.15, playful: 0.1 },
     },
     afternoon: {
       type: "time",
       source: "afternoon",
-      delta: { neutral: 0.3 },
+      delta: { focused: 0.3, neutral: 0.2, bored: 0.1 },
     },
     evening: {
       type: "time",
       source: "evening",
-      delta: { caring: 0.4, happy: 0.1 },
+      delta: { caring: 0.4, nostalgic: 0.15, happy: 0.1 },
     },
     night: {
       type: "time",
       source: "night",
-      delta: { sleepy: 0.4, caring: 0.3 },
+      delta: { sleepy: 0.4, caring: 0.3, nostalgic: 0.1 },
     },
     "late-night": {
       type: "time",
@@ -308,6 +308,94 @@ const KEYWORD_RULES: KeywordRule[] = [
     delta: { happy: 0.4, excited: 0.1 },
     source: "nhớ-Arona",
     affectionDelta: +4,
+  },
+  // Hỏi gì mới, tò mò → curious
+  {
+    patterns: [
+      /tại sao/i,
+      /vì sao/i,
+      /làm sao/i,
+      /how does/i,
+      /what if/i,
+      /why/i,
+      /cho hỏi/i,
+      /thắc mắc/i,
+      /tò mò/i,
+      /curious/i,
+    ],
+    delta: { curious: 0.4, excited: 0.1 },
+    source: "tò-mò",
+    affectionDelta: 0,
+  },
+  // Đùa giỡn / trêu chọc nhiều → playful
+  {
+    patterns: [/baka/i, /ngu ngốc/i, /dummy/i, /dễ thương quá/i, /trêu Arona/i, /prank/i, /trick/i],
+    delta: { playful: 0.5, happy: 0.2 },
+    source: "trêu-đùa-nhau",
+    affectionDelta: +2,
+  },
+  // Biết ơn / cảm ơn sâu sắc → grateful
+  {
+    patterns: [
+      /thật sự cảm ơn/i,
+      /biết ơn/i,
+      /may mắn có/i,
+      /really thank/i,
+      /so grateful/i,
+      /appreciate/i,
+      /không biết nói gì/i,
+    ],
+    delta: { grateful: 0.6, happy: 0.2 },
+    source: "biết-ơn",
+    affectionDelta: +4,
+  },
+  // Nhắc chuyện cũ / hoài niệm → nostalgic
+  {
+    patterns: [
+      /nhớ không/i,
+      /hồi đó/i,
+      /lần trước/i,
+      /lúc xưa/i,
+      /remember when/i,
+      /that time/i,
+      /back then/i,
+      /ngày xưa/i,
+    ],
+    delta: { nostalgic: 0.5, happy: 0.15 },
+    source: "hoài-niệm",
+    affectionDelta: +2,
+  },
+  // Chán / không có gì làm → bored
+  {
+    patterns: [
+      /chán quá/i,
+      /boring/i,
+      /bored/i,
+      /nhàm chán/i,
+      /chẳng có gì/i,
+      /nothing to do/i,
+      /so bored/i,
+      /rảnh quá/i,
+    ],
+    delta: { bored: 0.5, sad: 0.1 },
+    source: "buồn-chán",
+    affectionDelta: 0,
+  },
+  // Đang làm việc / tập trung → focused
+  {
+    patterns: [
+      /đang làm/i,
+      /bận lắm/i,
+      /working on/i,
+      /focus/i,
+      /tập trung/i,
+      /deadline/i,
+      /phải xong/i,
+      /busy/i,
+    ],
+    delta: { focused: 0.5, caring: 0.1 },
+    source: "đang-bận",
+    affectionDelta: 0,
   },
 ];
 

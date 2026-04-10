@@ -23,6 +23,12 @@ const VALID_MOODS = new Set<Mood>([
   "worried",
   "caring",
   "sleepy",
+  "bored",
+  "focused",
+  "curious",
+  "playful",
+  "grateful",
+  "nostalgic",
 ]);
 
 // ── Types ────────────────────────────────────────────────────────────

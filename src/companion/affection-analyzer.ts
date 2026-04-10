@@ -41,7 +41,7 @@ const CLASSIFICATION_PROMPT = `You are a sentiment classifier for a companion AI
 Analyze the user's message and classify its emotional intent.
 
 Return ONLY a valid JSON object with these fields:
-- "mood": one of "happy", "neutral", "sad", "excited", "worried", "caring", "sleepy"
+- "mood": one of "happy", "neutral", "sad", "excited", "worried", "caring", "sleepy", "bored", "focused", "curious", "playful", "grateful", "nostalgic"
 - "intensity": number 0.0 to 1.0 (how strong is the emotion)
 - "affectionDelta": integer -10 to +10 (how much this affects the relationship)
   - Positive: praise, thanks, gifts, compliments, jokes, caring → +1 to +6
@@ -189,6 +189,12 @@ const VALID_MOODS = new Set<Mood>([
   "worried",
   "caring",
   "sleepy",
+  "bored",
+  "focused",
+  "curious",
+  "playful",
+  "grateful",
+  "nostalgic",
 ]);
 
 function parseAnalysisResponse(raw: string | null): AffectionAnalysisResult | null {

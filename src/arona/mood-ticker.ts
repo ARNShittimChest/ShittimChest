@@ -82,23 +82,23 @@ function analyzeTimeMood(hour: number): MoodTrigger | null {
       source: "time-early-morning",
     },
     morning: {
-      delta: { happy: 0.2, excited: 0.1 },
+      delta: { happy: 0.2, excited: 0.1, curious: 0.05 },
       source: "time-morning",
     },
     midday: {
-      delta: { neutral: 0.15 },
+      delta: { focused: 0.15, neutral: 0.1 },
       source: "time-midday",
     },
     afternoon: {
-      delta: { neutral: 0.1, caring: 0.05 },
+      delta: { focused: 0.1, bored: 0.05, caring: 0.05 },
       source: "time-afternoon",
     },
     evening: {
-      delta: { caring: 0.2, neutral: 0.1 },
+      delta: { caring: 0.2, nostalgic: 0.1, neutral: 0.05 },
       source: "time-evening",
     },
     night: {
-      delta: { sleepy: 0.2, caring: 0.15 },
+      delta: { sleepy: 0.2, caring: 0.15, nostalgic: 0.05 },
       source: "time-night",
     },
     "late-night": {
@@ -149,8 +149,9 @@ function analyzeAbsenceMood(lastInteractionMs: number | null): MoodTrigger | nul
     type: "absence",
     source: "absence-mild",
     delta: {
-      caring: 0.15 + factor * 0.1,
-      sad: 0.05 + factor * 0.1,
+      bored: 0.15 + factor * 0.1,
+      caring: 0.1 + factor * 0.1,
+      sad: 0.05 + factor * 0.05,
     },
   };
 }
