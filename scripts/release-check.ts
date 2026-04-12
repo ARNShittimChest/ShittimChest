@@ -87,7 +87,7 @@ function checkPluginVersions() {
     for (const item of mismatches) {
       console.error(`  - ${item}`);
     }
-    console.error("release-check: run `pnpm plugins:sync` to align plugin versions.");
+    console.error("release-check: run `bun run plugins:sync` to align plugin versions.");
     process.exit(1);
   }
 }

@@ -63,6 +63,15 @@ export function shouldEnsureCliPath(argv: string[]): boolean {
 
 export async function runCli(argv: string[] = process.argv) {
   const normalizedArgv = normalizeWindowsArgv(argv);
+
+  // Fast path: --version prints the version string without loading the full program.
+  // This avoids importing the heavy commander tree, plugin registry, and config modules.
+  if (normalizedArgv.includes("--version") || normalizedArgv.includes("-V")) {
+    const { VERSION } = await import("../version.js");
+    console.log(VERSION);
+    return;
+  }
+
   loadDotEnv({ quiet: true });
   normalizeEnv();
   if (shouldEnsureCliPath(normalizedArgv)) {
@@ -96,13 +105,17 @@ export async function runCli(argv: string[] = process.argv) {
   // are correct even with lazy command registration.
   const primary = getPrimaryCommand(parseArgv);
   if (primary) {
-    const { getProgramContext } = await import("./program/program-context.js");
+    // Load all command-registration modules in parallel to reduce sequential import latency.
+    const [{ getProgramContext }, { registerCoreCliByName }, { registerSubCliByName }] =
+      await Promise.all([
+        import("./program/program-context.js"),
+        import("./program/command-registry.js"),
+        import("./program/register.subclis.js"),
+      ]);
     const ctx = getProgramContext(program);
     if (ctx) {
-      const { registerCoreCliByName } = await import("./program/command-registry.js");
       await registerCoreCliByName(program, ctx, primary, parseArgv);
     }
-    const { registerSubCliByName } = await import("./program/register.subclis.js");
     await registerSubCliByName(program, primary);
   }
 
@@ -114,9 +127,11 @@ export async function runCli(argv: string[] = process.argv) {
     hasBuiltinPrimary,
   });
   if (!shouldSkipPluginRegistration) {
-    // Register plugin CLI commands before parsing
-    const { registerPluginCliCommands } = await import("../plugins/cli.js");
-    const { loadConfig } = await import("../config/config.js");
+    // Register plugin CLI commands before parsing — load both modules in parallel.
+    const [{ registerPluginCliCommands }, { loadConfig }] = await Promise.all([
+      import("../plugins/cli.js"),
+      import("../config/config.js"),
+    ]);
     registerPluginCliCommands(program, loadConfig());
   }
 

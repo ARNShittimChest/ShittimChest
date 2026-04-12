@@ -42,6 +42,18 @@ export interface SelfReflectionParseResult {
   changed: boolean;
 }
 
+/**
+ * Constraints that bound the self-reflection output to deterministic ranges.
+ * Even if the LLM returns extreme values, the final result stays within
+ * these limits — ensuring invariant emotional transitions.
+ */
+export interface SelfReflectionConstraints {
+  /** Maximum allowed affection delta magnitude per turn (default: 5) */
+  maxAffectionDelta?: number;
+  /** Allowed moods subset — if provided, moods outside this set fall back to 'neutral' */
+  allowedMoods?: Set<Mood>;
+}
+
 // ── Parser ───────────────────────────────────────────────────────────
 
 /**
@@ -51,11 +63,15 @@ export interface SelfReflectionParseResult {
  *   (in case the LLM mentions it in examples, we want the actual one at the end)
  * - Strips the entire block (including tags) from the text
  * - Parses and validates the JSON contents
+ * - Optionally applies constraints to bound the output values
  * - Returns both the cleaned text and the parsed reflection
  *
  * Non-throwing — returns null reflection on any parse failure.
  */
-export function extractSelfReflection(text: string): SelfReflectionParseResult {
+export function extractSelfReflection(
+  text: string,
+  constraints?: SelfReflectionConstraints,
+): SelfReflectionParseResult {
   if (!text) {
     return { text, reflection: null, changed: false };
   }
@@ -79,7 +95,12 @@ export function extractSelfReflection(text: string): SelfReflectionParseResult {
     text.slice(0, lastOpenIdx) + text.slice(closeIdx + FEELINGS_TAG_CLOSE.length)
   ).trimEnd();
 
-  const reflection = parseSelfReflectionJSON(jsonStr);
+  let reflection = parseSelfReflectionJSON(jsonStr);
+
+  // Apply optional constraints to bound the output
+  if (reflection && constraints) {
+    reflection = applyReflectionConstraints(reflection, constraints);
+  }
 
   return {
     text: cleaned,
@@ -148,4 +169,36 @@ function parseSelfReflectionJSON(raw: string): SelfReflectionResult | null {
   } catch {
     return null;
   }
+}
+
+// ── Constraint application ──────────────────────────────────────────
+
+/**
+ * Apply invariance constraints to a parsed self-reflection result.
+ * Ensures the output is bounded regardless of what the LLM generated.
+ */
+function applyReflectionConstraints(
+  reflection: SelfReflectionResult,
+  constraints: SelfReflectionConstraints,
+): SelfReflectionResult {
+  const maxAff = constraints.maxAffectionDelta ?? 5;
+
+  const aronaMood =
+    constraints.allowedMoods && !constraints.allowedMoods.has(reflection.aronaMood)
+      ? "neutral"
+      : reflection.aronaMood;
+
+  const senseiMood =
+    constraints.allowedMoods && !constraints.allowedMoods.has(reflection.senseiMood)
+      ? "neutral"
+      : reflection.senseiMood;
+
+  return {
+    ...reflection,
+    aronaMood: aronaMood as Mood,
+    senseiMood: senseiMood as Mood,
+    aronaIntensity: Math.max(0, Math.min(1, reflection.aronaIntensity)),
+    senseiIntensity: Math.max(0, Math.min(1, reflection.senseiIntensity)),
+    affectionDelta: Math.max(-maxAff, Math.min(maxAff, reflection.affectionDelta)),
+  };
 }

@@ -32,10 +32,24 @@ import {
 } from "./health-config.js";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { SeededRandom, dailySeed } from "../../companion/seeded-random.js";
 
 const execAsync = promisify(exec);
 
 const log = createSubsystemLogger("health-scheduler");
+
+// ── Seeded PRNG ─────────────────────────────────────────────────
+// Same day → same scheduling sequence. Deterministic across restarts.
+let rng = new SeededRandom(dailySeed());
+let lastSeedDay = new Date().toDateString();
+
+function ensureDailySeed(): void {
+  const today = new Date().toDateString();
+  if (today !== lastSeedDay) {
+    rng = new SeededRandom(dailySeed());
+    lastSeedDay = today;
+  }
+}
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -199,8 +213,9 @@ async function generateNotificationText(
     log.debug(`[${template.windowKey}] LLM generation failed, using fallback: ${String(err)}`);
   }
 
-  // Fallback: random pre-written template
-  return template.fallbackTexts[Math.floor(Math.random() * template.fallbackTexts.length)];
+  // Fallback: deterministic pre-written template selection
+  ensureDailySeed();
+  return rng.pick(template.fallbackTexts);
 }
 
 // ── Scheduling Logic ────────────────────────────────────────────
@@ -214,7 +229,8 @@ function isInActiveHours(start: number, end: number): boolean {
 function msUntilHour(hour: number): number {
   const now = new Date();
   const target = new Date(now);
-  target.setHours(hour, Math.floor(Math.random() * 15), 0, 0); // randomize minutes 0-14
+  ensureDailySeed();
+  target.setHours(hour, rng.nextInt(0, 14), 0, 0); // deterministic minutes 0-14
   if (target <= now) {
     target.setDate(target.getDate() + 1);
   }
@@ -326,8 +342,9 @@ function scheduleReminder(
     initialMs = Math.round(intervalMs * template.initialDelayFraction);
   }
 
-  // Add ±10% jitter to avoid simultaneous fires
-  const jitter = initialMs * 0.1 * (Math.random() * 2 - 1);
+  // Add ±10% deterministic jitter to avoid simultaneous fires
+  ensureDailySeed();
+  const jitter = initialMs * 0.1 * (rng.next() * 2 - 1);
   initialMs = Math.max(60_000, Math.round(initialMs + jitter)); // min 1 min
 
   timer = setTimeout(() => void fire(), initialMs);

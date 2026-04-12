@@ -17,6 +17,21 @@ import path from "node:path";
 import { getWeatherData } from "../weather/weather-store.js";
 import { buildWeatherShortSummary } from "../weather/weather-mood.js";
 import { getPendingTasks, getTasksDueToday, getOverdueTasks } from "../tasks/task-store.js";
+import { SeededRandom, dailySeed } from "../../companion/seeded-random.js";
+
+// ── Seeded PRNG ─────────────────────────────────────────────────
+// Same day → same scheduling sequence. Deterministic across restarts.
+let rng = new SeededRandom(dailySeed());
+let lastSeedDay = new Date().toDateString();
+
+/** Refresh the PRNG seed at day boundaries for daily determinism. */
+function ensureDailySeed(): void {
+  const today = new Date().toDateString();
+  if (today !== lastSeedDay) {
+    rng = new SeededRandom(dailySeed());
+    lastSeedDay = today;
+  }
+}
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -148,8 +163,9 @@ function getTaskBriefingHint(): string {
  * schedule for tomorrow.
  */
 function msUntilRandomInWindow(startHour: number, endHour: number): number {
+  ensureDailySeed();
   const now = new Date();
-  const randomHour = startHour + Math.random() * (endHour - startHour);
+  const randomHour = startHour + rng.next() * (endHour - startHour);
   const hours = Math.floor(randomHour);
   const minutes = Math.floor((randomHour - hours) * 60);
 
@@ -170,7 +186,8 @@ function msUntilRandomInWindow(startHour: number, endHour: number): number {
 }
 
 function randomBetween(minMs: number, maxMs: number): number {
-  return Math.floor(Math.random() * (maxMs - minMs) + minMs);
+  ensureDailySeed();
+  return Math.floor(rng.next() * (maxMs - minMs) + minMs);
 }
 
 // ── Execution Log ────────────────────────────────────────────────

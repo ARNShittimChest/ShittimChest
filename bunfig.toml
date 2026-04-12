@@ -1,0 +1,33 @@
+# Bun configuration — migrated from pnpm overrides
+# See: https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Auto-install peer dependencies
+peer = true
+
+[install.trustedDependencies]
+# Packages allowed to run install scripts (migrated from pnpm.onlyBuiltDependencies)
+"@lydell/node-pty" = true
+"@matrix-org/matrix-sdk-crypto-nodejs" = true
+"@napi-rs/canvas" = true
+"@whiskeysockets/baileys" = true
+"authenticate-pam" = true
+"esbuild" = true
+"koffi" = true
+"node-llama-cpp" = true
+"protobufjs" = true
+"sharp" = true
+
+# Overrides (migrated from pnpm.overrides)
+[overrides]
+"hono" = "4.11.10"
+"fast-xml-parser" = "5.3.6"
+"request" = "npm:@cypress/request@3.0.10"
+"request-promise" = "npm:@cypress/request-promise@5.0.0"
+"form-data" = "2.5.4"
+"minimatch" = "10.2.4"
+"qs" = "6.14.2"
+"node-domexception" = "npm:@nolyfill/domexception@^1.0.28"
+"@sinclair/typebox" = "0.34.48"
+"tar" = "7.5.9"
+"tough-cookie" = "4.1.3"

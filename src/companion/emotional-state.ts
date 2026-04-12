@@ -137,11 +137,11 @@ const MOOD_BEHAVIOR_HINTS: Record<Mood, string> = {
 
 // ── Core Functions ─────────────────────────────────────────────────
 
-export function createInitialState(): EmotionalState {
+export function createInitialState(nowMs?: number): EmotionalState {
   return {
     mood: "neutral",
     intensity: 0.3,
-    lastChangeMs: Date.now(),
+    lastChangeMs: nowMs ?? Date.now(),
     triggers: [],
     affection: DEFAULT_AFFECTION,
     senseiMood: undefined,
@@ -155,7 +155,11 @@ export function createInitialState(): EmotionalState {
  * The trigger's delta values are weighted and applied to determine
  * the dominant mood.
  */
-export function applyTrigger(state: EmotionalState, trigger: MoodTrigger): EmotionalState {
+export function applyTrigger(
+  state: EmotionalState,
+  trigger: MoodTrigger,
+  nowMs?: number,
+): EmotionalState {
   const deltas = trigger.delta;
   let bestMood: Mood = state.mood;
   let bestScore = state.intensity * 0.7; // Current mood has inertia
@@ -175,7 +179,7 @@ export function applyTrigger(state: EmotionalState, trigger: MoodTrigger): Emoti
   return {
     mood: bestMood,
     intensity: newIntensity,
-    lastChangeMs: moodChanged ? Date.now() : state.lastChangeMs,
+    lastChangeMs: moodChanged ? (nowMs ?? Date.now()) : state.lastChangeMs,
     triggers,
     affection: state.affection,
   };
@@ -283,6 +287,7 @@ export function addAffectionPoints(
 export function applySelfReflection(
   state: EmotionalState,
   reflection: SelfReflectionResult,
+  nowMs?: number,
 ): EmotionalState {
   // Arona's mood: direct set from her self-assessment (not weighted like triggers)
   // The LLM already considered the conversation context, so we trust its evaluation
@@ -302,7 +307,7 @@ export function applySelfReflection(
   return {
     mood: reflection.aronaMood,
     intensity: newIntensity,
-    lastChangeMs: moodChanged ? Date.now() : state.lastChangeMs,
+    lastChangeMs: moodChanged ? (nowMs ?? Date.now()) : state.lastChangeMs,
     triggers,
     affection: newAffection,
     // Bidirectional: store Arona's perception of Sensei

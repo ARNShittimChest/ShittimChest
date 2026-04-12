@@ -55,13 +55,14 @@ function saveDreamingState(workspaceDir: string, state: DreamingState): void {
 function setDreamingMood(
   workspaceDir: string,
   onMoodUpdate?: (state: EmotionalState) => void,
+  nowMs?: number,
 ): EmotionalState {
   const current = loadOrCreateMoodState(workspaceDir);
   const dreamingState: EmotionalState = {
     ...current,
     mood: "dreaming" as EmotionalState["mood"],
     intensity: 0.6,
-    lastChangeMs: Date.now(),
+    lastChangeMs: nowMs ?? Date.now(),
     triggers: [...current.triggers, "dreaming-cycle"].slice(-5),
   };
   saveMoodState(workspaceDir, dreamingState);
@@ -73,16 +74,18 @@ function restoreMood(
   workspaceDir: string,
   previousState: EmotionalState,
   onMoodUpdate?: (state: EmotionalState) => void,
+  nowMs?: number,
 ): void {
   // After dreaming, set to sleepy if it's still nighttime, otherwise restore previous mood
-  const hour = new Date().getHours();
+  const now = nowMs ?? Date.now();
+  const hour = new Date(now).getHours();
   const isNight = hour >= 23 || hour < 6;
 
   const restoredState: EmotionalState = {
     ...previousState,
     mood: isNight ? "sleepy" : previousState.mood,
     intensity: isNight ? 0.5 : previousState.intensity,
-    lastChangeMs: Date.now(),
+    lastChangeMs: now,
     triggers: [...previousState.triggers, "dreaming-done"].slice(-5),
   };
   saveMoodState(workspaceDir, restoredState);

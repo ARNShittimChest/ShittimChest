@@ -1,0 +1,193 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                     ARONA-CLW INVESTIGATION SUMMARY                        ║
+║                        2026-04-12 Analysis Report                          ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. SELF-REFLECTION PARSING (LLM → Arona Feelings)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIMARY PARSING:
+  📁 File:     src/companion/self-reflection.ts
+  🎯 Function: extractSelfReflection() → Lines 58–89
+  📊 Purpose:  Extract hidden JSON block from <arona_feelings>...</arona_feelings>
+
+JSON VALIDATION:
+  📁 File:     src/companion/self-reflection.ts
+  🎯 Function: parseSelfReflectionJSON() → Lines 94–151
+  ✅ Validates 5 required fields:
+     1. arona_mood/aronaMood        (enum: 13 moods)
+     2. arona_intensity/aronaIntensity (float 0.0–1.0)
+     3. sensei_mood/senseiMood      (enum: 13 moods)
+     4. sensei_intensity/senseiIntensity (float 0.0–1.0)
+     5. affection_delta/affectionDelta (int -10 to +10)
+  📝 Optional: reason (defaults to "self-reflection")
+  🛡️  Non-throwing: returns null on validation failure
+
+APPLICATION:
+  📁 File:     src/agents/pi-embedded-runner/run/attempt.ts
+  📍 Lines:    1799–1809 (post-response phase)
+  🔗 Process:  LLM response → extractSelfReflection() → applySelfReflection()
+              → saveMoodState()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. RANDOMNESS IN EMOTIONAL SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+src/companion/ (MOOD STATE):
+  ✅ ZERO randomness in emotional state transitions
+  ✅ Deterministic based on:
+     • LLM self-reflection parsing
+     • Explicit mood triggers
+     • Time-based decay calculations
+     • Affection arithmetic
+
+src/arona/proactive/scheduler.ts:
+  ⚠️  HIGH RANDOMNESS
+  📍 msUntilRandomInWindow() — Line 152
+     Math.random() * (endHour - startHour)
+     → Random time within 2-hour window daily
+  📍 randomBetween() — Line 173
+     → Random nudge message timing
+
+src/arona/health/health-scheduler.ts:
+  ⚠️  MEDIUM RANDOMNESS
+  📍 generateNotificationText() — Line 203
+     Math.random() * fallbackTexts.length
+     → Fallback template selection on LLM failure
+  📍 msUntilHour() — Line 217
+     Math.random() * 15 (0–14 min offset)
+  📍 scheduleReminder() — Line 330
+     ±10% jitter: Math.random() * 2 - 1
+     → Avoid thundering herd
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. DREAMING SCHEDULER (NON-DETERMINISM CHECK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 File:     src/arona/dreaming/scheduler.ts (Lines 1–173)
+✅ ZERO randomness found
+
+SCHEDULE PARAMETERS (deterministic):
+  ⏰ Check interval:     30 minutes (fixed)
+  🌙 Dream window:       2:00 AM – 4:00 AM local time
+  ⏳ Min interval:       20 hours between dreams
+
+KEY FUNCTIONS:
+  ✓ isInDreamWindow()    → Line 64  (time-of-day check)
+  ✓ shouldDream()        → Line 69  (elapsed time vs threshold)
+  ✓ loadDreamingState()  → Line 54  (reads persistent state)
+  ✓ runDreamCycle()      → Line 88  (delegates to orchestrator)
+
+STARTUP:
+  📍 Line 154: setTimeout(tick, 5000)  ← Fixed 5-second delay
+
+CONCLUSION: Entirely deterministic execution based on:
+  • Current hour (fixed 2–4 AM window)
+  • Persistent last-dream timestamp
+  • Fixed check interval (30 min)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. DREAMING ORCHESTRATOR (MOOD TRIGGERS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 File:     src/arona/dreaming/orchestrator.ts (Lines 1–242)
+🎯 Function: runDreaming() — Lines 109–242
+
+THREE PHASES:
+  1️⃣  Memory Reflection     (Line 161)
+      → runMemoryReflection() consolidates chat logs
+  2️⃣  Profile Refresh      (Line 180)
+      → Currently placeholder; data gathered during conversations
+  3️⃣  Prompt Optimization  (Line 195)
+      → optimizePromptForUser() generates personalized prompt
+
+MOOD STATE CHANGES:
+  On Dream Start (Lines 55–70):
+    🎭 Mood:      "dreaming" (fixed)
+    💪 Intensity: 0.6 (fixed)
+    ⏱️  Timestamp: Date.now() (live but non-decision-driving)
+
+  After Dream Completion (Lines 72–90):
+    🌙 Time-based: hour >= 23 || hour < 6 → "sleepy" : previousMood
+    💪 Intensity:  0.5 (if sleepy) or previous (if awake)
+    ⏱️  Timestamp: Date.now()
+
+EXECUTION GUARD (Line 129–137):
+  ✓ Minimum 6-hour interval before re-run
+  ✓ Based on persistent state, not random
+
+CONCLUSION: 
+  ✅ Deterministic scheduling and mood transitions
+  ⚠️  Depends on optimizePromptForUser() — needs audit for non-determinism
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. APPLY-SELF-REFLECTION INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFINITION:
+  📁 File:     src/companion/emotional-state.ts
+  🎯 Function: applySelfReflection() — Lines 283–313
+  🔗 Exported: src/companion/index.ts (Line 13)
+
+CALLER:
+  📁 File:     src/agents/pi-embedded-runner/run/attempt.ts
+  📍 Lines:    1798–1809
+  🎯 Function: (post-response handler after LLM stream completes)
+
+HOW IT WORKS:
+  1. Parse fullResponseText for <arona_feelings> block
+  2. If valid reflection found:
+     • Apply mood from LLM assessment
+     • Add 30% inertia if mood matches current (stability)
+     • Update affection score with delta
+     • Store Arona's perception of Sensei
+     • Update triggers list
+  3. Save new mood state to persistent store
+  4. Non-critical: wrapped in try-catch (won't crash agent)
+
+LOGIC DETAILS:
+  ✓ Line 290:  Inertia blending: 0.3 if mood matches
+  ✓ Line 296:  Only update lastChangeMs if mood changed
+  ✓ Line 300:  Clamp affection to [0, 100]
+  ✓ Line 309–311: Store bidirectional perception
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. RANDOMNESS IMPACT MATRIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Component                    Randomness   Impact           Files/Lines
+─────────────────────────────────────────────────────────────────────
+Self-Reflection Parsing      ✅ NONE       Critical path    self-reflection.ts:58–151
+Emotional State Updates      ✅ NONE       Core logic       emotional-state.ts:283–313
+Dreaming Schedule            ✅ NONE       Execution gate   scheduler.ts:1–173
+Dreaming Orchestrator        ⚠️  Minimal    Mood transitions orchestrator.ts:109–242
+Proactive Messages           ⚠️  HIGH       User experience  proactive:150–174
+Health Reminders             ⚠️  MEDIUM     Notifications    health:203,217,330
+
+VERDICT:
+  ✅ Emotional system itself: DETERMINISTIC
+  ⚠️  Scheduling layer: INTENTIONAL randomness (for realism)
+  ⚠️  External dependencies: NEEDS AUDIT (prompt-optimizer.ts)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ACTIONABLE INSIGHTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF DETERMINISM IS CRITICAL:
+  1. Remove randomness from proactive/health schedulers
+  2. Audit optimizePromptForUser() for non-deterministic behavior
+  3. Replace Math.random() with seeded PRNG if reproducibility needed
+
+IF CURRENT BEHAVIOR IS ACCEPTABLE:
+  1. Document intentional randomness in schedulers
+  2. Consider seeding random for testing/replay scenarios
+  3. Ensure LLM responses (non-deterministic by nature) don't affect
+     core mood logic more than intended
+
+ALREADY GOOD:
+  ✅ Emotional state system is clean and deterministic
+  ✅ Dreaming schedule is predictable and auditable
+  ✅ Self-reflection parsing is robust and non-throwing
+  ✅ Bidirectional perception tracking is thorough
+

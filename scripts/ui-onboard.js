@@ -57,21 +57,21 @@ function depsInstalled() {
 }
 
 const [action] = process.argv.slice(2);
-const pnpm = which("pnpm");
-if (!pnpm) {
-  process.stderr.write("Missing pnpm. Install pnpm, then retry.\n");
+const runner = which("bun") ?? which("pnpm");
+if (!runner) {
+  process.stderr.write("Missing bun or pnpm. Install one, then retry.\n");
   process.exit(1);
 }
 
 if (action === "install") {
-  runSync(pnpm, ["install"]);
+  runSync(runner, ["install"]);
 } else if (action === "build" || action === "dev") {
   if (!depsInstalled()) {
     const env = action === "build" ? { ...process.env, NODE_ENV: "production" } : process.env;
     const args = action === "build" ? ["install", "--prod"] : ["install"];
-    runSync(pnpm, args, env);
+    runSync(runner, args, env);
   }
-  runSync(pnpm, ["run", action]);
+  runSync(runner, ["run", action]);
 } else {
   process.stderr.write("Usage: node scripts/ui-onboard.js <install|build|dev>\n");
   process.exit(2);

@@ -245,9 +245,10 @@ export async function startGatewayServer(
           .join("\n")}`,
       );
     }
+    // Re-read only after migration wrote changes.
+    configSnapshot = await readConfigFileSnapshot();
   }
 
-  configSnapshot = await readConfigFileSnapshot();
   if (configSnapshot.exists && !configSnapshot.valid) {
     const issues =
       configSnapshot.issues.length > 0
@@ -264,6 +265,8 @@ export async function startGatewayServer(
   if (autoEnable.changes.length > 0) {
     try {
       await writeConfigFile(autoEnable.config);
+      // Re-read after auto-enable persisted changes.
+      configSnapshot = await readConfigFileSnapshot();
       log.info(
         `gateway: auto-enabled plugins:\n${autoEnable.changes
           .map((entry) => `- ${entry}`)
@@ -340,19 +343,20 @@ export async function startGatewayServer(
     });
 
   // Fail fast before startup if required refs are unresolved.
+  // Reuse configSnapshot from above — no extra I/O needed since we already
+  // validated and re-read after any migration/auto-enable writes.
   let cfgAtStart: ShittimChestConfig;
   {
-    const freshSnapshot = await readConfigFileSnapshot();
-    if (!freshSnapshot.valid) {
+    if (!configSnapshot.valid) {
       const issues =
-        freshSnapshot.issues.length > 0
-          ? freshSnapshot.issues
+        configSnapshot.issues.length > 0
+          ? configSnapshot.issues
               .map((issue) => `${issue.path || "<root>"}: ${issue.message}`)
               .join("\n")
           : "Unknown validation issue.";
-      throw new Error(`Invalid config at ${freshSnapshot.path}.\n${issues}`);
+      throw new Error(`Invalid config at ${configSnapshot.path}.\n${issues}`);
     }
-    await activateRuntimeSecrets(freshSnapshot.config, {
+    await activateRuntimeSecrets(configSnapshot.config, {
       reason: "startup",
       activate: false,
     });
@@ -609,7 +613,12 @@ export async function startGatewayServer(
         }, skillsRefreshDelayMs);
       });
 
-  const noopInterval = () => setInterval(() => {}, 1 << 30);
+  const noopInterval = () => {
+    const id = setInterval(() => {}, 1 << 30);
+    // Don't prevent process exit when the gateway is shutting down.
+    id.unref();
+    return id;
+  };
   let tickInterval = noopInterval();
   let healthInterval = noopInterval();
   let dedupeCleanup = noopInterval();

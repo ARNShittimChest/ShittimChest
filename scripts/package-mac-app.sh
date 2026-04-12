@@ -107,8 +107,8 @@ merge_framework_machos() {
   done < <(find "$primary" -type f -print0)
 }
 
-echo "📦 Ensuring deps (pnpm install)"
-(cd "$ROOT_DIR" && pnpm install --no-frozen-lockfile --config.node-linker=hoisted)
+echo "📦 Ensuring deps (bun install)"
+(cd "$ROOT_DIR" && bun install)
 
 if [[ -z "${APP_BUILD:-}" ]]; then
   APP_BUILD="$GIT_BUILD_NUMBER"
@@ -129,8 +129,8 @@ if [[ "$AUTO_CHECKS" == "true" && ! "$APP_BUILD" =~ ^[0-9]+$ ]]; then
 fi
 
 if [[ "${SKIP_TSC:-0}" != "1" ]]; then
-  echo "📦 Building JS (pnpm build)"
-  (cd "$ROOT_DIR" && pnpm build)
+  echo "📦 Building JS (bun run build)"
+  (cd "$ROOT_DIR" && bun run build)
 else
   echo "📦 Skipping JS build (SKIP_TSC=1)"
 fi

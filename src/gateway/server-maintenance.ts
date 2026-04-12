@@ -58,6 +58,7 @@ export function startGatewayMaintenanceTimers(params: {
     params.broadcast("tick", payload, { dropIfSlow: true });
     params.nodeSendToAllSubscribed("tick", payload);
   }, TICK_INTERVAL_MS);
+  tickInterval.unref();
 
   // periodic health refresh to keep cached snapshot warm
   const healthInterval = setInterval(() => {
@@ -65,6 +66,7 @@ export function startGatewayMaintenanceTimers(params: {
       .refreshGatewayHealthSnapshot({ probe: true })
       .catch((err) => params.logHealth.error(`refresh failed: ${formatError(err)}`));
   }, HEALTH_REFRESH_INTERVAL_MS);
+  healthInterval.unref();
 
   // Prime cache so first client gets a snapshot without waiting.
   void params
@@ -128,6 +130,7 @@ export function startGatewayMaintenanceTimers(params: {
       params.chatDeltaSentAt.delete(runId);
     }
   }, 60_000);
+  dedupeCleanup.unref();
 
   return { tickInterval, healthInterval, dedupeCleanup };
 }

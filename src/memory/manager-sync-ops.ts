@@ -590,6 +590,7 @@ export abstract class MemoryManagerSyncOps {
         log.warn(`memory sync failed (interval): ${String(err)}`);
       });
     }, ms);
+    this.intervalTimer.unref();
   }
 
   private scheduleWatchSync() {

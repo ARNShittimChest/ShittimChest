@@ -282,6 +282,7 @@ export class QmdMemoryManager implements MemorySearchManager {
           log.warn(`qmd update failed (${String(err)})`);
         });
       }, this.qmd.update.intervalMs);
+      this.updateTimer.unref();
     }
   }
 

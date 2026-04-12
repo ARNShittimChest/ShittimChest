@@ -464,6 +464,7 @@ export class GatewayClient {
         this.ws?.close(4000, "tick timeout");
       }
     }, interval);
+    this.tickTimer.unref();
   }
 
   private validateTlsFingerprint(): Error | null {

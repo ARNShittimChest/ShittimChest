@@ -239,6 +239,7 @@ export function deferGatewayRestartUntilIdle(opts: {
       emitGatewayRestart();
     }
   }, pollMs);
+  poll.unref();
 }
 
 function formatSpawnDetail(result: {

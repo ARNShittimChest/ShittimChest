@@ -149,8 +149,10 @@ export function startDreamingScheduler(opts: DreamingSchedulerOptions): Dreaming
 
   // Start periodic checks
   timerId = setInterval(tick, CHECK_INTERVAL_MS);
+  timerId.unref();
   // Also check immediately on startup (in case we're already in the dream window)
-  setTimeout(tick, 5000);
+  const initialTimer = setTimeout(tick, 5000);
+  initialTimer.unref();
 
   log.info(
     `Dreaming scheduler started (check every ${CHECK_INTERVAL_MS / 60000}min, window ${DREAM_WINDOW_START_HOUR}:00-${DREAM_WINDOW_END_HOUR}:00)`,

@@ -324,9 +324,10 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
   };
 
   const startChannels = async () => {
-    for (const plugin of listChannelPlugins()) {
-      await startChannel(plugin.id);
-    }
+    // Start all channels concurrently instead of sequentially.
+    // Each channel's internal account startup is already parallelized via Promise.all,
+    // and the backoff/restart logic is self-contained per account.
+    await Promise.all(listChannelPlugins().map((plugin) => startChannel(plugin.id)));
   };
 
   const markChannelLoggedOut = (channelId: ChannelId, cleared: boolean, accountId?: string) => {

@@ -158,9 +158,9 @@ function analyzeAbsenceMood(lastInteractionMs: number | null): MoodTrigger | nul
 
 // ── Core tick ────────────────────────────────────────────────────
 
-function runMoodTick(opts: MoodTickerOptions): void {
-  const now = Date.now();
-  const hour = new Date().getHours();
+export function runMoodTick(opts: MoodTickerOptions, nowMs?: number): void {
+  const now = nowMs ?? Date.now();
+  const hour = new Date(now).getHours();
 
   // Load current state and apply natural decay first
   let state = loadOrCreateMoodState(opts.workspaceDir);
@@ -237,7 +237,11 @@ export function startMoodTicker(opts: MoodTickerOptions): MoodTickerHandle {
       if (stopped) return;
       safeTick();
     }, TICK_INTERVAL_MS);
+    // Allow process to exit even if mood ticker is still scheduled.
+    intervalId.unref();
   }, INITIAL_DELAY_MS);
+  // Allow process to exit even if initial timeout is pending.
+  initialTimeoutId.unref();
 
   return {
     stop() {
