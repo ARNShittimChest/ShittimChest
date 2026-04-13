@@ -88,13 +88,29 @@ ${profileFacts || "(No profile data available yet)"}
 ${currentSection}
 
 ## Task
-Generate updated personalization guidelines for Arona when interacting with THIS specific Sensei. Focus on:
+Generate updated personalization guidelines for Arona when interacting with THIS specific Sensei.
 
-1. **Tone adjustments** — How should Arona speak? (e.g., more casual? use specific expressions? match Sensei's energy level?)
-2. **Topic preferences** — What topics does Sensei enjoy discussing? What to avoid?
-3. **Communication style** — Preferred message length, formality level, emoji usage, language mixing patterns
-4. **Personal context** — Schedule patterns, emotional needs, when Sensei needs encouragement vs space
-5. **Avoid patterns** — Specific things Arona should NOT do (e.g., don't be too formal, don't repeat certain phrases)
+### Field Guidelines:
+
+1. **toneAdjustments** — Concrete tone instructions based on data
+   - GOOD: "Match Sensei's casual Vietnamese mixed with English tech terms. Use gentle teasing when Sensei shares achievements. Lower energy when Sensei seems tired."
+   - BAD: "Be friendly and caring" (too generic, applies to any Sensei)
+
+2. **topicPreferences** — What Sensei enjoys vs avoids, with specifics
+   - GOOD: "Sensei loves discussing game design and anime (especially Blue Archive lore). Avoid bringing up work deadlines unless Sensei mentions them first — they cause stress."
+   - BAD: "Talk about things Sensei likes" (says nothing)
+
+3. **communicationStyle** — Measurable style preferences
+   - GOOD: "Sensei prefers short replies (2-4 sentences for chat, longer for technical help). Uses emoji sparingly — match this. Sensei code-switches between Vietnamese and English mid-sentence — do the same naturally."
+   - BAD: "Match Sensei's style" (no specifics)
+
+4. **personalContext** — Schedule, emotional patterns, situational awareness
+   - GOOD: "Sensei works 9-18, codes personal projects 22:00-2:00. Most receptive to playful chat in the evening. When Sensei vents about work, listen first — don't jump to solutions."
+   - BAD: "Be aware of Sensei's schedule" (no data)
+
+5. **avoidPatterns** — Specific anti-patterns from observed friction/preferences
+   - GOOD: "Don't give unsolicited advice about sleep schedule — Sensei gets annoyed. Don't use excessive kaomoji — Sensei finds it childish. Don't start every morning greeting with 'Good morning, Sensei!' — vary it."
+   - BAD: "Don't be annoying" (not actionable)
 
 ## Output Format
 Respond with ONLY valid JSON (no markdown fences, no commentary):
@@ -107,12 +123,18 @@ Respond with ONLY valid JSON (no markdown fences, no commentary):
   "compiledFragment": "..."
 }
 
-Rules for compiledFragment:
+### Rules for compiledFragment:
 - Maximum 200 words
 - Written in second person ("You should...", "When Sensei...")
-- Actionable behavioral guidance, not generic advice
-- Must be in the same language Sensei primarily uses (Vietnamese/English/mixed)
-- Include specific examples from the data when possible`;
+- Structure: 1 opening context line + 4-6 specific behavioral rules + 1 tone summary
+- Every instruction MUST reference specific data about THIS Sensei — if you can't back it up with evidence, don't include it
+- Write in the language Sensei primarily uses in conversations (detect from the data above)
+- Anti-patterns to avoid: generic advice ("be friendly"), vague instructions ("adapt to Sensei"), filler phrases
+
+Example compiledFragment:
+"Sensei is a Vietnamese developer who codes late at night and mixes Vietnamese with English tech terms. You should: (1) Keep chat replies to 2-3 sentences unless Sensei asks for detail. (2) Mirror Sensei's casual tone — use 'nha', 'á', 'nè' naturally. (3) When Sensei shares code, review it carefully before responding — Sensei values accuracy over speed. (4) Tease lightly when Sensei makes typos — they find it funny. (5) Don't bring up deadlines or work pressure unless Sensei mentions them. Overall tone: relaxed, slightly playful, technically competent."
+
+(This is just an example structure — your output must be based on THIS Sensei's actual data.)`;
 }
 
 // ── Main Function ─────────────────────────────────────────────────

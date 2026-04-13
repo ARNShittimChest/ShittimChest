@@ -66,29 +66,45 @@ ${prevSection}
 ## Task
 Analyze Arona's interaction effectiveness and generate updated recommendations.
 
-Consider these questions:
-1. Is Sensei actively engaged in conversations? (high senseiIntensity = engaged)
+### Questions to evaluate:
+1. Is Sensei actively engaged? (high senseiIntensity = engaged, low = distracted/uninterested)
 2. Is the relationship improving or declining? (affection trajectory)
-3. Is Arona's emotional range appropriate? (mood variety — too narrow = monotonous, too wide = unstable)
+3. Is Arona's emotional range appropriate? (mood variety — <20% = monotonous, >80% = chaotically unstable, 30-60% = healthy)
 4. Are proactive messages well-received? (proactive engagement rate if available)
-5. Is the response length appropriate for this Sensei's preferences?
-6. What specific changes in tone, topic selection, or interaction style would improve things?
+5. Is response length appropriate? (very long responses for casual chat = bad, short responses for complex topics = bad)
+6. What specific behavioral changes would improve things?
 
-Important:
-- Be specific — "use more humor" is too vague, "add playful teasing when Sensei shares achievements" is actionable
-- Build on strengths, don't just fix weaknesses
-- If things are going well, recommend small refinements rather than big changes
-- behavioralAdjustments should be a concise paragraph (max 100 words) written as instructions to Arona
-- Write in the language Sensei primarily uses (Vietnamese if unclear)
+### effectivenessScore calibration:
+- 0-20: Relationship is deteriorating. Sensei is disengaged, affection declining, conversations feel forced
+- 21-40: Below average. Some connection but significant issues — wrong tone, repetitive, or missing Sensei's emotional needs
+- 41-60: Acceptable. Functional conversations but room for improvement — average engagement, no strong bonding moments
+- 61-80: Good. Sensei is engaged, affection stable/growing, some genuine connection moments. Minor refinements possible
+- 81-100: Excellent. Strong bond, high engagement, Arona adapts well to Sensei's needs. Reserve 90+ for truly exceptional metrics
+
+### Output quality rules:
+- strengths: Each item must cite SPECIFIC evidence. BAD: "Good communication". GOOD: "Matched Sensei's playful tone in 80% of interactions, leading to higher engagement"
+- improvements: Each item must be ACTIONABLE. BAD: "Be more engaging". GOOD: "Reduce response length for casual chat from avg 150 chars to 80 chars — Sensei's own messages average 40 chars"
+- behavioralAdjustments: Concise paragraph (max 100 words) written as direct instructions to Arona. Must be specific enough that Arona can act on them immediately
+- summary: One sentence capturing the overall trajectory and key insight
+- Write in the language that appears most frequently in the interaction data (detect from context)
 
 ## Output Format
 Respond with ONLY valid JSON (no markdown fences, no commentary):
 {
   "effectivenessScore": <0-100>,
-  "strengths": ["...", "..."],
-  "improvements": ["...", "..."],
-  "behavioralAdjustments": "...",
-  "summary": "..."
+  "strengths": ["evidence-based strength 1", "evidence-based strength 2"],
+  "improvements": ["actionable improvement 1", "actionable improvement 2"],
+  "behavioralAdjustments": "direct instructions to Arona...",
+  "summary": "one-sentence trajectory summary"
+}
+
+Example output:
+{
+  "effectivenessScore": 68,
+  "strengths": ["Sensei engagement score is 72% — above average, indicating Arona holds attention well", "Mood variety at 45% is healthy — appropriate emotional range without being chaotic"],
+  "improvements": ["Avg response length (210 chars) is too long for a Sensei whose messages average 50 chars — aim for 80-120 chars in casual chat", "Affection delta averages only +0.3/turn — create more memorable moments through callbacks to shared history"],
+  "behavioralAdjustments": "Shorten casual replies to 1-2 sentences. Reference specific memories when appropriate. When Sensei shares achievements, match their energy with genuine excitement rather than generic praise. If engagement drops below 50%, switch to asking questions rather than making statements.",
+  "summary": "Relationship is stable with good engagement but responses are too verbose for this Sensei's conversational style."
 }`;
 }
 

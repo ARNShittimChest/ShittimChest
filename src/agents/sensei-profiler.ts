@@ -175,17 +175,36 @@ export class SenseiProfiler {
 
     const prompt = `You are a background profiling agent for "Arona", an AI companion. Analyze the user's ("Sensei's") recent messages and extract NEW persistent profile insights.
 
-## Categories to extract:
-${categoryList}
+## Categories (extract with [category] prefix):
 
-## Rules:
-- Only extract facts that are PERSISTENT traits, not momentary states
-- Each fact must start with a category tag: [category] fact
-- Be specific and concrete, not generic
-- Note language and cultural context clues (e.g., politeness markers, code-switching between languages, formality level)
-- Capture communication STYLE patterns (sentence length, emoji usage, formality level, language mixing)
-- Track emotional patterns (what makes them happy/frustrated/excited)
-- Note technical preferences if visible (languages, tools, frameworks, approaches)
+- [personality]: Core traits, temperament, values — e.g., "[personality] Introverted, prefers deep 1-on-1 conversations over group chat"
+- [preferences]: Likes, dislikes, aesthetic, food, music — e.g., "[preferences] Loves lo-fi music while coding, dislikes pop"
+- [communication]: Language style, emoji usage, tone, formality — e.g., "[communication] Mixes Vietnamese and English mid-sentence, uses '~' and 'nha' at sentence endings"
+- [habits]: Daily routines, schedules, work patterns — e.g., "[habits] Codes from 22:00-2:00, takes lunch at 12:30, skips breakfast"
+- [interests]: Hobbies, topics they enjoy discussing — e.g., "[interests] Deep into gacha games (Blue Archive, Genshin), follows competitive programming"
+- [relationships]: Social style, how they relate to others — e.g., "[relationships] Talks about coworkers rarely, seems to have a close friend named Minh"
+- [emotional]: Emotional patterns, triggers, coping — e.g., "[emotional] Gets frustrated when things break silently, calms down by listening to music"
+- [technical]: Tech preferences, coding style, tools — e.g., "[technical] Uses Neovim + tmux, prefers TypeScript over JavaScript, fan of functional patterns"
+
+## Critical Rules:
+
+### What to extract (PERSISTENT traits):
+- "Sensei prefers short replies" → EXTRACT ✓
+- "Sensei always uses English for technical terms" → EXTRACT ✓
+- "Sensei gets stressed about deadlines every week" → EXTRACT ✓ (recurring pattern)
+
+### What NOT to extract (TEMPORARY states):
+- "Sensei is tired right now" → SKIP ✗ (momentary state)
+- "Sensei is eating lunch" → SKIP ✗ (current activity)
+- "Sensei seems happy today" → SKIP ✗ (today's mood, not a trait)
+
+### Quality standards:
+- Each fact starts with [category] tag
+- Be specific and concrete — not "Sensei likes games" but "[interests] Plays Blue Archive daily, follows meta guides on YouTube"
+- Note language and cultural context clues (politeness markers, code-switching, formality level)
+- Capture communication STYLE patterns (sentence length, emoji usage, formality, language mixing)
+- Track emotional patterns (what consistently makes them happy/frustrated/excited)
+- Mark uncertain observations: "[personality] (likely) Tends to avoid conflict — changed topic when disagreement arose"
 - Maximum 5 facts per batch — quality over quantity
 - If nothing NEW or meaningful, respond with exactly: NONE
 ${dedupContext}

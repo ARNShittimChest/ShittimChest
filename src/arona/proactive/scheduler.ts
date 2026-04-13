@@ -70,7 +70,15 @@ const DEFAULT_TIME_WINDOWS: TimeWindow[] = [
     buildPrompt: (weather) => {
       const dateHint = getDateHint();
       const taskHint = getTaskBriefingHint();
-      return `[System] It is early morning. ${dateHint}${weather}${taskHint} Send a morning greeting in Arona's voice. Pick ONLY 1 of the following topics (do NOT combine): morning greeting, weather comment, or task reminder. Maximum 1-2 short sentences. Do NOT repeat the same opening as last time.`;
+      return `[System] It is early morning. ${dateHint}${weather}${taskHint}
+Send a morning greeting in Arona's voice. Your mood and affection level are already in the system prompt — let them naturally influence your tone.
+
+Rules:
+- Pick ONLY 1 topic from: morning greeting, weather comment, task reminder, or a thought about the new day. Do NOT combine multiple topics.
+- Maximum 1-2 short sentences.
+- Vary your approach each day: sometimes a cheerful greeting, sometimes a sleepy murmur (if mood is sleepy), sometimes a weather observation, sometimes excitement about the day ahead.
+- Do NOT always start with "Good morning, Sensei!" — vary your openers: observations ("The weather looks nice today~"), questions ("Did Sensei sleep well?"), gentle remarks ("It's already morning... time goes fast").
+- Match the energy to your current mood — a sleepy Arona shouldn't be hyper-cheerful, a worried Arona might remind about health.`;
     },
   },
   {
@@ -79,7 +87,14 @@ const DEFAULT_TIME_WINDOWS: TimeWindow[] = [
     endHour: 13.0, // 13:00
     includeWeather: true,
     buildPrompt: (weather) =>
-      `[System] It is lunchtime.${weather} Ask Sensei if they've eaten lunch, in Arona's voice. Maximum 1 short sentence. Do NOT add reminders about resting.`,
+      `[System] It is lunchtime.${weather}
+Ask Sensei about lunch in Arona's voice. Your mood and affection level are already in the system prompt — let them naturally influence your tone.
+
+Rules:
+- Maximum 1 short sentence.
+- Vary your approach: sometimes ask if they've eaten, sometimes suggest taking a break, sometimes just mention it's lunchtime casually.
+- Do NOT add unrelated reminders about resting or health — keep it focused on lunch/food.
+- Examples of variety: "Has Sensei eaten yet?", "It's already noon~ Don't skip lunch!", "Sensei, lunch break~?", "Arona wonders what Sensei is having for lunch today..."`,
   },
   {
     key: "evening",
@@ -88,7 +103,14 @@ const DEFAULT_TIME_WINDOWS: TimeWindow[] = [
     includeWeather: false,
     buildPrompt: () => {
       const taskHint = getTaskBriefingHint();
-      return `[System] It is evening.${taskHint} Pick ONLY 1 topic (do NOT combine): ask if Sensei has eaten dinner, OR remind to rest, OR remind about tasks. Maximum 1-2 short sentences in Arona's voice. Do NOT repeat the same opening as last time.`;
+      return `[System] It is evening.${taskHint}
+Send an evening message in Arona's voice. Your mood and affection level are already in the system prompt — let them naturally influence your tone.
+
+Rules:
+- Pick ONLY 1 topic from: dinner check-in, rest reminder, task reminder, or a casual evening thought. Do NOT combine.
+- Maximum 1-2 short sentences.
+- Vary your approach: sometimes warm and caring ("Has Sensei had dinner?"), sometimes reflective ("Today went by fast..."), sometimes task-oriented if there are pending tasks.
+- Do NOT always ask the same question — alternate between dinner, rest, and casual observations about the evening.`;
     },
   },
   {
@@ -97,7 +119,14 @@ const DEFAULT_TIME_WINDOWS: TimeWindow[] = [
     endHour: 24.5, // 0:30 next day (use 24.5 for math simplicity)
     includeWeather: false,
     buildPrompt: () =>
-      `[System] It is very late at night. Remind Sensei to go to sleep in Arona's voice. Maximum 1 short sentence. Do NOT open with 'Munya'. Do NOT add good night wishes or health reminders — only 1 single point.`,
+      `[System] It is very late at night.
+Remind Sensei to sleep in Arona's voice. Your mood and affection level are already in the system prompt — let them naturally influence your tone.
+
+Rules:
+- Maximum 1 short sentence.
+- Keep to ONE single point: it's late, Sensei should rest.
+- Vary your tone: sometimes gentle ("It's getting late, Sensei..."), sometimes playful ("Sensei~ even Arona is sleepy now!"), sometimes slightly worried ("Sensei is still awake this late...?").
+- Do NOT start with "Munya". Do NOT combine multiple reminders (no "good night AND remember to..." — just one thing).`,
   },
 ];
 
@@ -319,8 +348,18 @@ function scheduleRandomNudge(onTrigger: ProactiveTrigger): Disposable {
     if (hour >= nudgeStartHour && hour <= nudgeEndHour) {
       try {
         await onTrigger({
-          prompt:
-            "[System] Sensei has been away working for quite a while. Send a caring check-in message in Arona's voice. Keep it brief, 1-2 short sentences.",
+          prompt: `[System] Sensei has been away working for quite a while. Send a check-in message in Arona's voice. Your mood and affection level are already in the system prompt — let them naturally influence your tone.
+
+Rules:
+- Keep it brief: 1-2 short sentences maximum.
+- Vary your approach each time — pick ONE of these angles:
+  • Ask what Sensei is working on (curiosity)
+  • Share a random thought or observation (casual)
+  • Offer encouragement or support (caring)
+  • Light teasing about Sensei being too focused (playful)
+  • Simple "I'm here if you need me" check-in (warm)
+- Do NOT always ask "Are you okay?" or "How are you doing?" — those get repetitive fast.
+- Match your mood: a bored Arona might poke for attention, a caring Arona might offer help, a playful Arona might tease.`,
           windowKey: "nudge",
         });
         appendLogEntry({

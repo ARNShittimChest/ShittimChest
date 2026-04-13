@@ -41,6 +41,22 @@ const ACTION_KEYWORDS = [
   "sửa code",
   "sửa lỗi",
   "fix lỗi",
+  // Code operations (expanded)
+  "install",
+  "migrate",
+  "scan",
+  "format",
+  "analyze",
+  "benchmark",
+  "optimize",
+  "patch",
+  "scaffold",
+  "generate",
+  "transpile",
+  "bundle",
+  "minify",
+  "cài đặt",
+  "tối ưu",
   // File operations
   "tạo file",
   "tạo thư mục",
@@ -75,6 +91,9 @@ const ACTION_KEYWORDS = [
   "curl ",
   "wget ",
   "git ",
+  "bun ",
+  "deno ",
+  "make ",
   // Search / web
   "search web",
   "tìm trên mạng",
@@ -139,16 +158,20 @@ const ACTION_PATTERNS: RegExp[] = [
  */
 const CHAT_PATTERNS: RegExp[] = [
   // Greetings (Vietnamese + English + Japanese)
-  /^(?:hi|hello|hey|yo|oi|chào|xin chào|ohayo|konnichiwa|konbanwa|oyasumi)\b/i,
+  /^(?:hi|hello|hey|yo|oi|chào|xin chào|ohayo|ohayou|konnichiwa|konbanwa|oyasumi|tadaima|okaeri)\b/i,
   /^(?:arona|plana)\s*(?:ơi|oi|à|a|chan|~|!|♪|,|$)/i,
   // Thanks / acknowledgment
   /^(?:cảm ơn|cám ơn|thanks|thank you|thx|ty|tks|ok|okay|oke|ờ|ừ|ừm|uhm|uh huh|vâng|dạ)\s*[~!.♪]*\s*$/i,
-  // Emotional reactions
-  /^(?:vui|buồn|mệt|chán|stress|sad|happy|tired|bored|haha|hihi|hehe|lol|lmao|😂|🤣|❤️|💕|😭|😢|🥺|😊|🥰|uwu|owo)(?:\s+(?:quá|lắm|ghê|thế|vậy|nha|nè|á|ạ|đó))?\s*[~!.♪]*\s*$/i,
+  // Emotional reactions (expanded)
+  /^(?:vui|buồn|mệt|chán|stress|sad|happy|tired|bored|haha|hihi|hehe|lol|lmao|😂|🤣|❤️|💕|😭|😢|🥺|😊|🥰|uwu|owo|T_T|;_;|;\^;|>\.<|>_<|\^_\^|\^\^|:3|:D|xD|XD|www|草|gg|bruh)(?:\s+(?:quá|lắm|ghê|thế|vậy|nha|nè|á|ạ|đó))?\s*[~!.♪]*\s*$/i,
   // Short casual responses
-  /^(?:đi ngủ|ngủ thôi|good night|gn|oyasumi|bye|tạm biệt|bai bai)\s*[~!.♪]*\s*$/i,
+  /^(?:đi ngủ|ngủ thôi|good night|gn|oyasumi|bye|tạm biệt|bai bai|bái|bb)\s*[~!.♪]*\s*$/i,
   // Affirmative short
-  /^(?:rồi|xong|được|ok|okie|okee|gotcha|got it|roger|hiểu|hiểu rồi|biết rồi|oki)\s*[~!.♪]*\s*$/i,
+  /^(?:rồi|xong|được|ok|okie|okee|gotcha|got it|roger|hiểu|hiểu rồi|biết rồi|oki|dc|đc|uh|uk|r|ko|k|oke|hmm|hm|à)\s*[~!.♪]*\s*$/i,
+  // Japanese casual reactions
+  /^(?:なるほど|そうだね|おつかれ|すごい|かわいい|ありがとう|やば|うん|ええ|はい|そう|ふーん|へぇ|まじ|了解|わかった|おけ)\s*[~!.♪]*\s*$/i,
+  // Pure emoji / kaomoji messages
+  /^[\p{Emoji_Presentation}\p{Extended_Pictographic}\s~♪!.]+$/u,
 ];
 
 /**

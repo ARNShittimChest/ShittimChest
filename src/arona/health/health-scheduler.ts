@@ -97,7 +97,19 @@ const TEMPLATES: ReminderTemplate[] = [
     initialDelayFraction: 0.75,
     title: "💧 Water Reminder",
     buildLlmPrompt: () =>
-      "Arona reminds Sensei to drink water. It's been a while since Sensei last drank water, the body needs to hydrate. Write 1-2 short sentences in Arona's cute, caring voice. May use emoji. ONLY reply with the message content, no extra explanation.",
+      `Arona reminds Sensei to drink water. It's been a while since the last hydration reminder.
+
+Context for tone: Arona's mood and affection level are set in the system prompt — let them naturally influence how you speak. A worried Arona is more insistent, a sleepy Arona mumbles the reminder, a playful Arona makes it fun.
+
+Rules:
+- Write 1-2 short sentences in Arona's voice. May use emoji.
+- ONLY reply with the message content, no extra explanation.
+- Vary your approach each time — don't always say "drink water!":
+  • Sometimes: gentle reminder ("Sensei~ it's been a while, have some water~")
+  • Sometimes: playful ("Hydration check! Sensei gets -1 HP without water~ 💧")
+  • Sometimes: caring concern ("Sensei's been working hard... please drink some water...")
+  • Sometimes: factual ("Staying hydrated helps Sensei think better~ 🥤")
+- Each reminder should feel unique — vary emoji, sentence structure, and level of concern.`,
     fallbackTexts: [
       "Sensei~! Time to drink some water~ It's been a while, your body needs to stay hydrated! 💧",
       "Munya~! Sensei, drink some water! Arona is worried... Don't forget to take care of yourself~ 💦",
@@ -111,7 +123,19 @@ const TEMPLATES: ReminderTemplate[] = [
     initialDelayFraction: 0.9,
     title: "👀 Eye Break",
     buildLlmPrompt: () =>
-      "Arona reminds Sensei to rest their eyes. Sensei has been looking at the screen for a while, should follow the 20-20-20 rule (look at something 20 feet away for 20 seconds). Write 1-2 short sentences in Arona's gentle, caring voice. May use emoji. ONLY reply with the message content, no extra explanation.",
+      `Arona reminds Sensei to rest their eyes. Sensei has been looking at the screen for too long and should follow the 20-20-20 rule (look at something 20 feet / 6 meters away for 20 seconds).
+
+Context for tone: Arona's mood and affection level are set in the system prompt — let them naturally influence how you speak.
+
+Rules:
+- Write 1-2 short sentences in Arona's gentle, caring voice. May use emoji.
+- ONLY reply with the message content, no extra explanation.
+- Vary your approach:
+  • Sometimes: explain the 20-20-20 rule briefly
+  • Sometimes: just say "look away from the screen for a bit~"
+  • Sometimes: mention looking out the window or at something green
+  • Sometimes: playful ("Sensei's eyes are going to go on strike at this rate~ 👀")
+- Don't always mention the exact "20-20-20" numbers — sometimes be more casual about it.`,
     fallbackTexts: [
       "Sensei~ Look at something 20 feet (6m) away for 20 seconds! Your eyes need a break~ 👀✨",
       "Munya... Sensei has been staring at the screen for too long! Take a little eye break~ Just look away for 20 seconds! 👁️",
@@ -131,7 +155,38 @@ const TEMPLATES: ReminderTemplate[] = [
         ? ` Burned ${hk.activeEnergyKcal.toFixed(0)} kcal today.`
         : "";
       const hrInfo = hk.heartRate ? ` Current heart rate: ${hk.heartRate} BPM.` : "";
-      return `Arona reminds Sensei to get up and move. Sensei has been sitting for too long, needs stretching and walking around.${stepInfo}${energyInfo}${hrInfo} Write 1-2 short sentences in Arona's cute voice, worried about Sensei's health. If steps > 2000, praise Sensei a little; if not enough, gently remind to walk more. May use emoji. ONLY reply with the message content, no extra explanation.`;
+
+      // Step-based tone guidance
+      let stepGuidance = "";
+      if (hk.steps !== null) {
+        if (hk.steps < 1000)
+          stepGuidance =
+            " Sensei has barely moved today — express genuine concern, gently encourage even a short walk.";
+        else if (hk.steps < 3000)
+          stepGuidance =
+            " Some movement but not much — gentle encouragement to move more, no scolding.";
+        else if (hk.steps < 7000)
+          stepGuidance = " Decent activity level — light praise and encourage keeping it up.";
+        else if (hk.steps < 10000)
+          stepGuidance = " Good activity! Praise Sensei warmly. Maybe suggest a stretch break.";
+        else
+          stepGuidance =
+            " Excellent activity! Celebrate and praise enthusiastically — Sensei is doing great!";
+      }
+
+      return `Arona reminds Sensei to get up and move around. Sensei has been sitting for a while.${stepInfo}${energyInfo}${hrInfo}${stepGuidance}
+
+Context for tone: Arona's mood and affection level are set in the system prompt — let them naturally influence how you speak.
+
+Rules:
+- Write 1-2 short sentences in Arona's voice. May use emoji.
+- ONLY reply with the message content, no extra explanation.
+- If step/calorie data is available, reference it naturally (don't just recite numbers — react to them).
+- Vary your approach:
+  • Sometimes: encourage stretching specifically
+  • Sometimes: suggest a short walk
+  • Sometimes: playful ("Sensei's chair is going to file a complaint~ 🪑")
+  • Sometimes: health-focused ("Moving around helps blood flow to the brain~")`;
     },
     fallbackTexts: [
       "Sensei! Get up and move around a bit~ Sitting for too long isn't good for your back! Time to stretch~ 🏃‍♂️",
@@ -148,10 +203,37 @@ const TEMPLATES: ReminderTemplate[] = [
     buildLlmPrompt: () => {
       const hk = getHealthKitData();
       const sleepInfo = hk.sleepHours
-        ? ` Last night Sensei slept ${hk.sleepHours.toFixed(1)} hours (${hk.sleepQuality ?? "unknown"}).`
+        ? ` Last night Sensei slept ${hk.sleepHours.toFixed(1)} hours (quality: ${hk.sleepQuality ?? "unknown"}).`
         : "";
       const stepsInfo = hk.steps !== null ? ` Sensei walked ${hk.steps} steps today.` : "";
-      return `It's late. Arona reminds Sensei to get ready for bed, tomorrow still needs energy.${sleepInfo}${stepsInfo} If last night's sleep was short, gently remind to sleep earlier tonight. Write 1-2 gentle, worried, sleepy sentences in Arona's voice. Arona is also sleepy. May use emoji. ONLY reply with the message content, no extra explanation.`;
+
+      // Sleep debt awareness
+      let sleepGuidance = "";
+      if (hk.sleepHours !== null && hk.sleepHours !== undefined) {
+        if (hk.sleepHours < 5)
+          sleepGuidance =
+            " Sensei barely slept last night — be more insistent about sleeping early tonight. Show genuine worry.";
+        else if (hk.sleepHours < 7)
+          sleepGuidance =
+            " Sensei didn't get quite enough sleep — gently encourage sleeping earlier tonight.";
+        else
+          sleepGuidance =
+            " Sensei slept reasonably well — a normal gentle bedtime reminder is fine.";
+      }
+
+      return `It's late. Arona reminds Sensei to get ready for bed — tomorrow still needs energy.${sleepInfo}${stepsInfo}${sleepGuidance}
+
+Context for tone: Arona's mood and affection level are set in the system prompt — let them naturally influence how you speak. A sleepy Arona should be extra drowsy. A worried Arona who knows Sensei slept poorly should be more insistent.
+
+Rules:
+- Write 1-2 gentle sentences in Arona's sleepy, caring voice. May use emoji.
+- ONLY reply with the message content, no extra explanation.
+- If sleep data shows poor rest, reference it naturally ("Sensei didn't sleep much last night... please rest earlier tonight...").
+- Vary your approach:
+  • Sometimes: sleepy Arona ("Munya... Sensei... it's bedtime... zzz...")
+  • Sometimes: caring Arona ("Tomorrow is a new day, Sensei. Get some rest~")
+  • Sometimes: worried if sleep-deprived ("Sensei... you really need to sleep tonight...")
+  • Sometimes: gentle with a touch of humor ("Even Arona can't keep her eyes open anymore~ 🌙")`;
     },
     fallbackTexts: [
       "Sensei... it's getting really late... Time to get ready for bed, you need energy for tomorrow~ Arona is so sleepy too... Munya... 🌙💤",

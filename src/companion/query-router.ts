@@ -33,9 +33,28 @@ export interface RouterClassifierConfig {
 const DEFAULT_TIMEOUT_MS = 300;
 
 const CLASSIFICATION_PROMPT = `Classify this user message into exactly one tier:
-- "chat": greetings, emotions, small talk, confirmations, reactions (e.g. hi, lol, thanks, so tired)
-- "knowledge": questions, explanations, advice, information requests (no tools needed)
-- "action": code, file operations, commands, tool usage, complex multi-step tasks, search requests
+- "chat": greetings, emotions, small talk, confirmations, reactions, short casual replies
+- "knowledge": questions, explanations, advice, information requests, conceptual discussions (no tools needed)
+- "action": code writing/editing, file operations, commands, tool usage, complex multi-step tasks, search requests
+
+Examples:
+- "hi Arona~" → chat
+- "mệt quá" → chat
+- "おはよう" → chat
+- "ok" / "ừ" / "got it" → chat
+- "haha lol 😂" → chat
+- "how does async/await work?" → knowledge
+- "giải thích dependency injection" → knowledge
+- "what's the difference between TCP and UDP?" → knowledge
+- "viết code sort array" → action
+- "fix bug in login.ts" → action
+- "tìm kiếm trên mạng về React 19" → action
+- "create a new file called utils.ts" → action
+
+Edge cases:
+- Questions ABOUT code concepts (not asking to write code) → "knowledge"
+- Sharing a code snippet for review/explanation → "knowledge" (unless they say "fix" or "edit")
+- Messages in any language (Vietnamese, English, Japanese, mixed) follow the same rules
 
 Reply with ONLY the tier name, nothing else.`;
 
