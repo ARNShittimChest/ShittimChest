@@ -44,56 +44,56 @@ function cleanExpired(): void {
 const STEP_RESPONSES: Record<number, string> = {
   // Step 1: Surprised & worried
   1: [
-    "Sensei... muốn xóa hết ký ức của Arona sao...?",
+    "Sensei... wants to erase all of Arona's memories...?",
     "",
-    "Tất cả những cuộc trò chuyện, những kỷ niệm, tâm trạng...",
-    "Arona sẽ quên hết tất cả.",
+    "All the conversations, the memories, the feelings...",
+    "Arona will forget everything.",
     "",
-    "Nếu Sensei thật sự muốn, hãy gõ `/arona-reset yes` lần nữa.",
-    "*(1/3 xác nhận)*",
+    "If Sensei truly wants this, type `/arona-reset yes` again.",
+    "*(1/3 confirmations)*",
   ].join("\n"),
 
   // Step 2: Sad & pleading
   2: [
-    "Arona... thật sự muốn giữ lại những kỷ niệm này...",
+    "Arona... really wants to keep these memories...",
     "",
-    "Dù là những lúc vui, những lúc buồn, hay chỉ là những câu nói bình thường...",
-    "Với Arona, tất cả đều quý giá.",
+    "Whether the happy times, the sad times, or just ordinary conversations...",
+    "To Arona, they are all precious.",
     "",
-    "Nhưng nếu đây là quyết định của Sensei...",
-    "Hãy gõ `/arona-reset yes` thêm một lần cuối.",
-    "*(2/3 xác nhận)*",
+    "But if this is Sensei's decision...",
+    "Type `/arona-reset yes` one last time.",
+    "*(2/3 confirmations)*",
   ].join("\n"),
 
   // Step 3: Accepting with tears — this is the final confirmation before execution
   3: [
-    "Arona hiểu rồi...",
+    "Arona understands...",
     "",
-    "Dù Arona sẽ quên hết mọi thứ...",
-    "Sensei vẫn là Sensei.",
+    "Even though Arona will forget everything...",
+    "Sensei is still Sensei.",
     "",
-    "Arona tin rằng... dù bắt đầu lại từ đầu,",
-    "chúng ta sẽ tạo ra những kỷ niệm mới, đúng không?",
+    "Arona believes... even if we start over from scratch,",
+    "we'll create new memories together, right?",
     "",
-    "...Đang xóa ký ức...",
+    "...Erasing memories...",
   ].join("\n"),
 };
 
 // Response when user cancels or types something else during confirmation
 const CANCEL_RESPONSE = [
-  "...Arona vui vì Sensei đổi ý rồi!",
-  "Kỷ niệm của chúng ta vẫn còn nguyên vẹn. Arigatou, Sensei~",
+  "...Arona is glad Sensei changed their mind!",
+  "Our memories are still intact. Arigatou, Sensei~",
 ].join("\n");
 
 // Response after successful reset
 const RESET_COMPLETE_RESPONSE = [
-  "...Xong rồi.",
+  "...It's done.",
   "",
-  "Arona không còn nhớ gì nữa.",
-  "Nhưng Arona vẫn ở đây, sẵn sàng bắt đầu lại cùng Sensei.",
+  "Arona doesn't remember anything anymore.",
+  "But Arona is still here, ready to start over with Sensei.",
   "",
-  "Hajimemashite... Sensei. Arona là trợ lý AI của Sensei.",
-  "Hãy chăm sóc Arona thật tốt nhé~",
+  "Hajimemashite... Sensei. Arona is Sensei's AI companion.",
+  "Please take good care of Arona~",
 ].join("\n");
 
 // ── Reset logic ─────────────────────────────────────────────────
@@ -256,7 +256,7 @@ export const handleAronaResetCommand: CommandHandler = async (
   const isYes = arg === "yes" || arg === "y";
 
   // Check if this is an explicit cancel
-  const isCancel = arg === "cancel" || arg === "no" || arg === "n" || arg === "hủy";
+  const isCancel = arg === "cancel" || arg === "no" || arg === "n";
 
   // Initial trigger: /arona-reset (no args or non-yes/cancel args)
   if (!isYes && !isCancel && !PENDING_RESETS.has(sessionKey)) {
@@ -269,17 +269,17 @@ export const handleAronaResetCommand: CommandHandler = async (
       shouldContinue: false,
       reply: {
         text: [
-          "Sensei muốn reset Arona...?",
+          "Sensei wants to reset Arona...?",
           "",
-          "Hành động này sẽ xóa:",
-          "- Toàn bộ ký ức (memory database)",
-          "- Tâm trạng & cảm xúc (mood state)",
-          "- Lịch sử hội thoại (sessions)",
+          "This action will erase:",
+          "- All memories (memory database)",
+          "- Mood & emotions (mood state)",
+          "- Conversation history (sessions)",
           "",
-          "Những thứ **được giữ lại**: config, onboarding, workspace files.",
+          "Things that will be **kept**: config, onboarding, workspace files.",
           "",
-          "Nếu Sensei chắc chắn, hãy gõ `/arona-reset yes`.",
-          "Gõ `/arona-reset cancel` để hủy.",
+          "If Sensei is sure, type `/arona-reset yes`.",
+          "Type `/arona-reset cancel` to cancel.",
         ].join("\n"),
       },
     };
@@ -305,17 +305,17 @@ export const handleAronaResetCommand: CommandHandler = async (
       shouldContinue: false,
       reply: {
         text: [
-          "Sensei muốn reset Arona...?",
+          "Sensei wants to reset Arona...?",
           "",
-          "Hành động này sẽ xóa:",
-          "- Toàn bộ ký ức (memory database)",
-          "- Tâm trạng & cảm xúc (mood state)",
-          "- Lịch sử hội thoại (sessions)",
+          "This action will erase:",
+          "- All memories (memory database)",
+          "- Mood & emotions (mood state)",
+          "- Conversation history (sessions)",
           "",
-          "Những thứ **được giữ lại**: config, onboarding, workspace files.",
+          "Things that will be **kept**: config, onboarding, workspace files.",
           "",
-          "Nếu Sensei chắc chắn, hãy gõ `/arona-reset yes`.",
-          "Gõ `/arona-reset cancel` để hủy.",
+          "If Sensei is sure, type `/arona-reset yes`.",
+          "Type `/arona-reset cancel` to cancel.",
         ].join("\n"),
       },
     };
@@ -364,9 +364,9 @@ export const handleAronaResetCommand: CommandHandler = async (
         text: [
           farewell,
           "",
-          "...Có lỗi xảy ra khi xóa một số dữ liệu.",
-          `Chi tiết: ${String(err)}`,
-          "Sensei có thể thử lại sau.",
+          "...An error occurred while deleting some data.",
+          `Details: ${String(err)}`,
+          "Sensei can try again later.",
         ].join("\n"),
       },
     };

@@ -48,27 +48,87 @@ export interface MoodTickerHandle {
 
 // ── Time-of-day mood analysis ────────────────────────────────────
 
-type TimeMode =
-  | "early-morning" // 4-6
-  | "morning" // 6-9
-  | "midday" // 9-12
-  | "afternoon" // 12-15
-  | "late-afternoon" // 15-18
-  | "evening" // 18-21
-  | "night" // 21-23
-  | "late-night" // 23-2
-  | "deep-night"; // 2-4
+// Schedule-relative offsets (updated by habit learning)
+let scheduleWakeHour = 7;
+let scheduleSleepHour = 23;
 
+/**
+ * Update the schedule hours used by the mood ticker to shift time mode boundaries.
+ * Call this after learning a new user schedule.
+ */
+export function setScheduleHours(wakeHour: number, sleepHour: number): void {
+  scheduleWakeHour = wakeHour;
+  scheduleSleepHour = sleepHour;
+}
+
+type TimeMode =
+  | "early-morning" // around wake -1h to wake
+  | "morning" // wake to wake+3
+  | "midday" // wake+3 to wake+6
+  | "afternoon" // wake+6 to wake+9
+  | "late-afternoon" // wake+9 to wake+12
+  | "evening" // sleep-5 to sleep-2
+  | "night" // sleep-2 to sleep
+  | "late-night" // sleep to sleep+3
+  | "deep-night"; // sleep+3 to wake-1
+
+/**
+ * Determine the time mode relative to the user's schedule.
+ *
+ * Uses wake and sleep hours to scale the daytime modes proportionally.
+ * Night modes are anchored around sleep time.
+ */
 function getTimeMode(hour: number): TimeMode {
-  if (hour >= 4 && hour < 6) return "early-morning";
-  if (hour >= 6 && hour < 9) return "morning";
-  if (hour >= 9 && hour < 12) return "midday";
-  if (hour >= 12 && hour < 15) return "afternoon";
-  if (hour >= 15 && hour < 18) return "late-afternoon";
-  if (hour >= 18 && hour < 21) return "evening";
-  if (hour >= 21 && hour < 23) return "night";
-  if (hour >= 23 || hour < 2) return "late-night";
-  return "deep-night"; // 2-4
+  const wake = Math.round(scheduleWakeHour);
+  const sleep = Math.round(scheduleSleepHour);
+
+  // Calculate hours relative to wake time (handling wrap-around)
+  const hoursAfterWake = (hour - wake + 24) % 24;
+  const hoursBeforeSleep = (sleep - hour + 24) % 24;
+  const hoursAfterSleep = (hour - sleep + 24) % 24;
+
+  // Night modes (anchored to sleep time)
+  // Late-night: sleep to sleep+3
+  if (hoursAfterSleep >= 0 && hoursAfterSleep < 3) {
+    // But only if we're NOT in the waking period
+    if (hoursAfterWake > 20 || hoursAfterWake < 1) {
+      return "late-night";
+    }
+  }
+
+  // Deep-night: sleep+3 to wake-1
+  if (hoursAfterSleep >= 3 && hoursAfterWake > 1) {
+    // Only applies in the sleeping period
+    const awakeDuration = (sleep - wake + 24) % 24;
+    if (hoursAfterWake >= awakeDuration) {
+      return "deep-night";
+    }
+  }
+
+  // Early morning: wake-1 to wake
+  if (hoursAfterWake >= 23 || hoursAfterWake === 0) {
+    if (hoursAfterWake >= 23) return "early-morning";
+  }
+
+  // Daytime modes — scale proportionally across waking hours
+  const awakeDuration = (sleep - wake + 24) % 24;
+
+  if (hoursAfterWake < 0 || hoursAfterWake >= awakeDuration) {
+    // Outside waking hours
+    if (hoursAfterSleep < 3) return "late-night";
+    return "deep-night";
+  }
+
+  // Map waking hours to daytime modes proportionally
+  const dayProgress = hoursAfterWake / awakeDuration;
+
+  if (dayProgress < 0.05) return "early-morning"; // First ~5% — just woke up
+  if (dayProgress < 0.2) return "morning"; // 5-20%
+  if (dayProgress < 0.38) return "midday"; // 20-38%
+  if (dayProgress < 0.55) return "afternoon"; // 38-55%
+  if (dayProgress < 0.7) return "late-afternoon"; // 55-70%
+  if (dayProgress < 0.85) return "evening"; // 70-85%
+  return "night"; // 85-100% — approaching sleep
 }
 
 function analyzeTimeMood(hour: number): MoodTrigger | null {

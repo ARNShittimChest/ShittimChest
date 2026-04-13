@@ -232,7 +232,7 @@ export async function handleAronaPushRequest(
     }
     enqueuePush({
       title: "Arona",
-      body: body.message ?? "Munya~! Sensei, đây là tin nhắn thử nghiệm! (｡•̀ᴗ-)✧",
+      body: body.message ?? "Munya~! Sensei, this is a test notification! (｡•̀ᴗ-)✧",
     });
     sendJson(res, 200, { ok: true, queued: 1, pendingCount: pendingCount() });
     return true;

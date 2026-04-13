@@ -901,7 +901,9 @@ export async function startGatewayServer(
     }));
   }
 
-  let proactiveSchedulerStop: (() => void) | null = null;
+  let proactiveSchedulerHandle:
+    | import("../arona/proactive/scheduler.js").ProactiveSchedulerHandle
+    | null = null;
   let weatherSchedulerHandle: WeatherSchedulerHandle | null = null;
   let moodTickerHandle: MoodTickerHandle | null = null;
   let dreamingSchedulerHandle: DreamingSchedulerHandle | null = null;
@@ -914,7 +916,7 @@ export async function startGatewayServer(
       // Non-critical — location will be set on first iOS push
     }
 
-    proactiveSchedulerStop = startProactiveScheduler(
+    proactiveSchedulerHandle = startProactiveScheduler(
       async (event) => {
         try {
           const handler = coreGatewayHandlers["chat.send"];
@@ -1192,6 +1194,38 @@ export async function startGatewayServer(
       { cfg: cfgAtStart, agentId: resolveDefaultAgentId(cfgAtStart) },
     );
     log.info("[Health] Health reminder scheduler started");
+
+    // Initialize habit tracker (user schedule learning)
+    try {
+      const { HabitTracker } = await import("../arona/habits/habit-tracker.js");
+      const { applyScheduleToSubsystems, setSubsystemHandles } =
+        await import("../arona/habits/schedule-applicator.js");
+      const { setScheduleHours } = await import("../arona/mood-ticker.js");
+
+      const habitTracker = new HabitTracker(defaultWorkspaceDir);
+
+      // Register subsystem handles for runtime updates
+      setSubsystemHandles({
+        healthRestart: () => healthSchedulerHandle?.restart(),
+        proactiveRestart: () => proactiveSchedulerHandle?.restart(),
+      });
+
+      // If we have a non-default schedule, apply it to all subsystems on boot
+      const schedule = habitTracker.getResolvedSchedule();
+      if (schedule.source !== "default") {
+        applyScheduleToSubsystems(schedule);
+        setScheduleHours(schedule.wakeHour, schedule.sleepHour);
+        log.info(
+          `[Habits] Applied ${schedule.source} schedule: wake=${schedule.wakeHour}h, sleep=${schedule.sleepHour}h`,
+        );
+      }
+
+      // Wire into MemoryManager when it's available (lazy — memory managers are created per-session)
+      // The habitTracker singleton is accessed via getHabitTracker() from memory/manager.ts
+      log.info("[Habits] Habit tracker initialized");
+    } catch (err) {
+      log.warn(`[Habits] Failed to initialize habit tracker: ${String(err)}`);
+    }
   }
 
   // Run gateway_start plugin hook (fire-and-forget)
@@ -1307,8 +1341,8 @@ export async function startGatewayServer(
         clearTimeout(skillsRefreshTimer);
         skillsRefreshTimer = null;
       }
-      if (proactiveSchedulerStop) {
-        proactiveSchedulerStop();
+      if (proactiveSchedulerHandle) {
+        proactiveSchedulerHandle.stop();
       }
       if (weatherSchedulerHandle) {
         weatherSchedulerHandle.stop();

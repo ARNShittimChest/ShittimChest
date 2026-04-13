@@ -33,7 +33,7 @@ export interface RouterClassifierConfig {
 const DEFAULT_TIMEOUT_MS = 300;
 
 const CLASSIFICATION_PROMPT = `Classify this user message into exactly one tier:
-- "chat": greetings, emotions, small talk, confirmations, reactions (e.g. hi, lol, cảm ơn, mệt quá)
+- "chat": greetings, emotions, small talk, confirmations, reactions (e.g. hi, lol, thanks, so tired)
 - "knowledge": questions, explanations, advice, information requests (no tools needed)
 - "action": code, file operations, commands, tool usage, complex multi-step tasks, search requests
 

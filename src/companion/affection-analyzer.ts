@@ -47,12 +47,12 @@ Return ONLY a valid JSON object with these fields:
   - Positive: praise, thanks, gifts, compliments, jokes, caring → +1 to +6
   - Neutral: normal questions, technical talk, bugs → 0
   - Negative: rudeness, ignoring, broken promises, dismissal → -1 to -5
-- "reason": short tag describing the trigger (e.g. "khen-ngợi", "thô-lỗ", "normal-chat")
+- "reason": short tag describing the trigger (e.g. "praised", "rude", "normal-chat")
 
 Example outputs:
-{"mood":"happy","intensity":0.6,"affectionDelta":3,"reason":"khen-ngợi"}
+{"mood":"happy","intensity":0.6,"affectionDelta":3,"reason":"praised"}
 {"mood":"neutral","intensity":0.2,"affectionDelta":0,"reason":"technical-question"}
-{"mood":"sad","intensity":0.4,"affectionDelta":-3,"reason":"bị-phạt-ngượt"}
+{"mood":"sad","intensity":0.4,"affectionDelta":-3,"reason":"harsh-criticism"}
 
 IMPORTANT: Return ONLY the JSON object, no markdown, no explanation.`;
 

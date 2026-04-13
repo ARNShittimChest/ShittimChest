@@ -26,9 +26,6 @@ export interface SenseiProfile {
 export async function promptSenseiProfile(prompter: WizardPrompter): Promise<SenseiProfile> {
   await prompter.note(
     [
-      "Arona muốn biết thêm về Sensei để trò chuyện tự nhiên hơn!",
-      "Bấm Enter để bỏ qua bất kỳ câu hỏi nào.",
-      "",
       "Arona wants to learn about Sensei for better conversations!",
       "Press Enter to skip any question.",
     ].join("\n"),
@@ -37,7 +34,7 @@ export async function promptSenseiProfile(prompter: WizardPrompter): Promise<Sen
 
   const name = (
     await prompter.text({
-      message: "Tên Sensei / Sensei's name",
+      message: "Sensei's name",
       placeholder: "e.g. Minh",
       initialValue: "",
     })
@@ -45,23 +42,23 @@ export async function promptSenseiProfile(prompter: WizardPrompter): Promise<Sen
 
   const callAs = (
     await prompter.text({
-      message: "Sensei muốn được gọi thế nào? / How should Arona call you?",
-      placeholder: "e.g. Sensei, anh, chị, bạn",
+      message: "How should Arona call you?",
+      placeholder: "e.g. Sensei, Master, your name",
       initialValue: name ? name : "Sensei",
     })
   ).trim();
 
   const location = (
     await prompter.text({
-      message: "Vị trí / Location",
-      placeholder: "e.g. Hồ Chí Minh, Việt Nam",
+      message: "Location",
+      placeholder: "e.g. Tokyo, Japan",
       initialValue: "",
     })
   ).trim();
 
   const birthday = (
     await prompter.text({
-      message: "Ngày sinh / Birthday",
+      message: "Birthday",
       placeholder: "e.g. 15/03",
       initialValue: "",
     })
@@ -69,7 +66,7 @@ export async function promptSenseiProfile(prompter: WizardPrompter): Promise<Sen
 
   const hobbies = (
     await prompter.text({
-      message: "Sở thích / Hobbies",
+      message: "Hobbies",
       placeholder: "e.g. coding, anime, music",
       initialValue: "",
     })
@@ -77,7 +74,7 @@ export async function promptSenseiProfile(prompter: WizardPrompter): Promise<Sen
 
   const favoriteGames = (
     await prompter.text({
-      message: "Game yêu thích / Favorite games",
+      message: "Favorite games",
       placeholder: "e.g. Blue Archive, Genshin Impact",
       initialValue: "",
     })
@@ -85,7 +82,7 @@ export async function promptSenseiProfile(prompter: WizardPrompter): Promise<Sen
 
   const notes = (
     await prompter.text({
-      message: "Ghi chú thêm / Additional notes",
+      message: "Additional notes",
       placeholder: "Anything else Arona should know?",
       initialValue: "",
     })
@@ -167,8 +164,8 @@ export async function setupSenseiProfile(
 
   const wantProfile = await prompter.confirm({
     message: exists
-      ? "Update Sensei profile? (Cập nhật thông tin Sensei)"
-      : "Set up Sensei profile? (Arona sẽ nhớ thông tin của bạn)",
+      ? "Update Sensei profile?"
+      : "Set up Sensei profile? (Arona will remember your info)",
     initialValue: !exists,
   });
   if (!wantProfile) {
@@ -177,8 +174,5 @@ export async function setupSenseiProfile(
 
   const profile = await promptSenseiProfile(prompter);
   await writeSenseiProfile(workspaceDir, profile);
-  await prompter.note(
-    "Arona đã ghi nhớ thông tin của Sensei! ♪~\nArona has saved Sensei's profile!",
-    "✅ Profile saved",
-  );
+  await prompter.note("Arona has saved Sensei's profile! ♪~", "✅ Profile saved");
 }

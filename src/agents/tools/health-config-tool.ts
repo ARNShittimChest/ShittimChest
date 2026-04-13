@@ -81,10 +81,10 @@ function formatConfig(cfg: HealthConfig) {
     };
   };
   return {
-    water: describe("Uống nước", "water"),
-    eyes: describe("Nghỉ mắt", "eyes"),
-    movement: describe("Vận động", "movement"),
-    sleep: describe("Đi ngủ", "sleep"),
+    water: describe("Water", "water"),
+    eyes: describe("Eye break", "eyes"),
+    movement: describe("Movement", "movement"),
+    sleep: describe("Sleep", "sleep"),
   };
 }
 

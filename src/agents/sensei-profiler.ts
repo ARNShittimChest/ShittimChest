@@ -182,7 +182,7 @@ ${categoryList}
 - Only extract facts that are PERSISTENT traits, not momentary states
 - Each fact must start with a category tag: [category] fact
 - Be specific and concrete, not generic
-- Prefer Vietnamese context clues (e.g., if they use "ạ", they're polite; if they code-switch, note that)
+- Note language and cultural context clues (e.g., politeness markers, code-switching between languages, formality level)
 - Capture communication STYLE patterns (sentence length, emoji usage, formality level, language mixing)
 - Track emotional patterns (what makes them happy/frustrated/excited)
 - Note technical preferences if visible (languages, tools, frameworks, approaches)

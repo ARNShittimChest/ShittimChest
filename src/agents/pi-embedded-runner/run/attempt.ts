@@ -784,7 +784,10 @@ export async function runEmbeddedAttempt(
 
         const contextParts = [
           buildMoodPromptContext(moodState),
-          `Affection level: ${affectionLevel}/5 (${Math.round(moodState.affection)}/100 pts)`,
+          "",
+          `# ⚠️ AFFECTION LEVEL RULES (MANDATORY — OVERRIDE ALL OTHER TONE GUIDELINES)`,
+          `Current affection: Level ${affectionLevel}/5 (${Math.round(moodState.affection)}/100 pts)`,
+          `THE FOLLOWING RULES ARE ABSOLUTE — Arona's speech, tone, and behavior MUST match this level:`,
           affectionHint,
         ];
         if (emotionalMemoryContext) {
@@ -845,6 +848,21 @@ export async function runEmbeddedAttempt(
         if (ctx) healthContext = ctx;
       } catch {
         // Health config is non-critical — do not break agent run
+      }
+    }
+
+    // ── User Schedule Context (non-blocking) ─────────────────────
+    let scheduleContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { getHabitTracker } = await import("../../../arona/habits/habit-tracker.js");
+        const tracker = getHabitTracker();
+        if (tracker) {
+          const ctx = tracker.buildScheduleContext();
+          if (ctx) scheduleContext = ctx;
+        }
+      } catch {
+        // Schedule context is non-critical — do not break agent run
       }
     }
 
@@ -923,6 +941,20 @@ export async function runEmbeddedAttempt(
       }
     }
 
+    // ── Evolution Context (from self-evolution system) ───────────
+    let evolutionContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { getInteractionTracker } =
+          await import("../../../arona/evolution/interaction-tracker.js");
+        const tracker = getInteractionTracker(effectiveWorkspace);
+        const ctx = tracker.buildEvolutionContext();
+        if (ctx) evolutionContext = ctx;
+      } catch {
+        // Evolution context is non-critical — do not break agent run
+      }
+    }
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
@@ -956,8 +988,10 @@ export async function runEmbeddedAttempt(
       weatherContext,
       taskContext,
       healthContext,
+      scheduleContext,
       senseiProfileContext,
       personalizedContext,
+      evolutionContext,
       queryTier: params.queryTier,
     });
     const systemPromptReport = buildSystemPromptReport({
@@ -1803,6 +1837,23 @@ export async function runEmbeddedAttempt(
             let moodState = loadOrCreateMoodState(effectiveWorkspace);
             moodState = applySelfReflection(moodState, reflection);
             saveMoodState(effectiveWorkspace, moodState);
+
+            // ── Record interaction metric for evolution analysis ──
+            try {
+              const { getInteractionTracker } =
+                await import("../../../arona/evolution/interaction-tracker.js");
+              const tracker = getInteractionTracker(effectiveWorkspace);
+              tracker.recordInteraction({
+                aronaMood: reflection.aronaMood,
+                aronaIntensity: reflection.aronaIntensity ?? 0.5,
+                senseiMood: reflection.senseiMood,
+                senseiIntensity: reflection.senseiIntensity ?? 0.5,
+                affectionDelta: reflection.affectionDelta,
+                responseLength: fullResponseText.length,
+              });
+            } catch {
+              // Evolution tracking is non-critical
+            }
           }
         } catch {
           // Self-reflection is non-critical — do not break agent run

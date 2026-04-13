@@ -7,7 +7,7 @@
  * In-memory cache for fast reads; disk writes are synchronous and best-effort.
  *
  * This module is intentionally simple — it provides CRUD operations.
- * The LLM handles natural-language parsing ("nhắc tôi gửi báo cáo thứ 6")
+ * The LLM handles natural-language parsing ("remind me to send the report on Friday")
  * and calls these functions through the cron/tool system.
  */
 
@@ -207,13 +207,13 @@ export function getPendingCount(): number {
  * 📋 3 pending tasks (1 overdue, 1 due today)
  *
  * ⚠️ Overdue:
- * - #2 [high] Gửi báo cáo tuần (due: 2026-04-06)
+ * - #2 [high] Send weekly report (due: 2026-04-06)
  *
  * 📅 Due today:
- * - #5 Họp team meeting lúc 14:30
+ * - #5 Team meeting at 14:30
  *
  * 📝 Upcoming:
- * - #3 Mua quà sinh nhật (due: 2026-04-10)
+ * - #3 Buy birthday gift (due: 2026-04-10)
  * - #4 Review PR backend
  * ```
  */

@@ -118,6 +118,9 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   // File-based fallback when LanceDB native binary is unavailable
   private fileMemoryFallback: FileMemoryFallback | null = null;
 
+  /** Habit tracker for recording user activity timestamps (set externally). */
+  habitTracker: import("../arona/habits/habit-tracker.js").HabitTracker | null = null;
+
   static async get(params: {
     cfg: ShittimChestConfig;
     agentId: string;
@@ -327,6 +330,22 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     // Add user messages to SenseiProfiler buffer (batched background analysis)
     if (role === "user" && this.senseiProfiler) {
       this.senseiProfiler.addMessage(text);
+    }
+
+    // Record activity timestamp for habit learning (sleep/wake detection)
+    if (role === "user") {
+      try {
+        if (!this.habitTracker) {
+          // Lazy-load singleton (module already loaded by server.impl at boot)
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const mod =
+            require("../arona/habits/habit-tracker.js") as typeof import("../arona/habits/habit-tracker.js");
+          this.habitTracker = mod.getHabitTracker();
+        }
+        this.habitTracker?.recordActivity();
+      } catch {
+        // Habit tracking is non-critical — module may not be available
+      }
     }
 
     // Use file-based fallback when LanceDB is not available

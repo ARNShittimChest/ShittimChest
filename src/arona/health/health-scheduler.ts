@@ -95,66 +95,66 @@ const TEMPLATES: ReminderTemplate[] = [
     configKey: "water",
     windowKey: "health-water",
     initialDelayFraction: 0.75,
-    title: "💧 Nhắc uống nước",
+    title: "💧 Water Reminder",
     buildLlmPrompt: () =>
-      "Arona nhắc Sensei uống nước. Đã lâu rồi chưa uống nước, cơ thể cần hydrate. Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, quan tâm. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+      "Arona reminds Sensei to drink water. It's been a while since Sensei last drank water, the body needs to hydrate. Write 1-2 short sentences in Arona's cute, caring voice. May use emoji. ONLY reply with the message content, no extra explanation.",
     fallbackTexts: [
-      "Sensei~! Uống nước đi nè~ Lâu rồi chưa uống nước, cơ thể cần hydrate để hoạt động tốt nha! 💧",
-      "Munya~! Sensei ơi uống nước đi! Arona lo lắng lắm... Đừng quên chăm sóc bản thân nha~ 💦",
-      "Sensei! Đã đến lúc uống nước rồi nè~ Hydration quan trọng lắm đó! Arona nhắc Sensei nè ☺️💧",
-      "Ding dong~! Arona nhắc Sensei uống nước nè! Một ly nước sẽ giúp Sensei tỉnh táo hơn đó~ 🥤",
+      "Sensei~! Time to drink some water~ It's been a while, your body needs to stay hydrated! 💧",
+      "Munya~! Sensei, drink some water! Arona is worried... Don't forget to take care of yourself~ 💦",
+      "Sensei! It's time for water~ Hydration is super important! Arona is reminding you ☺️💧",
+      "Ding dong~! Arona is reminding Sensei to drink water! A glass of water will help Sensei stay sharp~ 🥤",
     ],
   },
   {
     configKey: "eyes",
     windowKey: "health-eyes",
     initialDelayFraction: 0.9,
-    title: "👀 Nghỉ mắt",
+    title: "👀 Eye Break",
     buildLlmPrompt: () =>
-      "Arona nhắc Sensei nghỉ mắt. Sensei nhìn màn hình lâu rồi, nên áp dụng quy tắc 20-20-20 (nhìn xa 20 feet trong 20 giây). Viết 1-2 câu ngắn gọn bằng giọng Arona nhẹ nhàng, quan tâm. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.",
+      "Arona reminds Sensei to rest their eyes. Sensei has been looking at the screen for a while, should follow the 20-20-20 rule (look at something 20 feet away for 20 seconds). Write 1-2 short sentences in Arona's gentle, caring voice. May use emoji. ONLY reply with the message content, no extra explanation.",
     fallbackTexts: [
-      "Sensei ơi~ Nhìn xa 20 feet (6m) trong 20 giây nha! Mắt Sensei cần được nghỉ ngơi~ 👀✨",
-      "Munya... Sensei nhìn màn hình lâu quá rồi! Nghỉ mắt một chút đi nha~ Nhìn ra xa 20 giây là được! 👁️",
-      "Sensei~! Arona nhắc nghỉ mắt nè! Quy tắc 20-20-20: mỗi 20 phút, nhìn xa 20 feet, trong 20 giây~ 👀💫",
-      "Break time cho mắt nè Sensei! Nhìn ra cửa sổ hoặc nhìn xa một chút nha~ Mắt Sensei quan trọng lắm! ✨",
+      "Sensei~ Look at something 20 feet (6m) away for 20 seconds! Your eyes need a break~ 👀✨",
+      "Munya... Sensei has been staring at the screen for too long! Take a little eye break~ Just look away for 20 seconds! 👁️",
+      "Sensei~! Arona's eye break reminder! The 20-20-20 rule: every 20 minutes, look 20 feet away, for 20 seconds~ 👀💫",
+      "Eye break time, Sensei! Look out the window or at something far away~ Sensei's eyes are important! ✨",
     ],
   },
   {
     configKey: "movement",
     windowKey: "health-movement",
     initialDelayFraction: 0.83,
-    title: "🏃 Vận động",
+    title: "🏃 Movement Reminder",
     buildLlmPrompt: () => {
       const hk = getHealthKitData();
-      const stepInfo = hk.steps !== null ? ` Hôm nay Sensei đã đi được ${hk.steps} bước.` : "";
+      const stepInfo = hk.steps !== null ? ` Sensei has walked ${hk.steps} steps today.` : "";
       const energyInfo = hk.activeEnergyKcal
-        ? ` Đã đốt ${hk.activeEnergyKcal.toFixed(0)} kcal hôm nay.`
+        ? ` Burned ${hk.activeEnergyKcal.toFixed(0)} kcal today.`
         : "";
-      const hrInfo = hk.heartRate ? ` Nhịp tim hiện tại: ${hk.heartRate} BPM.` : "";
-      return `Arona nhắc Sensei đứng dậy vận động. Sensei ngồi lâu quá rồi, cần stretching, đi lại.${stepInfo}${energyInfo}${hrInfo} Viết 1-2 câu ngắn gọn bằng giọng Arona dễ thương, lo lắng cho sức khỏe Sensei. Nếu số bước > 2000 thì khen Sensei một chút, chưa đủ thì nhắc nhở đi lại nhiều hơn. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.`;
+      const hrInfo = hk.heartRate ? ` Current heart rate: ${hk.heartRate} BPM.` : "";
+      return `Arona reminds Sensei to get up and move. Sensei has been sitting for too long, needs stretching and walking around.${stepInfo}${energyInfo}${hrInfo} Write 1-2 short sentences in Arona's cute voice, worried about Sensei's health. If steps > 2000, praise Sensei a little; if not enough, gently remind to walk more. May use emoji. ONLY reply with the message content, no extra explanation.`;
     },
     fallbackTexts: [
-      "Sensei ơi! Đứng dậy vận động một chút đi nha~ Ngồi lâu không tốt cho lưng đâu! Stretching đi~ 🏃‍♂️",
-      "Munya~! Sensei ngồi lâu quá rồi! Đứng dậy đi lại, stretching một chút nha! Arona lo cho sức khỏe Sensei lắm~ 💪",
-      "Movement break nè Sensei! Đứng dậy, đi lại, xoay người một chút~ Cơ thể Sensei sẽ cảm ơn đó! 🧘",
-      "Sensei~! Arona nhắc vận động nè! Đứng dậy stretch cái lưng, xoay cổ, đi bộ vài bước nha~ 🏋️",
+      "Sensei! Get up and move around a bit~ Sitting for too long isn't good for your back! Time to stretch~ 🏃‍♂️",
+      "Munya~! Sensei has been sitting too long! Get up, walk around, do some stretching! Arona worries about Sensei's health~ 💪",
+      "Movement break, Sensei! Stand up, walk around, twist your body a bit~ Your body will thank you! 🧘",
+      "Sensei~! Arona's movement reminder! Stand up, stretch your back, roll your neck, take a few steps~ 🏋️",
     ],
   },
   {
     configKey: "sleep",
     windowKey: "health-sleep",
     initialDelayFraction: 0, // calculated dynamically
-    title: "😴 Nhắc đi ngủ",
+    title: "😴 Bedtime Reminder",
     buildLlmPrompt: () => {
       const hk = getHealthKitData();
       const sleepInfo = hk.sleepHours
-        ? ` Đêm qua Sensei ngủ ${hk.sleepHours.toFixed(1)} tiếng (${hk.sleepQuality ?? "unknown"}).`
+        ? ` Last night Sensei slept ${hk.sleepHours.toFixed(1)} hours (${hk.sleepQuality ?? "unknown"}).`
         : "";
-      const stepsInfo = hk.steps !== null ? ` Hôm nay Sensei đã đi ${hk.steps} bước.` : "";
-      return `Đã khuya rồi. Arona nhắc Sensei chuẩn bị đi ngủ, ngày mai còn cần năng lượng.${sleepInfo}${stepsInfo} Nếu đêm qua ngủ ít thì nhắc nhẹ hôm nay phải ngủ sớm hơn. Viết 1-2 câu dịu dàng, lo lắng, buồn ngủ kiểu Arona. Arona cũng buồn ngủ. Có thể dùng emoji. CHỈ trả lời nội dung tin nhắn, không giải thích gì thêm.`;
+      const stepsInfo = hk.steps !== null ? ` Sensei walked ${hk.steps} steps today.` : "";
+      return `It's late. Arona reminds Sensei to get ready for bed, tomorrow still needs energy.${sleepInfo}${stepsInfo} If last night's sleep was short, gently remind to sleep earlier tonight. Write 1-2 gentle, worried, sleepy sentences in Arona's voice. Arona is also sleepy. May use emoji. ONLY reply with the message content, no extra explanation.`;
     },
     fallbackTexts: [
-      "Sensei ơi... đã khuya rồi nè... Chuẩn bị đi ngủ đi nha, ngày mai còn cần năng lượng mà~ Arona cũng buồn ngủ lắm rồi... Munya... 🌙💤",
+      "Sensei... it's getting really late... Time to get ready for bed, you need energy for tomorrow~ Arona is so sleepy too... Munya... 🌙💤",
     ],
   },
 ];

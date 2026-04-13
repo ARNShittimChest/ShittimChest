@@ -9,7 +9,7 @@
 
 // ── Dreaming State ────────────────────────────────────────────────
 
-export type DreamPhase = "idle" | "memory" | "profile" | "optimize" | "done";
+export type DreamPhase = "idle" | "memory" | "profile" | "optimize" | "evolve" | "done";
 
 export interface DreamingState {
   /** Whether a dreaming cycle is currently running */
@@ -67,6 +67,7 @@ export interface DreamReport {
     memory: { ok: boolean; error?: string };
     profile: { ok: boolean; error?: string };
     optimize: { ok: boolean; error?: string };
+    evolve?: { ok: boolean; error?: string };
   };
 }
 

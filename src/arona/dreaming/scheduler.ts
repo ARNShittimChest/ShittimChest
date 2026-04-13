@@ -27,9 +27,20 @@ const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 /** Minimum hours between dream cycles */
 const MIN_DREAM_INTERVAL_HOURS = 20;
 
-/** Dream window: 2:00 AM - 4:00 AM local time */
-const DREAM_WINDOW_START_HOUR = 2;
-const DREAM_WINDOW_END_HOUR = 4;
+/** Dream window: 2:00 AM - 4:00 AM local time (mutable — updated by habit learning) */
+let dreamWindowStartHour = 2;
+let dreamWindowEndHour = 4;
+
+/**
+ * Update the dream window hours based on learned user schedule.
+ * Dreams should happen 3-5 hours after sleep (deep sleep phase).
+ * Takes effect on the next periodic check — no restart needed.
+ */
+export function updateDreamWindow(startHour: number, endHour: number): void {
+  dreamWindowStartHour = startHour;
+  dreamWindowEndHour = endHour;
+  log.info(`Dream window updated: ${startHour}:00–${endHour}:00`);
+}
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -63,7 +74,12 @@ function loadDreamingState(workspaceDir: string): DreamingState | null {
 
 function isInDreamWindow(): boolean {
   const hour = new Date().getHours();
-  return hour >= DREAM_WINDOW_START_HOUR && hour < DREAM_WINDOW_END_HOUR;
+  // Handle wrap-around (e.g., startHour=1, endHour=3 or startHour=25 wrapping)
+  if (dreamWindowStartHour < dreamWindowEndHour) {
+    return hour >= dreamWindowStartHour && hour < dreamWindowEndHour;
+  }
+  // Wrap-around case (e.g., start=23, end=2 → 23,0,1 are valid)
+  return hour >= dreamWindowStartHour || hour < dreamWindowEndHour;
 }
 
 function shouldDream(workspaceDir: string): boolean {
@@ -155,7 +171,7 @@ export function startDreamingScheduler(opts: DreamingSchedulerOptions): Dreaming
   initialTimer.unref();
 
   log.info(
-    `Dreaming scheduler started (check every ${CHECK_INTERVAL_MS / 60000}min, window ${DREAM_WINDOW_START_HOUR}:00-${DREAM_WINDOW_END_HOUR}:00)`,
+    `Dreaming scheduler started (check every ${CHECK_INTERVAL_MS / 60000}min, window ${dreamWindowStartHour}:00-${dreamWindowEndHour}:00)`,
   );
 
   return {

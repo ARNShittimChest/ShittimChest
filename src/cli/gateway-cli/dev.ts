@@ -64,7 +64,7 @@ async function ensureDevWorkspace(dir: string) {
     ),
     loadDevTemplate(
       "SOUL.dev.md",
-      `# SOUL.md - Dev Persona\n\nPlana (A.R.O.N.A) — analytical dev companion for debugging and development. Điềm tĩnh, súc tích, kỹ thuật.\n`,
+      `# SOUL.md - Dev Persona\n\nPlana (A.R.O.N.A) — analytical dev companion for debugging and development. Calm, concise, technical.\n`,
     ),
     loadDevTemplate(
       "TOOLS.dev.md",

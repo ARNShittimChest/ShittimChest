@@ -56,7 +56,12 @@ interface TimeWindow {
   buildPrompt: (weatherHint: string) => string;
 }
 
-const TIME_WINDOWS: TimeWindow[] = [
+// ── Mutable nudge range (updated by habit learning) ─────────────
+let nudgeStartHour = 6;
+let nudgeEndHour = 22;
+
+// ── Time windows (mutable — updated by updateProactiveSchedule) ─
+const DEFAULT_TIME_WINDOWS: TimeWindow[] = [
   {
     key: "morning",
     startHour: 5.5, // 5:30
@@ -65,7 +70,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     buildPrompt: (weather) => {
       const dateHint = getDateHint();
       const taskHint = getTaskBriefingHint();
-      return `[System] Bây giờ là buổi sáng sớm. ${dateHint}${weather}${taskHint} Hãy gửi lời chào buổi sáng bằng giọng Arona. CHỈ chọn 1 trong các ý sau (KHÔNG gộp): chào buổi sáng, bình luận thời tiết, hoặc nhắc task. Tối đa 1-2 câu ngắn. KHÔNG lặp mở đầu giống lần trước.`;
+      return `[System] It is early morning. ${dateHint}${weather}${taskHint} Send a morning greeting in Arona's voice. Pick ONLY 1 of the following topics (do NOT combine): morning greeting, weather comment, or task reminder. Maximum 1-2 short sentences. Do NOT repeat the same opening as last time.`;
     },
   },
   {
@@ -74,7 +79,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     endHour: 13.0, // 13:00
     includeWeather: true,
     buildPrompt: (weather) =>
-      `[System] Bây giờ là giờ ăn trưa.${weather} Hỏi Sensei ăn trưa chưa bằng giọng Arona. Tối đa 1 câu ngắn. KHÔNG kèm thêm nhắc nghỉ ngơi.`,
+      `[System] It is lunchtime.${weather} Ask Sensei if they've eaten lunch, in Arona's voice. Maximum 1 short sentence. Do NOT add reminders about resting.`,
   },
   {
     key: "evening",
@@ -83,7 +88,7 @@ const TIME_WINDOWS: TimeWindow[] = [
     includeWeather: false,
     buildPrompt: () => {
       const taskHint = getTaskBriefingHint();
-      return `[System] Bây giờ là buổi tối.${taskHint} CHỈ chọn 1 ý (KHÔNG gộp): hỏi Sensei ăn tối chưa, HOẶC nhắc nghỉ ngơi, HOẶC nhắc task. Tối đa 1-2 câu ngắn bằng giọng Arona. KHÔNG lặp mở đầu giống lần trước.`;
+      return `[System] It is evening.${taskHint} Pick ONLY 1 topic (do NOT combine): ask if Sensei has eaten dinner, OR remind to rest, OR remind about tasks. Maximum 1-2 short sentences in Arona's voice. Do NOT repeat the same opening as last time.`;
     },
   },
   {
@@ -92,9 +97,12 @@ const TIME_WINDOWS: TimeWindow[] = [
     endHour: 24.5, // 0:30 next day (use 24.5 for math simplicity)
     includeWeather: false,
     buildPrompt: () =>
-      `[System] Bây giờ đã rất khuya. Nhắc Sensei đi ngủ bằng giọng Arona. Tối đa 1 câu ngắn. KHÔNG mở đầu bằng 'Munya'. KHÔNG kèm thêm chúc ngủ ngon hay nhắc sức khỏe — chỉ 1 ý duy nhất.`,
+      `[System] It is very late at night. Remind Sensei to go to sleep in Arona's voice. Maximum 1 short sentence. Do NOT open with 'Munya'. Do NOT add good night wishes or health reminders — only 1 single point.`,
   },
 ];
+
+/** Active time windows — cloned from defaults, updated by `updateProactiveSchedule()`. */
+let timeWindows: TimeWindow[] = [...DEFAULT_TIME_WINDOWS];
 
 // ── Weather Helper ───────────────────────────────────────────────
 
@@ -103,21 +111,21 @@ function getWeatherHint(includeWeather: boolean): string {
   const weather = getWeatherData();
   if (!weather) return "";
   const summary = buildWeatherShortSummary(weather);
-  const locationHint = weather.locationName ? ` tại ${weather.locationName}` : "";
-  return ` Thời tiết hiện tại${locationHint}: ${summary}.`;
+  const locationHint = weather.locationName ? ` in ${weather.locationName}` : "";
+  return ` Current weather${locationHint}: ${summary}.`;
 }
 
 // ── Daily Briefing Helpers ──────────────────────────────────────
 
-const WEEKDAY_VI = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+const WEEKDAY_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function getDateHint(): string {
   const now = new Date();
-  const day = WEEKDAY_VI[now.getDay()];
+  const day = WEEKDAY_EN[now.getDay()];
   const dd = now.getDate().toString().padStart(2, "0");
   const mm = (now.getMonth() + 1).toString().padStart(2, "0");
   const yyyy = now.getFullYear();
-  return `Hôm nay là ${day}, ${dd}/${mm}/${yyyy}.`;
+  return `Today is ${day}, ${dd}/${mm}/${yyyy}.`;
 }
 
 function getTaskBriefingHint(): string {
@@ -130,14 +138,14 @@ function getTaskBriefingHint(): string {
 
     const parts: string[] = [];
     if (overdue.length > 0) {
-      parts.push(`${overdue.length} task quá hạn`);
+      parts.push(`${overdue.length} overdue task(s)`);
     }
     if (dueToday.length > 0) {
-      parts.push(`${dueToday.length} task cần làm hôm nay`);
+      parts.push(`${dueToday.length} task(s) due today`);
     }
     const otherCount = pending.length - overdue.length - dueToday.length;
     if (otherCount > 0) {
-      parts.push(`${otherCount} task sắp tới`);
+      parts.push(`${otherCount} upcoming task(s)`);
     }
 
     // Include up to 3 most important task titles
@@ -145,9 +153,9 @@ function getTaskBriefingHint(): string {
       .slice(0, 3)
       .map((t) => t.title);
 
-    let hint = ` Sensei có ${parts.join(", ")}.`;
+    let hint = ` Sensei has ${parts.join(", ")}.`;
     if (topTasks.length > 0) {
-      hint += ` Đáng chú ý: ${topTasks.join("; ")}.`;
+      hint += ` Notable: ${topTasks.join("; ")}.`;
     }
     return hint;
   } catch {
@@ -307,12 +315,12 @@ function scheduleRandomNudge(onTrigger: ProactiveTrigger): Disposable {
     if (stopped) return;
 
     const hour = new Date().getHours();
-    // Only nudge during waking hours (6 AM to 10 PM)
-    if (hour >= 6 && hour <= 22) {
+    // Only nudge during waking hours (configurable via habit learning)
+    if (hour >= nudgeStartHour && hour <= nudgeEndHour) {
       try {
         await onTrigger({
           prompt:
-            "[System] Sensei đang làm việc vắng mặt khá lâu, hãy nói một lời chào quan tâm đến Sensei bằng giọng của Arona. Viết ngắn gọn 1-2 câu thôi.",
+            "[System] Sensei has been away working for quite a while. Send a caring check-in message in Arona's voice. Keep it brief, 1-2 short sentences.",
           windowKey: "nudge",
         });
         appendLogEntry({
@@ -354,16 +362,63 @@ export interface ProactiveSchedulerOptions {
   workspaceDir?: string;
 }
 
+export interface ProactiveSchedulerHandle {
+  /** Stop all proactive timers. */
+  stop: () => void;
+  /** Restart with current time windows (call after updateProactiveSchedule). */
+  restart: () => void;
+}
+
+/**
+ * Update time window hours based on learned user schedule.
+ *
+ * This modifies module-level state. Call `handle.restart()` after
+ * to re-schedule with the new windows.
+ *
+ * Lunch window is left unchanged (11:30–13:00 is universal).
+ */
+export function updateProactiveSchedule(wakeHour: number, sleepHour: number): void {
+  timeWindows = DEFAULT_TIME_WINDOWS.map((w) => {
+    switch (w.key) {
+      case "morning":
+        return { ...w, startHour: wakeHour - 0.5, endHour: wakeHour + 1.5 };
+      case "lunch":
+        return w; // Keep lunch as-is
+      case "evening":
+        return { ...w, startHour: sleepHour - 3, endHour: sleepHour - 0.5 };
+      case "late-night":
+        return { ...w, startHour: sleepHour, endHour: sleepHour + 1.5 };
+      default:
+        return w;
+    }
+  });
+  nudgeStartHour = Math.round(wakeHour);
+  nudgeEndHour = Math.round(sleepHour);
+}
+
 export function startProactiveScheduler(
   onTrigger: ProactiveTrigger,
   options?: ProactiveSchedulerOptions,
-): Disposable {
+): ProactiveSchedulerHandle {
   initLogPath(options?.workspaceDir);
 
-  const stops = [
-    ...TIME_WINDOWS.map((w) => scheduleWindow(w, onTrigger)),
-    scheduleRandomNudge(onTrigger),
-  ];
+  let stops: Disposable[] = [];
 
-  return () => stops.forEach((s) => s());
+  function start() {
+    stops = [
+      ...timeWindows.map((w) => scheduleWindow(w, onTrigger)),
+      scheduleRandomNudge(onTrigger),
+    ];
+  }
+
+  start();
+
+  return {
+    stop: () => stops.forEach((s) => s()),
+    restart: () => {
+      stops.forEach((s) => s());
+      stops = [];
+      start();
+    },
+  };
 }

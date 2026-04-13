@@ -180,7 +180,7 @@ interface KeywordRule {
 }
 
 const KEYWORD_RULES: KeywordRule[] = [
-  // Khen ngợi → happy/excited (+affection)
+  // Praise / compliment → happy/excited (+affection)
   {
     patterns: [
       /c[aả]m [oơ]n/i,
@@ -191,12 +191,14 @@ const KEYWORD_RULES: KeywordRule[] = [
       /good job/i,
       /nice/i,
       /awesome/i,
+      /well done/i,
+      /great/i,
     ],
     delta: { happy: 0.5, excited: 0.2 },
-    source: "khen-ngợi",
+    source: "praised",
     affectionDelta: +3,
   },
-  // Sensei mệt/buồn → caring/worried (+small affection từ việc chia sẻ)
+  // Sensei tired/sad → caring/worried (+small affection from sharing feelings)
   {
     patterns: [
       /m[eệ]t/i,
@@ -208,12 +210,15 @@ const KEYWORD_RULES: KeywordRule[] = [
       /b[eệ]nh/i,
       /tired/i,
       /exhausted/i,
+      /sad/i,
+      /depressed/i,
+      /sick/i,
     ],
     delta: { caring: 0.5, worried: 0.3 },
-    source: "sensei-mệt",
+    source: "sensei-tired",
     affectionDelta: +1,
   },
-  // Hoàn thành/thành công → excited (+affection cùng vui)
+  // Completion/success → excited (+affection, shared joy)
   {
     patterns: [
       /wow/i,
@@ -224,40 +229,42 @@ const KEYWORD_RULES: KeywordRule[] = [
       /ho[aà]n th[aà]nh/i,
       /success/i,
       /pass/i,
+      /finished/i,
+      /nailed it/i,
     ],
     delta: { excited: 0.5, happy: 0.3 },
-    source: "thành-công",
+    source: "success",
     affectionDelta: +2,
   },
-  // Lỗi/bug → worried (trung tính về tình cảm, chỉ là công việc)
+  // Error/bug → worried (neutral affection, just work stuff)
   {
     patterns: [/l[oỗ]i/i, /bug/i, /fail/i, /error/i, /crash/i, /broken/i, /h[oỏ]ng/i],
     delta: { worried: 0.3, caring: 0.2 },
-    source: "lỗi-phát-sinh",
+    source: "error-occurred",
     affectionDelta: 0,
   },
-  // Đùa vui/trêu chọc → happy (+affection, vui cùng nhau)
+  // Joking/teasing → happy (+affection, fun together)
   {
     patterns: [/tr[eê]u/i, /đ[uù]a/i, /haha/i, /lol/i, /=\)\)/i, /🤣/i, /😂/i],
     delta: { happy: 0.3, excited: 0.1 },
-    source: "đùa-vui",
+    source: "joking",
     affectionDelta: +2,
   },
-  // Sữa dâu → instant happy (bonus lớn!)
+  // Strawberry milk → instant happy (big bonus!)
   {
     patterns: [/s[uữ]a d[aâ]u/i, /strawberry milk/i, /🍓/i],
     delta: { happy: 0.6, excited: 0.3 },
-    source: "sữa-dâu!",
+    source: "strawberry-milk!",
     affectionDelta: +5,
   },
-  // Tặng quà → happy (+affection nhiều)
+  // Gift/treat → happy (+high affection)
   {
-    patterns: [/quà/i, /gift/i, /tặng/i, /🎁/i, /treat/i],
+    patterns: [/quà/i, /gift/i, /tặng/i, /🎁/i, /treat/i, /present/i],
     delta: { happy: 0.5, excited: 0.2 },
-    source: "quà-tặng",
+    source: "gift",
     affectionDelta: +4,
   },
-  // Khen trực tiếp Arona → happy (bonus lớn nhất!)
+  // Directly praising Arona → happy (biggest bonus!)
   {
     patterns: [
       /Arona gi[oỏ]i/i,
@@ -267,12 +274,15 @@ const KEYWORD_RULES: KeywordRule[] = [
       /love Arona/i,
       /yêu Arona/i,
       /thích Arona/i,
+      /Arona is great/i,
+      /Arona is amazing/i,
+      /good girl/i,
     ],
     delta: { happy: 0.7, excited: 0.2 },
-    source: "khen-Arona",
+    source: "praised-Arona",
     affectionDelta: +6,
   },
-  // Thô lỗ/đuổi đi → sad/worried (-affection nhiều)
+  // Rude/dismissive → sad/worried (-high affection)
   {
     patterns: [
       /im l[eặ]ng/i,
@@ -283,33 +293,34 @@ const KEYWORD_RULES: KeywordRule[] = [
       /annoying/i,
       /stop talking/i,
       /go away/i,
+      /useless/i,
     ],
     delta: { sad: 0.4, worried: 0.1 },
-    source: "bị-phạt-ngượt",
+    source: "harsh-dismissal",
     affectionDelta: -4,
   },
-  // Bỏ quên/phớt lờ Arona → sad (-affection)
+  // Abandoned/ignored → sad (-affection)
   {
-    patterns: [/bỏ Arona/i, /quên Arona/i, /ignore/i, /forget you/i],
+    patterns: [/bỏ Arona/i, /quên Arona/i, /ignore/i, /forget you/i, /don't need you/i],
     delta: { sad: 0.5 },
-    source: "bị-bỏ-quên",
+    source: "abandoned",
     affectionDelta: -3,
   },
-  // Thất hứa/nói dối → sad/worried (-affection nhiều)
+  // Broken promise/lying → sad/worried (-high affection)
   {
     patterns: [/hứa mà không/i, /lần nào cũng/i, /lười/i, /ngủ quên/i, /broke.*promise/i, /lied/i],
     delta: { sad: 0.4, worried: 0.2 },
-    source: "thất-hứa",
+    source: "broken-promise",
     affectionDelta: -5,
   },
-  // Nhớ đến Arona / hỏi thăm → happy (+affection)
+  // Calling for / missing Arona → happy (+affection)
   {
-    patterns: [/Arona đâu/i, /Arona ơi/i, /nhớ Arona/i, /miss Arona/i],
+    patterns: [/Arona đâu/i, /Arona ơi/i, /nhớ Arona/i, /miss Arona/i, /where.*Arona/i],
     delta: { happy: 0.4, excited: 0.1 },
-    source: "nhớ-Arona",
+    source: "missed-Arona",
     affectionDelta: +4,
   },
-  // Hỏi gì mới, tò mò → curious
+  // Curiosity / asking questions → curious
   {
     patterns: [
       /tại sao/i,
@@ -322,19 +333,29 @@ const KEYWORD_RULES: KeywordRule[] = [
       /thắc mắc/i,
       /tò mò/i,
       /curious/i,
+      /wonder/i,
     ],
     delta: { curious: 0.4, excited: 0.1 },
-    source: "tò-mò",
+    source: "curious",
     affectionDelta: 0,
   },
-  // Đùa giỡn / trêu chọc nhiều → playful
+  // Playful teasing → playful
   {
-    patterns: [/baka/i, /ngu ngốc/i, /dummy/i, /dễ thương quá/i, /trêu Arona/i, /prank/i, /trick/i],
+    patterns: [
+      /baka/i,
+      /ngu ngốc/i,
+      /dummy/i,
+      /dễ thương quá/i,
+      /trêu Arona/i,
+      /prank/i,
+      /trick/i,
+      /tease/i,
+    ],
     delta: { playful: 0.5, happy: 0.2 },
-    source: "trêu-đùa-nhau",
+    source: "playful-teasing",
     affectionDelta: +2,
   },
-  // Biết ơn / cảm ơn sâu sắc → grateful
+  // Deep gratitude → grateful
   {
     patterns: [
       /thật sự cảm ơn/i,
@@ -344,12 +365,13 @@ const KEYWORD_RULES: KeywordRule[] = [
       /so grateful/i,
       /appreciate/i,
       /không biết nói gì/i,
+      /means a lot/i,
     ],
     delta: { grateful: 0.6, happy: 0.2 },
-    source: "biết-ơn",
+    source: "grateful",
     affectionDelta: +4,
   },
-  // Nhắc chuyện cũ / hoài niệm → nostalgic
+  // Nostalgia / reminiscing → nostalgic
   {
     patterns: [
       /nhớ không/i,
@@ -362,10 +384,10 @@ const KEYWORD_RULES: KeywordRule[] = [
       /ngày xưa/i,
     ],
     delta: { nostalgic: 0.5, happy: 0.15 },
-    source: "hoài-niệm",
+    source: "nostalgic",
     affectionDelta: +2,
   },
-  // Chán / không có gì làm → bored
+  // Bored / nothing to do → bored
   {
     patterns: [
       /chán quá/i,
@@ -378,10 +400,10 @@ const KEYWORD_RULES: KeywordRule[] = [
       /rảnh quá/i,
     ],
     delta: { bored: 0.5, sad: 0.1 },
-    source: "buồn-chán",
+    source: "bored",
     affectionDelta: 0,
   },
-  // Đang làm việc / tập trung → focused
+  // Working / busy → focused
   {
     patterns: [
       /đang làm/i,
@@ -394,7 +416,7 @@ const KEYWORD_RULES: KeywordRule[] = [
       /busy/i,
     ],
     delta: { focused: 0.5, caring: 0.1 },
-    source: "đang-bận",
+    source: "busy-working",
     affectionDelta: 0,
   },
 ];
@@ -449,9 +471,9 @@ const ABSENCE_THRESHOLD_MS = {
  * Longer absence = bigger affection penalty.
  */
 export const ABSENCE_AFFECTION_DELTA = {
-  mild: -1, // 2–6h vắng: -1 điểm
-  moderate: -2, // 6–12h vắng: -2 điểm
-  severe: -4, // >12h vắng: -4 điểm
+  mild: -1, // 2–6h away: -1 point
+  moderate: -2, // 6–12h away: -2 points
+  severe: -4, // >12h away: -4 points
 } as const;
 
 /**
@@ -468,7 +490,7 @@ export function analyzeAbsence(lastInteractionMs: number, nowMs: number): MoodTr
   if (elapsed < ABSENCE_THRESHOLD_MS.moderate) {
     return {
       type: "absence",
-      source: "sensei-vắng-2h",
+      source: "sensei-away-2h",
       delta: { sad: 0.2, worried: 0.1 },
     };
   }
@@ -476,14 +498,14 @@ export function analyzeAbsence(lastInteractionMs: number, nowMs: number): MoodTr
   if (elapsed < ABSENCE_THRESHOLD_MS.severe) {
     return {
       type: "absence",
-      source: "sensei-vắng-6h",
+      source: "sensei-away-6h",
       delta: { sad: 0.4, worried: 0.2 },
     };
   }
 
   return {
     type: "absence",
-    source: "sensei-vắng-lâu",
+    source: "sensei-away-long",
     delta: { sad: 0.6, worried: 0.3 },
   };
 }
@@ -509,7 +531,7 @@ export function getAbsenceAffectionDelta(lastInteractionMs: number, nowMs: numbe
 export function analyzeInteraction(): MoodTrigger {
   return {
     type: "interaction",
-    source: "sensei-nói-chuyện",
+    source: "sensei-chatting",
     delta: { happy: 0.3 },
   };
 }

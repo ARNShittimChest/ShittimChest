@@ -61,10 +61,14 @@ export function buildEmbeddedSystemPrompt(params: {
   taskContext?: string;
   /** Health config summary (from health reminder config). */
   healthContext?: string;
+  /** User schedule context (from habit learning system). */
+  scheduleContext?: string;
   /** Sensei profile summary (from personality learning system). */
   senseiProfileContext?: string;
   /** Personalized behavior guide (from dreaming prompt optimization). */
   personalizedContext?: string;
+  /** Evolution self-awareness context (from interaction tracking). */
+  evolutionContext?: string;
   /** Smart routing query tier for prompt detail control. */
   queryTier?: QueryTier;
 }): string {
@@ -100,8 +104,10 @@ export function buildEmbeddedSystemPrompt(params: {
     weatherContext: params.weatherContext,
     taskContext: params.taskContext,
     healthContext: params.healthContext,
+    scheduleContext: params.scheduleContext,
     senseiProfileContext: params.senseiProfileContext,
     personalizedContext: params.personalizedContext,
+    evolutionContext: params.evolutionContext,
     queryTier: params.queryTier,
   });
 }

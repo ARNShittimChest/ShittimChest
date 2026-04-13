@@ -239,10 +239,10 @@ export function getRecentReminders(): SentReminder[] {
 /** Format relative time ago in a compact way. */
 function formatTimeAgo(ms: number): string {
   const mins = Math.round(ms / 60_000);
-  if (mins < 1) return "vừa xong";
-  if (mins < 60) return `${mins} phút trước`;
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
   const hrs = Math.round(mins / 60);
-  return `${hrs} giờ trước`;
+  return `${hrs} hr ago`;
 }
 
 /** Map windowKey/type back to a friendly label. */
@@ -250,16 +250,16 @@ function reminderLabel(type: string): string {
   switch (type) {
     case "water":
     case "health-water":
-      return "Uống nước";
+      return "Water";
     case "eyes":
     case "health-eyes":
-      return "Nghỉ mắt";
+      return "Eye break";
     case "movement":
     case "health-movement":
-      return "Vận động";
+      return "Movement";
     case "sleep":
     case "health-sleep":
-      return "Đi ngủ";
+      return "Sleep";
     default:
       return type;
   }
@@ -299,14 +299,14 @@ export function buildHealthConfigSummary(): string {
     }
     lines.push("");
     lines.push(
-      "If Sensei mentions something related to a recent reminder (e.g. 'uống rồi', 'ok', 'lát nữa'), " +
+      "If Sensei mentions something related to a recent reminder (e.g. 'done', 'ok', 'later'), " +
         "acknowledge it naturally — Arona sent these reminders and should respond to feedback about them.",
     );
   }
 
   lines.push("");
   lines.push(
-    "Sensei can adjust these by telling Arona, e.g. 'nhắc uống nước mỗi 1.5 tiếng' or 'turn off eye break reminders'.",
+    "Sensei can adjust these by telling Arona, e.g. 'remind me to drink water every 1.5 hours' or 'turn off eye break reminders'.",
   );
 
   if (

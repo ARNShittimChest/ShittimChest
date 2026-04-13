@@ -1,10 +1,11 @@
 /**
  * Dreaming Orchestrator — Nightly memory consolidation & prompt personalization.
  *
- * Coordinates three phases:
+ * Coordinates four phases:
  * 1. Memory reflection — consolidate chat logs into entity summaries
  * 2. Profile refresh — flush pending sensei profiler data
  * 3. Prompt optimization — generate personalized system prompt fragments
+ * 4. Evolution analysis — analyze interaction effectiveness and generate recommendations
  *
  * Each phase is independently resilient: if one fails, the others still run.
  */
@@ -162,16 +163,16 @@ export async function runDreaming(
 
   // ── Phase 1: Memory Reflection ──
   updatePhase("memory");
-  log.info("[Phase 1/3] Memory reflection...");
+  log.info("[Phase 1/4] Memory reflection...");
   try {
     await runMemoryReflection(cfg, agentId);
     report.phases.memory = { ok: true };
     report.memoriesConsolidated = 1; // runMemoryReflection doesn't return count
-    log.info("[Phase 1/3] Memory reflection completed.");
+    log.info("[Phase 1/4] Memory reflection completed.");
   } catch (err) {
     const errMsg = String(err);
     report.phases.memory = { ok: false, error: errMsg };
-    log.error(`[Phase 1/3] Memory reflection failed: ${errMsg}`);
+    log.error(`[Phase 1/4] Memory reflection failed: ${errMsg}`);
   }
 
   // ── Phase 2: Profile Refresh ──
@@ -181,22 +182,22 @@ export async function runDreaming(
   // so this phase primarily ensures any pending batch gets processed.
   // For now, we run a second memory reflection pass focused on profile data.
   updatePhase("profile");
-  log.info("[Phase 2/3] Profile data refresh...");
+  log.info("[Phase 2/4] Profile data refresh...");
   try {
     // Profile data is continuously gathered by SenseiProfiler during conversations.
     // In the dreaming cycle, we simply verify it's available for the optimizer.
     // A future enhancement could add a SenseiProfiler.flushAll() static method.
     report.phases.profile = { ok: true };
-    log.info("[Phase 2/3] Profile data verified.");
+    log.info("[Phase 2/4] Profile data verified.");
   } catch (err) {
     const errMsg = String(err);
     report.phases.profile = { ok: false, error: errMsg };
-    log.error(`[Phase 2/3] Profile refresh failed: ${errMsg}`);
+    log.error(`[Phase 2/4] Profile refresh failed: ${errMsg}`);
   }
 
   // ── Phase 3: Prompt Optimization ──
   updatePhase("optimize");
-  log.info("[Phase 3/3] Prompt optimization...");
+  log.info("[Phase 3/4] Prompt optimization...");
   try {
     const result = await optimizePromptForUser(cfg, agentId, workspaceDir);
     if (result) {
@@ -204,16 +205,39 @@ export async function runDreaming(
       report.promptChanges.push(
         `Generated personalized prompt (${result.compiledFragment.length} chars)`,
       );
-      log.info("[Phase 3/3] Prompt optimization completed.");
+      log.info("[Phase 3/4] Prompt optimization completed.");
     } else {
       report.phases.optimize = { ok: true }; // Not an error, just insufficient data
       report.promptChanges.push("Skipped — insufficient data for optimization");
-      log.info("[Phase 3/3] Prompt optimization skipped (not enough data).");
+      log.info("[Phase 3/4] Prompt optimization skipped (not enough data).");
     }
   } catch (err) {
     const errMsg = String(err);
     report.phases.optimize = { ok: false, error: errMsg };
-    log.error(`[Phase 3/3] Prompt optimization failed: ${errMsg}`);
+    log.error(`[Phase 3/4] Prompt optimization failed: ${errMsg}`);
+  }
+
+  // ── Phase 4: Evolution Analysis ──
+  updatePhase("evolve");
+  log.info("[Phase 4/4] Evolution analysis...");
+  try {
+    const { analyzeEvolution } = await import("../evolution/evolution-analyzer.js");
+    const result = await analyzeEvolution(cfg, agentId, workspaceDir);
+    if (result) {
+      report.phases.evolve = { ok: true };
+      report.promptChanges.push(
+        `Evolution: effectiveness ${result.effectivenessScore}/100 — ${result.summary}`,
+      );
+      log.info(`[Phase 4/4] Evolution analysis completed (score: ${result.effectivenessScore}).`);
+    } else {
+      report.phases.evolve = { ok: true };
+      report.promptChanges.push("Evolution analysis skipped — insufficient interaction data");
+      log.info("[Phase 4/4] Evolution analysis skipped (not enough data).");
+    }
+  } catch (err) {
+    const errMsg = String(err);
+    report.phases.evolve = { ok: false, error: errMsg };
+    log.error(`[Phase 4/4] Evolution analysis failed: ${errMsg}`);
   }
 
   // ── Finalize ──
@@ -226,7 +250,7 @@ export async function runDreaming(
   dreamingState.phase = "idle";
   dreamingState.error =
     Object.values(report.phases)
-      .filter((p) => !p.ok)
+      .filter((p): p is { ok: boolean; error?: string } => p != null && !p.ok)
       .map((p) => p.error)
       .join("; ") || undefined;
   saveDreamingState(workspaceDir, dreamingState);
@@ -238,7 +262,8 @@ export async function runDreaming(
     `=== Dreaming cycle finished in ${(report.durationMs / 1000).toFixed(1)}s ===` +
       ` memory:${report.phases.memory.ok ? "OK" : "FAIL"}` +
       ` profile:${report.phases.profile.ok ? "OK" : "FAIL"}` +
-      ` optimize:${report.phases.optimize.ok ? "OK" : "FAIL"}`,
+      ` optimize:${report.phases.optimize.ok ? "OK" : "FAIL"}` +
+      ` evolve:${report.phases.evolve?.ok ? "OK" : report.phases.evolve ? "FAIL" : "SKIP"}`,
   );
 
   return report;
