@@ -390,112 +390,118 @@ export function createAgentEventHandler({
   };
 
   return (evt: AgentEventPayload) => {
-    const chatLink = chatRunState.registry.peek(evt.runId);
-    const eventSessionKey =
-      typeof evt.sessionKey === "string" && evt.sessionKey.trim() ? evt.sessionKey : undefined;
-    const sessionKey =
-      chatLink?.sessionKey ?? eventSessionKey ?? resolveSessionKeyForRun(evt.runId);
-    const clientRunId = chatLink?.clientRunId ?? evt.runId;
-    const eventRunId = chatLink?.clientRunId ?? evt.runId;
-    const eventForClients = chatLink ? { ...evt, runId: eventRunId } : evt;
-    const isAborted =
-      chatRunState.abortedRuns.has(clientRunId) || chatRunState.abortedRuns.has(evt.runId);
-    // Include sessionKey so Control UI can filter tool streams per session.
-    const agentPayload = sessionKey ? { ...eventForClients, sessionKey } : eventForClients;
-    const last = agentRunSeq.get(evt.runId) ?? 0;
-    const isToolEvent = evt.stream === "tool";
-    const toolVerbose = isToolEvent ? resolveToolVerboseLevel(evt.runId, sessionKey) : "off";
-    // Build tool payload: strip result/partialResult unless verbose=full
-    const toolPayload =
-      isToolEvent && toolVerbose !== "full"
-        ? (() => {
-            const data = evt.data ? { ...evt.data } : {};
-            delete data.result;
-            delete data.partialResult;
-            return sessionKey
-              ? { ...eventForClients, sessionKey, data }
-              : { ...eventForClients, data };
-          })()
-        : agentPayload;
-    if (evt.seq !== last + 1) {
-      broadcast("agent", {
-        runId: eventRunId,
-        stream: "error",
-        ts: Date.now(),
-        sessionKey,
-        data: {
-          reason: "seq gap",
-          expected: last + 1,
-          received: evt.seq,
-        },
-      });
-    }
-    agentRunSeq.set(evt.runId, evt.seq);
-    if (isToolEvent) {
-      // Always broadcast tool events to registered WS recipients with
-      // tool-events capability, regardless of verboseLevel. The verbose
-      // setting only controls whether tool details are sent as channel
-      // messages to messaging surfaces (Telegram, Discord, etc.).
-      const recipients = toolEventRecipients.get(evt.runId);
-      if (recipients && recipients.size > 0) {
-        broadcastToConnIds("agent", toolPayload, recipients);
+    try {
+      const chatLink = chatRunState.registry.peek(evt.runId);
+      const eventSessionKey =
+        typeof evt.sessionKey === "string" && evt.sessionKey.trim() ? evt.sessionKey : undefined;
+      const sessionKey =
+        chatLink?.sessionKey ?? eventSessionKey ?? resolveSessionKeyForRun(evt.runId);
+      const clientRunId = chatLink?.clientRunId ?? evt.runId;
+      const eventRunId = chatLink?.clientRunId ?? evt.runId;
+      const eventForClients = chatLink ? { ...evt, runId: eventRunId } : evt;
+      const isAborted =
+        chatRunState.abortedRuns.has(clientRunId) || chatRunState.abortedRuns.has(evt.runId);
+      // Include sessionKey so Control UI can filter tool streams per session.
+      const agentPayload = sessionKey ? { ...eventForClients, sessionKey } : eventForClients;
+      const last = agentRunSeq.get(evt.runId) ?? 0;
+      const isToolEvent = evt.stream === "tool";
+      const toolVerbose = isToolEvent ? resolveToolVerboseLevel(evt.runId, sessionKey) : "off";
+      // Build tool payload: strip result/partialResult unless verbose=full
+      const toolPayload =
+        isToolEvent && toolVerbose !== "full"
+          ? (() => {
+              const data = evt.data ? { ...evt.data } : {};
+              delete data.result;
+              delete data.partialResult;
+              return sessionKey
+                ? { ...eventForClients, sessionKey, data }
+                : { ...eventForClients, data };
+            })()
+          : agentPayload;
+      if (evt.seq !== last + 1) {
+        broadcast("agent", {
+          runId: eventRunId,
+          stream: "error",
+          ts: Date.now(),
+          sessionKey,
+          data: {
+            reason: "seq gap",
+            expected: last + 1,
+            received: evt.seq,
+          },
+        });
       }
-    } else {
-      broadcast("agent", agentPayload);
-    }
-
-    const lifecyclePhase =
-      evt.stream === "lifecycle" && typeof evt.data?.phase === "string" ? evt.data.phase : null;
-
-    if (sessionKey) {
-      // Send tool events to node/channel subscribers only when verbose is enabled;
-      // WS clients already received the event above via broadcastToConnIds.
-      if (!isToolEvent || toolVerbose !== "off") {
-        nodeSendToSession(sessionKey, "agent", isToolEvent ? toolPayload : agentPayload);
+      agentRunSeq.set(evt.runId, evt.seq);
+      if (isToolEvent) {
+        // Always broadcast tool events to registered WS recipients with
+        // tool-events capability, regardless of verboseLevel. The verbose
+        // setting only controls whether tool details are sent as channel
+        // messages to messaging surfaces (Telegram, Discord, etc.).
+        const recipients = toolEventRecipients.get(evt.runId);
+        if (recipients && recipients.size > 0) {
+          broadcastToConnIds("agent", toolPayload, recipients);
+        }
+      } else {
+        broadcast("agent", agentPayload);
       }
-      if (!isAborted && evt.stream === "assistant" && typeof evt.data?.text === "string") {
-        emitChatDelta(sessionKey, clientRunId, evt.runId, evt.seq, evt.data.text);
-      } else if (!isAborted && (lifecyclePhase === "end" || lifecyclePhase === "error")) {
-        if (chatLink) {
-          const finished = chatRunState.registry.shift(evt.runId);
-          if (!finished) {
-            clearAgentRunContext(evt.runId);
-            return;
+
+      const lifecyclePhase =
+        evt.stream === "lifecycle" && typeof evt.data?.phase === "string" ? evt.data.phase : null;
+
+      if (sessionKey) {
+        // Send tool events to node/channel subscribers only when verbose is enabled;
+        // WS clients already received the event above via broadcastToConnIds.
+        if (!isToolEvent || toolVerbose !== "off") {
+          nodeSendToSession(sessionKey, "agent", isToolEvent ? toolPayload : agentPayload);
+        }
+        if (!isAborted && evt.stream === "assistant" && typeof evt.data?.text === "string") {
+          emitChatDelta(sessionKey, clientRunId, evt.runId, evt.seq, evt.data.text);
+        } else if (!isAborted && (lifecyclePhase === "end" || lifecyclePhase === "error")) {
+          if (chatLink) {
+            const finished = chatRunState.registry.shift(evt.runId);
+            if (!finished) {
+              clearAgentRunContext(evt.runId);
+              return;
+            }
+            emitChatFinal(
+              finished.sessionKey,
+              finished.clientRunId,
+              evt.runId,
+              evt.seq,
+              lifecyclePhase === "error" ? "error" : "done",
+              evt.data?.error,
+            );
+          } else {
+            emitChatFinal(
+              sessionKey,
+              eventRunId,
+              evt.runId,
+              evt.seq,
+              lifecyclePhase === "error" ? "error" : "done",
+              evt.data?.error,
+            );
           }
-          emitChatFinal(
-            finished.sessionKey,
-            finished.clientRunId,
-            evt.runId,
-            evt.seq,
-            lifecyclePhase === "error" ? "error" : "done",
-            evt.data?.error,
-          );
-        } else {
-          emitChatFinal(
-            sessionKey,
-            eventRunId,
-            evt.runId,
-            evt.seq,
-            lifecyclePhase === "error" ? "error" : "done",
-            evt.data?.error,
-          );
-        }
-      } else if (isAborted && (lifecyclePhase === "end" || lifecyclePhase === "error")) {
-        chatRunState.abortedRuns.delete(clientRunId);
-        chatRunState.abortedRuns.delete(evt.runId);
-        chatRunState.buffers.delete(clientRunId);
-        chatRunState.deltaSentAt.delete(clientRunId);
-        if (chatLink) {
-          chatRunState.registry.remove(evt.runId, clientRunId, sessionKey);
+        } else if (isAborted && (lifecyclePhase === "end" || lifecyclePhase === "error")) {
+          chatRunState.abortedRuns.delete(clientRunId);
+          chatRunState.abortedRuns.delete(evt.runId);
+          chatRunState.buffers.delete(clientRunId);
+          chatRunState.deltaSentAt.delete(clientRunId);
+          if (chatLink) {
+            chatRunState.registry.remove(evt.runId, clientRunId, sessionKey);
+          }
         }
       }
-    }
 
-    if (lifecyclePhase === "end" || lifecyclePhase === "error") {
-      toolEventRecipients.markFinal(evt.runId);
-      clearAgentRunContext(evt.runId);
-      agentRunSeq.delete(evt.runId);
-      agentRunSeq.delete(clientRunId);
+      if (lifecyclePhase === "end" || lifecyclePhase === "error") {
+        toolEventRecipients.markFinal(evt.runId);
+        clearAgentRunContext(evt.runId);
+        agentRunSeq.delete(evt.runId);
+        agentRunSeq.delete(clientRunId);
+      }
+    } catch (err) {
+      // Log but don't crash the event handler — an unhandled exception here
+      // would kill event dispatching for ALL subsequent events in this session.
+      console.error(`[server-chat] event handler error for run=${evt.runId}:`, err);
     }
   };
 }

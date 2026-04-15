@@ -123,3 +123,27 @@ export function abortChatRunsForSessionKey(
   }
   return { aborted: runIds.length > 0, runIds };
 }
+
+/**
+ * Clean up abort controller entries that have passed their expiresAtMs deadline
+ * without being resolved normally. Prevents memory leaks from orphaned runs
+ * (e.g. agent crash, network partition, or missed lifecycle events).
+ *
+ * Call this periodically (e.g. every 60 seconds) from the server init.
+ * Returns the number of entries cleaned up.
+ */
+export function cleanupExpiredAbortControllers(ops: ChatAbortOps): number {
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [runId, entry] of ops.chatAbortControllers) {
+    if (now >= entry.expiresAtMs) {
+      entry.controller.abort();
+      ops.chatAbortControllers.delete(runId);
+      ops.chatRunBuffers.delete(runId);
+      ops.chatDeltaSentAt.delete(runId);
+      ops.agentRunSeq.delete(runId);
+      cleaned++;
+    }
+  }
+  return cleaned;
+}
