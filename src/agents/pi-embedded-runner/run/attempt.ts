@@ -851,6 +851,18 @@ export async function runEmbeddedAttempt(
       }
     }
 
+    // ── Smart Home Context (non-blocking) ─────────────────────────
+    let smartHomeContext: string | undefined;
+    if (promptMode === "full") {
+      try {
+        const { buildSmartHomeContext } = await import("../../../arona/smarthome/ha-config.js");
+        const ctx = buildSmartHomeContext();
+        if (ctx) smartHomeContext = ctx;
+      } catch {
+        // Smart home context is non-critical — do not break agent run
+      }
+    }
+
     // ── User Schedule Context (non-blocking) ─────────────────────
     let scheduleContext: string | undefined;
     if (promptMode === "full") {
@@ -988,6 +1000,7 @@ export async function runEmbeddedAttempt(
       weatherContext,
       taskContext,
       healthContext,
+      smartHomeContext,
       scheduleContext,
       senseiProfileContext,
       personalizedContext,

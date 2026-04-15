@@ -4,6 +4,7 @@ import { t } from "../i18n/index.ts";
 import { refreshChatAvatar } from "./app-chat.ts";
 import { renderUsageTab } from "./app-render-usage-tab.ts";
 import { renderHealthTab } from "./app-render-health.js";
+import { renderSmartHomeTab } from "./app-render-smarthome.js";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
@@ -1158,6 +1159,7 @@ export function renderApp(state: AppViewState) {
         }
 
         ${state.tab === "health" ? renderHealthTab(state) : nothing}
+        ${state.tab === "smarthome" ? renderSmartHomeTab(state) : nothing}
       </main>
       ${renderExecApprovalPrompt(state)}
       ${renderGatewayUrlConfirmation(state)}

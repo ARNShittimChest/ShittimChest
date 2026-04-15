@@ -659,3 +659,92 @@ export interface HealthRemindersGetResult {
   config: HealthConfig;
   steps: number | null;
 }
+
+// ── Home Assistant / Smart Home ────────────────────────────────
+
+export type HADeviceType =
+  | "LIGHT"
+  | "AC"
+  | "LOCK"
+  | "CAM"
+  | "SENSOR"
+  | "PLUG"
+  | "CURTAIN"
+  | "SPEAKER"
+  | "TV"
+  | "ROBOT"
+  | "OTHER";
+
+export interface HAEntityMapping {
+  entityId: string;
+  friendlyName: string;
+  deviceType: HADeviceType;
+  area?: string;
+}
+
+export interface HASceneAction {
+  domain: string;
+  service: string;
+  entityId: string;
+  data?: Record<string, unknown>;
+}
+
+export interface HAScene {
+  id: string;
+  name: string;
+  actions: HASceneAction[];
+}
+
+/** Config shape returned from the gateway (accessToken is redacted). */
+export interface HAConfigView {
+  baseUrl: string;
+  /** Always "••••••••" or "" — real token never sent to UI */
+  accessToken: string;
+  enabled: boolean;
+  timeoutMs: number;
+  entities: HAEntityMapping[];
+  scenes: HAScene[];
+  requireConfirmForSecurity: boolean;
+}
+
+export interface HAAuditEntry {
+  action: string;
+  entityId: string;
+  timestamp: number;
+  success: boolean;
+  error?: string;
+}
+
+export interface HASyncResult {
+  added: string[];
+  updated: string[];
+  removed: string[];
+  skipped: string[];
+}
+
+// ── HA Gateway RPC response types ──────────────────────────────
+
+export interface HAConfigGetResult {
+  config: HAConfigView;
+  configured: boolean;
+}
+
+export interface HAConfigUpdateResult {
+  config: HAConfigView;
+  configured: boolean;
+}
+
+export interface HAConnectionCheckResult {
+  ok: boolean;
+  message: string;
+}
+
+export interface HASyncResponse {
+  result: HASyncResult;
+  config: HAConfigView;
+  configured: boolean;
+}
+
+export interface HAAuditResponse {
+  entries: HAAuditEntry[];
+}

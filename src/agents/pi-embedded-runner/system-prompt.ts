@@ -61,6 +61,8 @@ export function buildEmbeddedSystemPrompt(params: {
   taskContext?: string;
   /** Health config summary (from health reminder config). */
   healthContext?: string;
+  /** Smart home context (from Home Assistant integration). */
+  smartHomeContext?: string;
   /** User schedule context (from habit learning system). */
   scheduleContext?: string;
   /** Sensei profile summary (from personality learning system). */
@@ -104,6 +106,7 @@ export function buildEmbeddedSystemPrompt(params: {
     weatherContext: params.weatherContext,
     taskContext: params.taskContext,
     healthContext: params.healthContext,
+    smartHomeContext: params.smartHomeContext,
     scheduleContext: params.scheduleContext,
     senseiProfileContext: params.senseiProfileContext,
     personalizedContext: params.personalizedContext,

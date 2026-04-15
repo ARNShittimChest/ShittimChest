@@ -36,6 +36,8 @@ export const de: TranslationMap = {
     config: "Konfiguration",
     debug: "Debug",
     logs: "Protokolle",
+    health: "Gesundheit",
+    smarthome: "Smart Home",
   },
   subtitles: {
     agents: "Agent-Arbeitsbereiche, Tools und Identitäten verwalten.",
@@ -51,6 +53,8 @@ export const de: TranslationMap = {
     config: "~/.shittimchest/shittimchest.json sicher bearbeiten.",
     debug: "Gateway-Snapshots, Ereignisse und manuelle RPC-Aufrufe.",
     logs: "Live-Verfolgung der Gateway-Protokolldateien.",
+    health: "Pausenerinnerungen konfigurieren und Aktivitatslimits synchronisieren.",
+    smarthome: "Home Assistant-Verbindung konfigurieren und Smart-Home-Gerate verwalten.",
   },
   overview: {
     access: {

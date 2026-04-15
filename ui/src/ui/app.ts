@@ -378,6 +378,16 @@ export class ShittimChestApp extends LitElement {
   @state() healthRemindersResult: import("./types.js").HealthRemindersGetResult | null = null;
   @state() healthRemindersError: string | null = null;
 
+  @state() smarthomeLoading = false;
+  @state() smarthomeConfig: import("./types.js").HAConfigGetResult | null = null;
+  @state() smarthomeError: string | null = null;
+  @state() smarthomeCheckLoading = false;
+  @state() smarthomeCheckResult: import("./types.js").HAConnectionCheckResult | null = null;
+  @state() smarthomeSyncLoading = false;
+  @state() smarthomeSyncResult: import("./types.js").HASyncResult | null = null;
+  @state() smarthomeAuditLoading = false;
+  @state() smarthomeAudit: import("./types.js").HAAuditEntry[] | null = null;
+
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
   private chatScrollTimeout: number | null = null;

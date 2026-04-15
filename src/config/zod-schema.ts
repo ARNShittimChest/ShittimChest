@@ -856,6 +856,16 @@ export const ShittimChestSchema = z
       })
       .strict()
       .optional(),
+    homeAssistant: z
+      .object({
+        baseUrl: z.string().min(1).optional(),
+        accessToken: z.string().min(1).optional(),
+        enabled: z.boolean().optional(),
+        timeoutMs: z.number().int().min(1000).max(60000).optional(),
+        requireConfirmForSecurity: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((cfg, ctx) => {

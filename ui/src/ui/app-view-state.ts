@@ -265,6 +265,15 @@ export type AppViewState = {
   healthRemindersLoading: boolean;
   healthRemindersResult: import("./types.js").HealthRemindersGetResult | null;
   healthRemindersError: string | null;
+  smarthomeLoading: boolean;
+  smarthomeConfig: import("./types.js").HAConfigGetResult | null;
+  smarthomeError: string | null;
+  smarthomeCheckLoading: boolean;
+  smarthomeCheckResult: import("./types.js").HAConnectionCheckResult | null;
+  smarthomeSyncLoading: boolean;
+  smarthomeSyncResult: import("./types.js").HASyncResult | null;
+  smarthomeAuditLoading: boolean;
+  smarthomeAudit: import("./types.js").HAAuditEntry[] | null;
   updateAvailable: import("./types.js").UpdateAvailable | null;
   client: GatewayBrowserClient | null;
   refreshSessionsAfterChat: Set<string>;

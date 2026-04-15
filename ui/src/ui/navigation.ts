@@ -5,7 +5,7 @@ export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron", "health"],
+    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron", "health", "smarthome"],
   },
   { label: "agent", tabs: ["agents", "skills", "nodes"] },
   { label: "settings", tabs: ["config", "debug", "logs"] },
@@ -25,7 +25,8 @@ export type Tab =
   | "config"
   | "debug"
   | "logs"
-  | "health";
+  | "health"
+  | "smarthome";
 
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
@@ -42,6 +43,7 @@ const TAB_PATHS: Record<Tab, string> = {
   debug: "/debug",
   logs: "/logs",
   health: "/health",
+  smarthome: "/smarthome",
 };
 
 const PATH_TO_TAB = new Map(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab as Tab]));
@@ -155,6 +157,8 @@ export function iconForTab(tab: Tab): IconName {
       return "scrollText";
     case "health":
       return "zap";
+    case "smarthome":
+      return "plug";
     default:
       return "folder";
   }

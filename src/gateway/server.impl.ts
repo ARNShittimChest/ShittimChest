@@ -111,6 +111,7 @@ import {
   type HealthSchedulerHandle,
 } from "../arona/health/health-scheduler.js";
 import { initHealthConfig, recordSentReminder } from "../arona/health/health-config.js";
+import { initHAConfig, updateHAConfig, isHAConfigured } from "../arona/smarthome/ha-config.js";
 import { initTaskStore } from "../arona/tasks/index.js";
 import { applyTrigger, decayMood } from "../companion/emotional-state.js";
 import { loadOrCreateMoodState, saveMoodState } from "../companion/mood-persistence.js";
@@ -1107,6 +1108,29 @@ export async function startGatewayServer(
       log.info("[Health] Health config initialized");
     } catch (err) {
       log.warn(`[Health] Failed to initialize health config: ${String(err)}`);
+    }
+
+    // Initialize Home Assistant config (loads connection details from disk)
+    try {
+      initHAConfig(defaultWorkspaceDir);
+      // Apply settings from ShittimChest config if present
+      const haCfg = configSnapshot.config?.homeAssistant;
+      if (haCfg) {
+        updateHAConfig({
+          ...(haCfg.baseUrl ? { baseUrl: haCfg.baseUrl } : {}),
+          ...(haCfg.accessToken ? { accessToken: haCfg.accessToken } : {}),
+          ...(haCfg.enabled !== undefined ? { enabled: haCfg.enabled } : {}),
+          ...(haCfg.timeoutMs !== undefined ? { timeoutMs: haCfg.timeoutMs } : {}),
+          ...(haCfg.requireConfirmForSecurity !== undefined
+            ? { requireConfirmForSecurity: haCfg.requireConfirmForSecurity }
+            : {}),
+        });
+      }
+      log.info(
+        `[SmartHome] Home Assistant config initialized${isHAConfigured() ? " (connected)" : ""}`,
+      );
+    } catch (err) {
+      log.warn(`[SmartHome] Failed to initialize HA config: ${String(err)}`);
     }
 
     // Start health reminder scheduler (water, eyes, movement, sleep)

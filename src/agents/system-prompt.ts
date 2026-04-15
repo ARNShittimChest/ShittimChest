@@ -266,6 +266,8 @@ export function buildAgentSystemPrompt(params: {
   taskContext?: string;
   /** Health config summary (from health reminder config). */
   healthContext?: string;
+  /** Smart home context (from Home Assistant integration). */
+  smartHomeContext?: string;
   /** User schedule context (from habit learning system). */
   scheduleContext?: string;
   /** Sensei profile summary (from personality learning system). */
@@ -758,6 +760,8 @@ export function buildAgentSystemPrompt(params: {
     ...(params.taskContext?.trim() && !isMinimal ? [params.taskContext.trim(), ""] : []),
     // ── Health config context (injected from health reminder config) ──
     ...(params.healthContext?.trim() && !isMinimal ? [params.healthContext.trim(), ""] : []),
+    // ── Smart home context (injected from Home Assistant integration) ──
+    ...(params.smartHomeContext?.trim() && !isMinimal ? [params.smartHomeContext.trim(), ""] : []),
     // ── User schedule context (injected from habit learning system) ──
     ...(params.scheduleContext?.trim() && !isMinimal ? [params.scheduleContext.trim(), ""] : []),
     // ── Sensei profile context (injected from personality learning system) ──

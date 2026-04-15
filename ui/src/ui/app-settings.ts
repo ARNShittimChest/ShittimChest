@@ -255,6 +255,10 @@ export async function refreshActiveTab(host: SettingsHost) {
     const { loadHealthConfig } = await import("./controllers/health.ts");
     await loadHealthConfig(host as unknown as ShittimChestApp);
   }
+  if (host.tab === "smarthome") {
+    const { loadSmartHomeConfig } = await import("./controllers/smarthome.ts");
+    await loadSmartHomeConfig(host as unknown as ShittimChestApp);
+  }
 }
 
 export function inferBasePath() {

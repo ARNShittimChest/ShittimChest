@@ -200,6 +200,23 @@ export type ShittimChestConfig = {
       };
     };
   };
+
+  /**
+   * Home Assistant integration for smart home control.
+   * Arona can turn lights on/off, set AC temperature, lock doors, etc.
+   */
+  homeAssistant?: {
+    /** Home Assistant base URL, e.g. "http://192.168.1.100:8123" */
+    baseUrl?: string;
+    /** Long-lived access token for authentication */
+    accessToken?: string;
+    /** Whether the integration is enabled. Default: false */
+    enabled?: boolean;
+    /** API call timeout in milliseconds. Default: 10000 */
+    timeoutMs?: number;
+    /** Require confirmation before security actions (locks, alarms). Default: true */
+    requireConfirmForSecurity?: boolean;
+  };
 };
 
 export type ConfigValidationIssue = {
