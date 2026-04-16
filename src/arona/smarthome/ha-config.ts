@@ -514,6 +514,10 @@ export function buildSmartHomeContext(): string {
 
   const lines: string[] = ["[Smart Home — Home Assistant]"];
   lines.push(`Status: ${isHAConfigured() ? "Connected" : "Not configured"}`);
+  lines.push(`Server: ${cfg.baseUrl}`);
+  lines.push(
+    "NOTE: HA is already configured. Do NOT call configure action unless Sensei explicitly provides new connection details.",
+  );
 
   if (cfg.entities.length > 0) {
     lines.push("");

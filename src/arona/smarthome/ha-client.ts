@@ -51,6 +51,7 @@ async function haFetch<T>(method: "GET" | "POST", endpoint: string, body?: unkno
   }
 
   const url = `${cfg.baseUrl}${endpoint}`;
+  console.info(`[HA] ${method} ${url}`);
   const timeoutMs = cfg.timeoutMs || 10_000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -82,6 +83,7 @@ async function haFetch<T>(method: "GET" | "POST", endpoint: string, body?: unkno
     if (err instanceof Error && err.name === "AbortError") {
       throw new HATimeoutError(url, timeoutMs);
     }
+    console.error(`[HA] ${method} ${url} failed:`, err instanceof Error ? err.message : err);
     throw err;
   } finally {
     clearTimeout(timer);

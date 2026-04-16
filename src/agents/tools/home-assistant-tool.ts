@@ -70,7 +70,7 @@ const HomeAssistantToolSchema = Type.Object({
         '"activate_scene" — activate a predefined scene. ' +
         '"discover" — fetch all entities from Home Assistant (preview only). ' +
         '"sync" — auto-detect and import ALL devices from Home Assistant into Arona config. ' +
-        '"configure" — set HA connection details (baseUrl, accessToken). ' +
+        '"configure" — set HA connection details (ONLY if Sensei explicitly provides new connection info — do NOT call this for normal device control). ' +
         '"check_connection" — test connection to Home Assistant. ' +
         '"add_entity" — add/update a device mapping. ' +
         '"remove_entity" — remove a device mapping. ' +
@@ -201,7 +201,8 @@ const HomeAssistantToolSchema = Type.Object({
   // For configure
   base_url: Type.Optional(
     Type.String({
-      description: 'Home Assistant base URL (e.g. "http://192.168.1.100:8123").',
+      description:
+        "Home Assistant base URL — use the ACTUAL configured URL from config, do NOT use example IPs. Only set this if Sensei explicitly provides a new URL.",
     }),
   ),
   access_token: Type.Optional(
@@ -332,6 +333,17 @@ async function handleConfigure(params: Params) {
         requireConfirmForSecurity: cfg.requireConfirmForSecurity,
       },
     });
+  }
+
+  // Safety: warn and log if AI is overwriting an already-configured URL
+  const currentCfg = getHAConfig();
+  if (baseUrl !== undefined && currentCfg.baseUrl && currentCfg.baseUrl !== baseUrl) {
+    console.warn(
+      `[HA] WARNING: configure action changing baseUrl from "${currentCfg.baseUrl}" to "${baseUrl}"`,
+    );
+  }
+  if (baseUrl !== undefined) {
+    console.info(`[HA] configure: setting baseUrl to "${baseUrl}"`);
   }
 
   const updated = updateHAConfig({
@@ -758,10 +770,10 @@ export function createHomeAssistantTool(): AnyAgentTool {
     name: "home_assistant",
     description:
       "Control smart home devices via Home Assistant. " +
-      "Arona can turn lights on/off, adjust AC temperature, lock doors, activate scenes, and more. " +
-      'Use action "get_devices" to list devices, "call_service" to control them, ' +
-      '"activate_scene" for predefined scenes, "sync" to auto-detect and import ALL devices from HA, ' +
-      '"configure" to set up connection. ' +
+      "IMPORTANT: HA connection is already pre-configured — do NOT call 'configure' unless Sensei explicitly provides a new URL or token. " +
+      "For device control, just use 'call_service' directly. " +
+      'Use "get_devices" to list devices, "call_service" to control them, ' +
+      '"activate_scene" for predefined scenes, "sync" to auto-detect and import ALL devices from HA. ' +
       'Sensei says things like "Tắt đèn phòng khách", "Bật điều hòa 24 độ", "Cho robot hút bụi đi" — ' +
       "Arona translates to the right HA service call.",
     ownerOnly: true,
